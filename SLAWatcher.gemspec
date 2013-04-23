@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.summary     = "Tool for watching internal SLA"
   s.description = ""
 
-  s.rubyforge_project = "attask"
+  s.rubyforge_project = "SLAWatcher"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
