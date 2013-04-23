@@ -21,9 +21,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency "splunk-client"
   s.add_dependency "parse-cron"
-  s.add_dependency "logger"
   s.add_dependency "gli"
   s.add_dependency "active_record"
-  s.add_dependency "pp"
-
 end
