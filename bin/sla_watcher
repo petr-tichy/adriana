@@ -1,0 +1,119 @@
+#!/usr/bin/env ruby
+# 1.9 adds realpath to resolve symlinks; 1.8 doesn't
+# have this method, so we add it so we get resolved symlinks
+# and compatibility
+require 'rubygems'
+require 'active_record'
+require 'gli'
+require 'pp'
+require "lib/sla_watcher.rb"
+
+
+include GLI
+
+program_desc 'Program for SLA checking'
+
+
+desc 'Tests'
+command :test do |c|
+#  c.desc 'Execute only for one entity.'
+#  c.default_value false
+#  c.flag [:o, :only]
+
+  c.action do |global_options,options,args|
+    #sla_watcher = SLAWatcher.client()
+    #sla_watcher.timeline
+    #sla_watcher.projects
+    #sla_watcher.projects.each do |project|
+
+    SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
+    splunk = SLAWatcher.splunk(@splunk_username,@splunk_password,@splunk_hostname)
+
+    last_run = SLAWatcher.load_last_run
+    now      = DateTime.now
+    projects = SLAWatcher.get_projects
+    events = splunk.load_runs(last_run,now,projects)
+
+    events.each do |event|
+      SLAWatcher.log_execution(event[:project_pid],event[:clover_graph],event[:mode],event[:status],"From Splunk synchronizer",event[:time])
+    end
+
+    SLAWatcher.save_last_run(now)
+
+
+
+
+
+
+
+
+
+
+
+
+
+  end
+end
+
+desc 'Tests'
+command :not_started do |c|
+#  c.desc 'Execute only for one entity.'
+#  c.default_value false
+#  c.flag [:o, :only]
+
+  c.action do |global_options,options,args|
+    sla_watcher = SLAWatcher.client()
+    #sla_watcher.timeline
+    #sla_watcher.projects
+    sla_watcher.projects.projects.each_pair do |pid,project|
+      pp project
+
+    end
+
+  end
+end
+
+
+
+
+pre do |global,command,options,args|
+  next true if command.nil?
+
+  File.open( "config/config.json", "r" ) do |f|
+    json = JSON.load( f )
+    @splunk_username = json["splunk_username"]
+    @splunk_password = json["splunk_password"]
+    @splunk_hostname = json["splunk_hostname"]
+    @postgres_hostname = json["postgres_hostname"]
+    @postgres_port = json["postgres_port"]
+    @postgres_username = json["postgres_username"]
+    @postgres_password = json["postgres_password"]
+    @postgres_database = json["postgres_database"]
+  end
+
+
+
+  # Pre logic here
+  # Return true to proceed; false to abourt and not call the
+  # chosen command
+  # Use skips_pre before a command to skip this block
+  # on that command only
+  true
+end
+
+post do |global,command,options,args|
+  #@log.close
+end
+
+on_error do |exception|
+  pp exception.backtrace
+  if exception.is_a?(SystemExit) && exception.status == 0
+    false
+  else
+    pp exception.inspect
+    false
+  end
+end
+
+
+exit GLI.run(ARGV)
