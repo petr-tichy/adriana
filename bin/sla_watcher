@@ -10,7 +10,7 @@ require 'pp'
 require "lib/sla_watcher.rb"
 
 
-include GLI
+include GLI::App
 
 program_desc 'Program for SLA checking'
 
