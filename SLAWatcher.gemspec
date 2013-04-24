@@ -21,6 +21,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency "splunk-client"
   s.add_dependency "parse-cron"
-  s.add_dependency "gli"
+  s.add_dependency "gli","= 1.6.0"
   s.add_dependency "activerecord","~> 3.2.12"
 end
