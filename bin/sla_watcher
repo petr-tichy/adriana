@@ -15,44 +15,31 @@ include GLI
 program_desc 'Program for SLA checking'
 
 
-desc 'Tests'
-command :test do |c|
-#  c.desc 'Execute only for one entity.'
-#  c.default_value false
-#  c.flag [:o, :only]
-
+desc 'Synchronize with Splunk'
+command :splunk_synchronization do |c|
   c.action do |global_options,options,args|
-    #sla_watcher = SLAWatcher.client()
-    #sla_watcher.timeline
-    #sla_watcher.projects
-    #sla_watcher.projects.each do |project|
 
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
     splunk = SLAWatcher.splunk(@splunk_username,@splunk_password,@splunk_hostname)
 
+
+    # Load the last time when the synchronization was executed
     last_run = SLAWatcher.load_last_run
     now      = DateTime.now
+    # Load all CC project which need to be monitored
     projects = SLAWatcher.get_projects
+
+
+    # Returns all events for given set of project in given time frame
     events = splunk.load_runs(last_run,now,projects)
 
+    # Save the events to the database
     events.each do |event|
       SLAWatcher.log_execution(event[:project_pid],event[:clover_graph],event[:mode],event[:status],"From Splunk synchronizer",event[:time])
     end
 
+    #Save the last run date
     SLAWatcher.save_last_run(now)
-
-
-
-
-
-
-
-
-
-
-
-
-
   end
 end
 
