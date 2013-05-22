@@ -3,11 +3,16 @@ $: << File.expand_path(File.dirname(__FILE__) + "/")
 require 'parse-cron'
 require "lib/data/connection.rb"
 require 'logger'
+require 'lib/migration.rb'
+require 'composite_primary_keys'
 
-%w(crontab_parser log helper).each {|a| require "lib/helpers/#{a}"}
-%w(execution_log project_info project settings).each {|a| require "lib/data/#{a}"}
+%w(crontab_parser log helper change_watcher).each {|a| require "lib/helpers/#{a}"}
+%w(project task).each {|a| require "lib/data/stage/#{a}"}
+%w(execution_log project settings schedule project_history schedule_history).each {|a| require "lib/data/log/#{a}"}
 %w(base timeline projects statistics).each {|a| require "lib/objects/#{a}"}
+%w(severity key event test livetest startedtest).each {|a| require "lib/tests/#{a}"}
 %w(splunk_downloader).each {|a| require "lib/splunk/#{a}"}
+
 
 
 module SLAWatcher
@@ -45,6 +50,33 @@ module SLAWatcher
     def log_execution(pid,graph_name,mode,status,detailed_status,time = nil)
       SLAWatcher::ExecutionLog.log_execution(pid,graph_name,mode,status,detailed_status,time)
     end
+
+    def start_migration()
+      migration = SLAWatcher::Migration.new()
+      migration.compare_stage_log_project
+      migration.compare_stage_log_schedule
+    end
+
+
+    def test()
+      events = []
+      #livetest = SLAWatcher::LiveTest.new(events)
+      #livetest.start
+
+      startedTest = SLAWatcher::StartedTest.new(events)
+      startedTest.start
+
+      events.each do |e|
+        puts "----------------- Event START -------------------------"
+        puts e.to_s
+        puts "----------------- Event STOP  -------------------------"
+      end
+
+
+      #pp ExecutionLog.get_last_events_in_interval("test",["prod2","prod3"],"app",DateTime.now - 12.hour)
+    end
+
+
 
 
 
