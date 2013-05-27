@@ -147,7 +147,17 @@ module SLAWatcher
       @@log.info "Ending Stage > Log schedule migration"
 
       ## TO DO - validation message sending
-      pp @validity_check
+      @validity_check.each do |e|
+        @@log.warn "---------- Validation Message ----------"
+        @@log.warn "Project - #{e.key} has following validation problems:"
+        e.value.each do |v|
+          @@log.warn "Graph name - #{v[:graph_name]} mode - #{v[:mode]}"
+          @@log.warn v[:message]
+        end
+        @@log.warn "---------- Validation Message ----------"
+      end
+
+
 
 
 

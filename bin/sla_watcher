@@ -96,9 +96,9 @@ end
 
 pre do |global,command,options,args|
   next true if command.nil?
-
+  @@log = Logger.new("log/sla_#{command.name}.log",'daily')
   #@@log = Logger.new("log/sla_watcher.log",'daily')
-  @@log = Logger.new(STDOUT)
+  #@@log = Logger.new(STDOUT)
 
   File.open( "config/config.json", "r" ) do |f|
     json = JSON.load( f )
@@ -123,10 +123,11 @@ pre do |global,command,options,args|
 end
 
 post do |global,command,options,args|
-  #@log.close
+  #Pony.mail(:to => "adrian.toman@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Some work was done in #{command.name}", :body => "File in attachements", :attachments => {"sla_#{command.name}.log" => File.read("log/sla_#{command.name}.log")})
 end
 
 on_error do |exception|
+  Pony.mail(:to => "adrian.toman@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Error in command #{command.name}", :body => "Error: #{exception.backtrace}" )
   pp exception.backtrace
   if exception.is_a?(SystemExit) && exception.status == 0
     false
