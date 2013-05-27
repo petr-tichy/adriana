@@ -8,6 +8,7 @@ require 'active_record'
 require 'gli'
 require 'pp'
 require "lib/sla_watcher.rb"
+require 'pony'
 
 
 include GLI
