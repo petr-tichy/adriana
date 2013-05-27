@@ -26,5 +26,7 @@ Gem::Specification.new do |s|
   s.add_dependency "composite_primary_keys"
   s.add_dependency "activerecord-postgresql-adapter"
   s.add_dependency "pony"
+  s.add_dependency "splunk-client"
+
 
 end
