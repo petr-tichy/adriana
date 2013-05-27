@@ -25,5 +25,6 @@ Gem::Specification.new do |s|
   s.add_dependency "activerecord","~> 3.2.12"
   s.add_dependency "composite_primary_keys"
   s.add_dependency "activerecord-postgresql-adapter"
+  s.add_dependency "pony"
 
 end
