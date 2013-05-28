@@ -128,7 +128,7 @@ post do |global,command,options,args|
 end
 
 on_error do |exception|
-  #Pony.mail(:to => "adrian.toman@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Error", :body => "Error: #{exception.backtrace}" )
+  Pony.mail(:to => "adrian.toman@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Error", :body => "Error: #{exception.backtrace}" )
   pp exception.backtrace
   if exception.is_a?(SystemExit) && exception.status == 0
     false
