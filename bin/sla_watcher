@@ -3,7 +3,7 @@
 # have this method, so we add it so we get resolved symlinks
 # and compatibility
 require 'rubygems'
-#require 'bundler/setup'
+require 'bundler/setup'
 require 'active_record'
 require 'gli'
 require 'pp'
