@@ -1,5 +1,5 @@
 require 'splunk-client'
-
+require 'nokogiri'
 
 module SLAWatcher
 
@@ -18,6 +18,7 @@ module SLAWatcher
     def execute_query(query)
       # Create the Search
       search = @splunk.search(query)
+      sleep(10)
       search.wait # Blocks until the search returns
       search
     end
@@ -32,6 +33,8 @@ module SLAWatcher
       query = @last_runs_query.sub("%PIDS%",project_strings.join(" OR "));
       query = query.sub("%START_TIME%",from.strftime("%m/%d/%Y:%H:%M:%S"));
       query = query.sub("%END_TIME%",to.strftime("%m/%d/%Y:%H:%M:%S"));
+
+      puts query
 
       result = execute_query(query)
 
