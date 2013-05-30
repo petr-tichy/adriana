@@ -61,8 +61,7 @@ module SLAWatcher
         # The project is in Log database, but it was not found in stage (most likely due to delete)
         p =  @projects_in_stage.find {|stage_project| log_project.project_pid == stage_project.de_project_pid}
         if (p.nil?)
-
-          changeWatcher = ChangeWatcher.new(p.project_pid)
+          changeWatcher = ChangeWatcher.new(log_project.project_pid)
           changeWatcher.addComparer(Comparer.new("false","true","is_deleted"))
 
           ActiveRecord::Base.transaction do
@@ -71,7 +70,7 @@ module SLAWatcher
             changeWatcher.different_values.each do |value|
               log_project[value.key] = value.secondValue
             end
-            p.save
+            log_project.save
           end
         end
       end
@@ -90,6 +89,11 @@ module SLAWatcher
               create_validity_message(stage_schedule.project_pid,stage_schedule.graph.downcase,stage_schedule.mode.downcase,nil,"Cron expresion: #{stage_schedule.cron} is not valid")
               valid = false
             end
+          end
+
+          if (stage_schedule.project_pid == '')
+            create_validity_message(stage_schedule.project_pid,stage_schedule.graph.downcase,stage_schedule.mode.downcase,nil,"Looks like projects and task are not synchronized in stage")
+            valid = false
           end
 
 

@@ -25,8 +25,8 @@ module SLAWatcher
         @MODES.each do |mode|
           log = @execution_log.find{|f| f.mode == mode}
           if (log.nil?) then
-            event = CustomEvent.new(Key.new(@PROJECT_PID,@GRAPH_NAME,mode),@SEVERITY,@EVENT_TYPE,"The LiveCheck project on server #{mode} is not working",DateTime.now,true,"LiveTest",mode)
-            @events.push(event)
+            event = CustomEvent.new(Key.new(@PROJECT_PID,@GRAPH_NAME,mode),@SEVERITY,@EVENT_TYPE,"The LiveCheck project on server #{mode} is not working",DateTime.now,false)
+            @events.push_event(event)
           end
         end
       end
@@ -34,8 +34,8 @@ module SLAWatcher
       @execution_log.each do |log|
         number_of_minutes_from_last_finish = (Time.now - log.updated_at)/1.minute
         if (number_of_minutes_from_last_finish > @WARNING_INTERVAL)
-          event = CustomEvent.new(Key.new(@PROJECT_PID,@GRAPH_NAME,log.mode),@SEVERITY,@EVENT_TYPE,"The LiveCheck project on server #{log.mode} has not logged in last #{@WARNING_INTERVAL} mins",DateTime.now,true,"LiveTest",log.mode)
-          @events.push(event)
+          event = CustomEvent.new(Key.new(@PROJECT_PID,@GRAPH_NAME,log.mode),@SEVERITY,@EVENT_TYPE,"The LiveCheck project on server #{log.mode} has not logged in last #{@WARNING_INTERVAL} mins",DateTime.now,false)
+          @events.push_event(event)
         end
       end
     end

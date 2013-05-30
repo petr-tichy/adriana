@@ -13,15 +13,15 @@ module SLAWatcher
     def start()
       load_data
 
-      # Lets check if all live schedules were started event once
-      # Severity - MEDIUM
-      #@live_schedules.each do |live_schedule|
-      #  execution = @execution_log.find{|e| e.r_schedule == live_schedule.id}
-      #  if (execution.nil?)
-      #    event = CustomEvent.new(Key.new(live_schedule.r_project,live_schedule.graph_name,live_schedule.mode),Severity.MEDIUM,@EVENT_TYPE,"This schedule was not started even once",DateTime.now,true)
-      #    @events.push(event)
-      #  end
-      #end
+      #Lets check if all live schedules were started event once
+      #Severity - MEDIUM
+      @live_schedules.each do |live_schedule|
+        execution = @execution_log.find{|e| e.r_schedule == live_schedule.id}
+        if (execution.nil?)
+          event = CustomEvent.new(Key.new(live_schedule.r_project,live_schedule.graph_name,live_schedule.mode),Severity.MEDIUM,@EVENT_TYPE,"This schedule was not started even once",DateTime.now,true)
+          @events.push_event(event)
+        end
+      end
 
 
 
@@ -36,16 +36,16 @@ module SLAWatcher
                 next_run = Helper.next_run(schedule.cron,execution.event_start.utc,SLAWatcher::UTCTime)
                 running_late_for = ((next_run - now)/1.minute)*(-1)
                 if (running_late_for > 15)
-                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"This schedule was not started - should started at: #{next_run.in_time_zone("CET")}",DateTime.now,true,schedule.name,schedule.server)
-                  @events.push(event)
+                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"This schedule was not started - should started at: #{next_run.in_time_zone("CET")}",DateTime.now,false)
+                  @events.push_event(event)
                 end
               else
                 now = Time.now
                 next_run = Helper.next_run(schedule.cron,execution.event_start,Time)
                 running_late_for = ((next_run - now)/1.minute)*(-1)
                 if (running_late_for > 15)
-                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"This schedule was not started - should started at: #{next_run}",DateTime.now,true,schedule.name,schedule.server)
-                  @events.push(event)
+                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"This schedule was not started - should started at: #{next_run}",DateTime.now,false)
+                  @events.push_event(event)
                 end
               end
           end

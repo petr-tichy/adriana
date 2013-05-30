@@ -97,9 +97,9 @@ end
 
 pre do |global,command,options,args|
   next true if command.nil?
-  @@log = Logger.new("log/sla_#{command.name}.log",'daily')
+  @@log = Logger.new("log/sla_#{command.name}.log",'daily') if ENV["USERNAME"] != "adrian.toman"
   #@@log = Logger.new("log/sla_watcher.log",'daily')
-  #@@log = Logger.new(STDOUT)
+  @@log = Logger.new(STDOUT) if ENV["USERNAME"] == "adrian.toman"
 
   File.open( "config/config.json", "r" ) do |f|
     json = JSON.load( f )

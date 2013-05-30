@@ -1,24 +1,31 @@
 module SLAWatcher
 
-  class CustomEvent
+    class CustomEvent
 
-    attr_accessor :key,:severity,:type,:text,:date,:persistent
+    attr_accessor :key,:severity,:event_type,:text,:created_date,:persistent,:updated_date,:notified,:historical
 
-    def initialize(key,severity,type,text,date,persistent,project_name,server)
+    def initialize(key,severity,event_type,text,date,persistent,historical = false)
       @key = key
       @severity = severity
-      @type = type
+      @event_type = event_type
       @text = text
-      @date = date
+      @created_date = date
       @persistent = persistent
-      @project_name = project_name
-      @server = server
+      @updated_date = nil
+      @notified = false
+      @historical = historical
     end
 
 
     def to_s
-      "Event " + @key.to_s + "\n Project Name: #{@project_name} Server: #{@server} \nSeverity: #{@severity} Type: #{@type} Date: #{@date} Persistent: #{@persistent} \n#{text}"
+      "Event " + @key.to_s + "\nSeverity: #{@severity} Type: #{@event_type} Date: #{@date} Persistent: #{@persistent} \n#{text}"
     end
+
+    def to_db_entity
+      {:project_pid => @key.project_pid,:graph_name => @key.graph,:mode => @key.mode,:severity => @severity,:event_type => @event_type, :text => @text, :created_date => @created_date, :persistent => @persistent,:notified => @notified,:updated_date => @updated_date}
+    end
+
+
 
   end
 

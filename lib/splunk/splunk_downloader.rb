@@ -12,12 +12,14 @@ module SLAWatcher
       @last_runs_query = 'eventtype=MSF mode component="workers.clover-executor" starttime=%START_TIME% endtime=%END_TIME%  action=worker_run (status=STARTED OR status=FINISHED OR status=ERROR) ( %PIDS% )
                         | fields project_id, request_id,transformation_id, clover_graph, mode, status, _time
                         | table project_id, request_id,transformation_id, clover_graph, mode, status, _time'
+
     end
 
 
     def execute_query(query)
       # Create the Search
       search = @splunk.search(query)
+      puts query
       sleep(10)
       search.wait # Blocks until the search returns
       search
@@ -33,9 +35,6 @@ module SLAWatcher
       query = @last_runs_query.sub("%PIDS%",project_strings.join(" OR "));
       query = query.sub("%START_TIME%",from.strftime("%m/%d/%Y:%H:%M:%S"));
       query = query.sub("%END_TIME%",to.strftime("%m/%d/%Y:%H:%M:%S"));
-
-      puts query
-
       result = execute_query(query)
 
       values = []

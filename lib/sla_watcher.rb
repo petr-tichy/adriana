@@ -8,9 +8,9 @@ require 'composite_primary_keys'
 
 %w(crontab_parser log helper change_watcher).each {|a| require "lib/helpers/#{a}"}
 %w(project task).each {|a| require "lib/data/stage/#{a}"}
-%w(execution_log project settings schedule project_history schedule_history).each {|a| require "lib/data/log/#{a}"}
+%w(execution_log project settings schedule project_history schedule_history event_log).each {|a| require "lib/data/log/#{a}"}
 %w(base timeline projects statistics).each {|a| require "lib/objects/#{a}"}
-%w(severity key event test livetest startedtest).each {|a| require "lib/tests/#{a}"}
+%w(events severity key event test livetest startedtest).each {|a| require "lib/tests/#{a}"}
 %w(splunk_downloader).each {|a| require "lib/splunk/#{a}"}
 
 
@@ -59,18 +59,21 @@ module SLAWatcher
 
 
     def test()
-      events = []
-      #livetest = SLAWatcher::LiveTest.new(events)
-      #livetest.start
+      events = Events.new
+      livetest = SLAWatcher::LiveTest.new(events)
+      livetest.start
 
       startedTest = SLAWatcher::StartedTest.new(events)
       startedTest.start
 
-      events.each do |e|
-        puts "----------------- Event START -------------------------"
-        puts e.to_s
-        puts "----------------- Event STOP  -------------------------"
-      end
+      events.save
+
+      #
+      #events.each do |e|
+      #  puts "----------------- Event START -------------------------"
+      #  puts e.to_s
+      #  puts "----------------- Event STOP  -------------------------"
+      #end
 
 
       #pp ExecutionLog.get_last_events_in_interval("test",["prod2","prod3"],"app",DateTime.now - 12.hour)
