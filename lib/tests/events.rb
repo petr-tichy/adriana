@@ -53,9 +53,6 @@ module SLAWatcher
       @events.each do |e|
         #stage_schedule = @schedule_in_stage.find{|s| s.r_project == e.key.project_pid and s.graph_name = e.graph and s.mode == e.mode}
         stage_project = @projects_in_stage.find{|p| p.de_project_pid == e.key.project_pid }
-
-        pp stage_project
-
         body << "---------------------------------------- \n"
         body << "Project Name: #{stage_project.name} \n"
         body << e.to_s
@@ -70,9 +67,6 @@ module SLAWatcher
         if (e.severity > Severity.MEDIUM and e.notified == false)
           #stage_schedule = @schedule_in_stage.find{|s| s.r_project == e.key.project_pid and s.graph_name = e.graph and s.mode == e.mode}
           stage_project = @projects_in_stage.find{|p| p.de_project_pid == e.key.project_pid }
-
-          pp stage_project
-
           e.notified = true
           body << "---------------------------------------- \n"
           body << "Project Name: #{stage_project.name} \n"
@@ -80,11 +74,8 @@ module SLAWatcher
           body << "---------------------------------------- \n"
         end
       end
-      Pony.mail(:to => "adrian.toman@gooddata.com,jan.cisar@gooddata.com,jiri.stovicek@gooddata.com,miloslav.zientek@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Monitor - PagerDuty incident", :body => body )
+      Pony.mail(:to => "adrian.toman@gooddata.com,jan.cisar@gooddata.com,jiri.stovicek@gooddata.com,miloslav.zientek@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Monitor - PagerDuty incident", :body => body ) if body.empty?
     end
-
-
-
 
     private
 
