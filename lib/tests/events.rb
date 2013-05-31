@@ -48,6 +48,31 @@ module SLAWatcher
       end
     end
 
+    def mail_status
+      body = ""
+      @events.each do |e|
+        body << "---------------------------"
+        body << e.to_s
+        body << "---------------------------"
+      end
+      Pony.mail(:to => "adrian.toman@gooddata.com,jan.cisar@gooddata.com,jiri.stovicek@gooddata.com,miloslav.zientek@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Monitor - Status message", :body => body )
+    end
+
+    def mail_incident
+      body = ""
+      @events.each do |e|
+        if (e.severity > Severity.MEDIUM and e.notified == false)
+          e.notified = true
+          body << "---------------------------"
+          body << e.to_s
+          body << "---------------------------"
+        end
+      end
+      Pony.mail(:to => "adrian.toman@gooddata.com,jan.cisar@gooddata.com,jiri.stovicek@gooddata.com,miloslav.zientek@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Monitor - PagerDuty incident", :body => body )
+    end
+
+
+
 
     private
 

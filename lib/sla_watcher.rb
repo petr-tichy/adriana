@@ -66,8 +66,9 @@ module SLAWatcher
       startedTest = SLAWatcher::StartedTest.new(events)
       startedTest.start
 
+      events.mail_incident
+      events.mail_status
       events.save
-
       #
       #events.each do |e|
       #  puts "----------------- Event START -------------------------"
