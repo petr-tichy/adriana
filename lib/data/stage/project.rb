@@ -4,7 +4,7 @@ module SLAWatcher
 
 
     def self.project_by_category(category)
-      select('project.de_project_pid,project.de_operational_status,project.name,u.emailaddr as email, project.de_solution_engineer as ms_person').joins('LEFT OUTER JOIN stage.user u ON u.id = project.ownerid').where("project.categoryid = ? and project.de_project_pid != ''",category)
+      select('project.de_project_pid,project.de_operational_status,project.name,u.emailaddr as email, project.de_solution_engineer as ms_person,project.de_running_on as server').joins('LEFT OUTER JOIN stage.user u ON u.id = project.ownerid').where("project.categoryid = ? and project.de_project_pid != ''",category)
     end
 
     #def self.project_users

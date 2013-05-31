@@ -54,7 +54,7 @@ module SLAWatcher
         #stage_schedule = @schedule_in_stage.find{|s| s.r_project == e.key.project_pid and s.graph_name = e.graph and s.mode == e.mode}
         stage_project = @projects_in_stage.find{|p| p.de_project_pid == e.key.project_pid }
         body << "---------------------------------------- \n"
-        body << "Project Name: #{stage_project.name} \n"
+        body << "Project Name: #{stage_project.name} Server: #{stage_project.server}\n"
         body << e.to_s
         body << "---------------------------------------- \n"
       end
@@ -69,7 +69,7 @@ module SLAWatcher
           stage_project = @projects_in_stage.find{|p| p.de_project_pid == e.key.project_pid }
           e.notified = true
           body << "---------------------------------------- \n"
-          body << "Project Name: #{stage_project.name} \n"
+          body << "Project Name: #{stage_project.name} Server: #{stage_project.server} \n"
           body << e.to_s
           body << "---------------------------------------- \n"
         end
