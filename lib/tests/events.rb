@@ -51,9 +51,15 @@ module SLAWatcher
     def mail_status
       body = ""
       @events.each do |e|
-        body << "---------------------------"
+        #stage_schedule = @schedule_in_stage.find{|s| s.r_project == e.key.project_pid and s.graph_name = e.graph and s.mode == e.mode}
+        stage_project = @projects_in_stage.find{|p| p.de_project_pid == e.key.project_pid }
+
+        pp stage_project
+
+        body << "---------------------------------------- \n"
+        body << "Project Name: #{stage_project.name} \n"
         body << e.to_s
-        body << "---------------------------"
+        body << "---------------------------------------- \n"
       end
       Pony.mail(:to => "adrian.toman@gooddata.com,jan.cisar@gooddata.com,jiri.stovicek@gooddata.com,miloslav.zientek@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Monitor - Status message", :body => body )
     end
@@ -62,10 +68,16 @@ module SLAWatcher
       body = ""
       @events.each do |e|
         if (e.severity > Severity.MEDIUM and e.notified == false)
+          #stage_schedule = @schedule_in_stage.find{|s| s.r_project == e.key.project_pid and s.graph_name = e.graph and s.mode == e.mode}
+          stage_project = @projects_in_stage.find{|p| p.de_project_pid == e.key.project_pid }
+
+          pp stage_project
+
           e.notified = true
-          body << "---------------------------"
+          body << "---------------------------------------- \n"
+          body << "Project Name: #{stage_project.name} \n"
           body << e.to_s
-          body << "---------------------------"
+          body << "---------------------------------------- \n"
         end
       end
       Pony.mail(:to => "adrian.toman@gooddata.com,jan.cisar@gooddata.com,jiri.stovicek@gooddata.com,miloslav.zientek@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Monitor - PagerDuty incident", :body => body )
@@ -83,6 +95,13 @@ module SLAWatcher
         custom_event = CustomEvent.new(key,db_event.severity,db_event.event_type,db_event.text,db_event.created_date,db_event.persistent,true)
         push_event(custom_event)
       end
+
+      project_category_id = SLAWatcher::Settings.load_project_category_id.first.value
+      task_category_id = SLAWatcher::Settings.load_schedule_category_id.first.value
+
+      @projects_in_stage = SLAWatcher::StageProject.project_by_category(project_category_id)
+      #@schedule_in_stage = SLAWatcher::StageTask.task_by_category(task_category_id)
+
     end
 
 
