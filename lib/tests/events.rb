@@ -83,7 +83,7 @@ module SLAWatcher
       events = EventLog.select("*")
       events.each do |db_event|
         key = Key.new(db_event.project_pid,db_event.graph_name,db_event.mode)
-        custom_event = CustomEvent.new(key,db_event.severity,db_event.event_type,db_event.text,db_event.created_date,db_event.persistent,true)
+        custom_event = CustomEvent.new(key,db_event.severity,db_event.event_type,db_event.text,db_event.created_date,db_event.persistent,true,db_event.notified)
         push_event(custom_event)
       end
 

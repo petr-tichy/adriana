@@ -4,7 +4,7 @@ module SLAWatcher
 
     attr_accessor :key,:severity,:event_type,:text,:created_date,:persistent,:updated_date,:notified,:historical
 
-    def initialize(key,severity,event_type,text,date,persistent,historical = false)
+    def initialize(key,severity,event_type,text,date,persistent,historical = false,notified = false)
       @key = key
       @severity = severity
       @event_type = event_type
@@ -12,7 +12,7 @@ module SLAWatcher
       @created_date = date
       @persistent = persistent
       @updated_date = nil
-      @notified = false
+      @notified = notified
       @historical = historical
     end
 
