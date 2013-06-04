@@ -21,6 +21,15 @@ module SLAWatcher
       select("MAX(event_start) as event_start,s.graph_name as graph_name,s.mode as mode,s.r_project as project_pid,execution_log.r_schedule as r_schedule").joins("INNER JOIN log2.schedule s ON s.id = execution_log.r_schedule").joins("INNER JOIN log2.project p ON p.project_pid = s.r_project").where("p.status = 'Live' and p.is_deleted = 'false'").group("execution_log.r_schedule,s.graph_name,s.mode,s.r_project")
     end
 
+    def self.get_run_statistics(day_of_week,statistics_start)
+      select("r_schedule,AVG(event_end - event_start) as avg_run").where("EXTRACT(DOW FROM event_start) = ? AND status = 'FINISHED' AND event_start > ?",day_of_week,statistics_start).group("r_schedule")
+    end
+
+
+    def self.get_running_projects(two_days_back)
+      select("*").joins("INNER JOIN log2.schedule s ON s.id = execution_log.r_schedule").where("status = 'RUNNING' and event_start > ?",two_days_back)
+    end
+
 
 
 

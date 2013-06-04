@@ -10,7 +10,7 @@ require 'composite_primary_keys'
 %w(project task).each {|a| require "lib/data/stage/#{a}"}
 %w(execution_log project settings schedule project_history schedule_history event_log).each {|a| require "lib/data/log/#{a}"}
 %w(base timeline projects statistics).each {|a| require "lib/objects/#{a}"}
-%w(events severity key event test livetest startedtest).each {|a| require "lib/tests/#{a}"}
+%w(events severity key event test livetest startedtest finishedtest).each {|a| require "lib/tests/#{a}"}
 %w(splunk_downloader).each {|a| require "lib/splunk/#{a}"}
 
 
@@ -62,13 +62,18 @@ module SLAWatcher
       events = Events.new
       livetest = SLAWatcher::LiveTest.new(events)
       livetest.start
-
+      #
       startedTest = SLAWatcher::StartedTest.new(events)
       startedTest.start
+
+      finishedTest = SLAWatcher::FinishedTest.new(events)
+      finishedTest.start
 
       events.mail_incident
       events.mail_status
       events.save
+
+
       #
       #events.each do |e|
       #  puts "----------------- Event START -------------------------"
