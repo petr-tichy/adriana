@@ -26,11 +26,11 @@ module SLAWatcher
           run_statistical_time =  Helper.interval_to_minutes(statistical_value.avg_run)
           run_actual_time = (@now - execution.event_start)/60
           difference = run_actual_time - run_statistical_time
-          if (difference > @WARNING_INTERVAL)
-            event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),@SEVERITY,@EVENT_TYPE,"The project is running for to long. Standard run time : #{(run_statistical_time.round)} minutes Current run time: #{(run_actual_time.round)} minutes",DateTime.now,false)
-            @events.push_event(event)
-          elsif (difference > 2*@WARNING_INTERVAL)
+          if (difference > 2*@WARNING_INTERVAL)
             event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),@SEVERITY+1,@EVENT_TYPE,"The project is running for to long. Standard run time : #{(run_statistical_time.round)} minutes Current run time: #{(run_actual_time.round)} minutes",DateTime.now,false)
+            @events.push_event(event)
+          elsif (difference > @WARNING_INTERVAL)
+            event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),@SEVERITY,@EVENT_TYPE,"The project is running for to long. Standard run time : #{(run_statistical_time.round)} minutes Current run time: #{(run_actual_time.round)} minutes",DateTime.now,false)
             @events.push_event(event)
           end
         else
