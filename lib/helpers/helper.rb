@@ -65,7 +65,7 @@ module SLAWatcher
     end
 
     def self.interval_to_minutes(interval)
-      pp interval
+      @@log.info interval
       values = interval.split(":")
       hours = Integer(values[0])
       minutes = Integer(values[1])
