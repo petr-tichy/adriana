@@ -71,6 +71,8 @@ module SLAWatcher
       @@log.info hours
       minutes = values[1] == "00" ? 0 : Integer(values[1])
       @@log.info minutes
+      @@log.info values[2].split(".")[0]
+      @@log.info values[2]
       seconds = values[2].split(".")[0] == "00" ? 0 : Integer(values[2].split(".")[0])
       @@log.info seconds
       hours * 60 + minutes + (seconds == 0 ? 0 : seconds/60)
