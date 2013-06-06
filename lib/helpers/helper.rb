@@ -66,8 +66,17 @@ module SLAWatcher
 
     def self.interval_to_minutes(interval)
       values = interval.split(":")
-      hours = values[0] == "00" ? 0 : Integer(values[0])
-      minutes = values[1] == "00" ? 0 : Integer(values[1])
+      if (values[0].chars.to_a[0] == "0")
+        hours = Integer(values[0].chars.to_a[1])
+      else
+        hours = Integer(values[0])
+      end
+
+      if (values[1].chars.to_a[0] == "0")
+        minutes = Integer(values[1].chars.to_a[1])
+      else
+        minutes = Integer(values[1])
+      end
       hours * 60 + minutes
     end
 
