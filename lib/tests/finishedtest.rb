@@ -27,15 +27,15 @@ module SLAWatcher
           run_actual_time = (@now - execution.event_start)/60
           difference = run_actual_time - run_statistical_time
           if (difference > 2*@WARNING_INTERVAL)
-            event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),@SEVERITY+1,@EVENT_TYPE,"The project is running for to long. Standard run time : #{(run_statistical_time.round)} minutes Current run time: #{(run_actual_time.round)} minutes",DateTime.now,false)
+            event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),@SEVERITY+1,@EVENT_TYPE,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",DateTime.now,false)
             @events.push_event(event)
           elsif (difference > @WARNING_INTERVAL)
-            event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),@SEVERITY,@EVENT_TYPE,"The project is running for to long. Standard run time : #{(run_statistical_time.round)} minutes Current run time: #{(run_actual_time.round)} minutes",DateTime.now,false)
+            event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),@SEVERITY,@EVENT_TYPE,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",DateTime.now,false)
             @events.push_event(event)
           end
         else
           # We don't have enough statistical data to monitor this schedules ... lets create LOW SEVERITY event to let us know
-          event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),Severity.LOW,@EVENT_TYPE,"We don't have enough statistical data about this project - FINISHED test not applied",DateTime.now,false)
+          event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),Severity.LOW,@EVENT_TYPE,"Not enough statistical data - FINISHED test not applied",DateTime.now,false)
           @events.push_event(event)
         end
 

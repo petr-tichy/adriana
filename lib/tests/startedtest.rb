@@ -36,7 +36,7 @@ module SLAWatcher
                 next_run = Helper.next_run(schedule.cron,execution.event_start.utc,SLAWatcher::UTCTime)
                 running_late_for = ((next_run - now)/1.minute)*(-1)
                 if (running_late_for > 15)
-                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"This schedule was not started - should started at: #{next_run.in_time_zone("CET")}",DateTime.now,false)
+                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",DateTime.now,false)
                   @events.push_event(event)
                 end
               else
@@ -44,7 +44,7 @@ module SLAWatcher
                 next_run = Helper.next_run(schedule.cron,execution.event_start,Time)
                 running_late_for = ((next_run - now)/1.minute)*(-1)
                 if (running_late_for > 15)
-                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"This schedule was not started - should started at: #{next_run}",DateTime.now,false)
+                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"Schedule not started - should start: #{next_run}",DateTime.now,false)
                   @events.push_event(event)
                 end
               end

@@ -34,7 +34,7 @@ module SLAWatcher
       @execution_log.each do |log|
         number_of_minutes_from_last_finish = (Time.now - log.updated_at)/1.minute
         if (number_of_minutes_from_last_finish > @WARNING_INTERVAL)
-          event = CustomEvent.new(Key.new(@PROJECT_PID,@GRAPH_NAME,log.mode),@SEVERITY,@EVENT_TYPE,"The LiveCheck project on server #{log.mode} has not logged in last #{@WARNING_INTERVAL} mins",DateTime.now,false)
+          event = CustomEvent.new(Key.new(@PROJECT_PID,@GRAPH_NAME,log.mode),@SEVERITY,@EVENT_TYPE,"LiveCheck (#{log.mode}) has not logged in #{@WARNING_INTERVAL} m",DateTime.now,false)
           @events.push_event(event)
         end
       end
