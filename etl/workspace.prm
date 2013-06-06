@@ -17,3 +17,6 @@ MODEL_DIR=${PROJECT}/model
 #   The data model information necessary for transformation definition is also obtained from this project.
 # You can find the ID of a project in the project context menu in Server Explorer.
 GDC_PROJECT_ID=e30u9871uuqmtqz9053bshwxw0ph6gwf
+LOGIN=ps+slawatcher@gooddata.com
+PASSWORD=10f1bb2687922df62e14e8aa36cb9c6b
+SERVER=
