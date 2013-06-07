@@ -77,7 +77,7 @@ module SLAWatcher
       end
 
       if (values[1].chars.to_a[0] == "0")
-        @@log.info "3 - #{values[1].chars.to_a[0]}"
+        @@log.info "3 - #{values[1].chars.to_a[1]}"
         minutes = Integer(values[1].chars.to_a[1])
       else
         @@log.info "4 - #{values[1]}"
