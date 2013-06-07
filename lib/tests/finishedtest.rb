@@ -23,8 +23,14 @@ module SLAWatcher
       @running_projects.each do |execution|
         statistical_value = @statistics_data.find{|s| s.r_schedule == execution.r_schedule }
         if (!statistical_value.nil?)
+
+
+
           run_statistical_time =  Helper.interval_to_minutes(statistical_value.avg_run)
           run_actual_time = (@now - execution.event_start)/60
+          #@@log.info run_statistical_time
+          #@@log.info run_actual_time
+
           difference = run_actual_time - run_statistical_time
           if (difference > 2*@WARNING_INTERVAL)
             event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),@SEVERITY+1,@EVENT_TYPE,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",DateTime.now,false)

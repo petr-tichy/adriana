@@ -83,8 +83,8 @@ module SLAWatcher
         @@log.info "4 - #{values[1]}"
         minutes = Integer(values[1])
       end
-      hours * 60 + minutes
       @@log.info "------ HELPER END ------"
+      hours * 60 + minutes
     end
 
 
