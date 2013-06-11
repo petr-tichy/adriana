@@ -56,7 +56,7 @@ module SLAWatcher
     end
 
     def load_data()
-      @projects = Schedule.load_schedules_of_live_projects
+      @projects = Schedule.load_schedules_of_live_projects_main
       @execution_log = ExecutionLog.get_running_projects_for_sla
     end
 
