@@ -30,6 +30,11 @@ module SLAWatcher
       select("*").joins("INNER JOIN log2.schedule s ON s.id = execution_log.r_schedule").where("status = 'RUNNING' and event_start > ?",two_days_back)
     end
 
+    def self.get_running_projects_for_sla
+      select("execution_log.id,execution_log.r_schedule, s.r_project as project_pid, s.id as r_schedule, s.server as server, execution_log.event_start, execution_log.event_end ").joins("INNER JOIN log2.schedule s ON s.id = execution_log.r_schedule").joins("INNER JOIN log2.project p ON s.r_project = p.project_pid").where("(execution_log.status = 'RUNNING' OR execution_log.status = 'ERROR') AND s.is_deleted = 'false' AND p.status = 'Live' AND NOT EXISTS (SELECT l2.id FROM log2.execution_log l2 WHERE l2.r_schedule = execution_log.r_schedule	AND	l2.id > execution_log.id AND l2.status = 'FINISHED')")
+    end
+
+
 
 
 
