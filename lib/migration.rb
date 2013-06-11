@@ -32,7 +32,7 @@ module SLAWatcher
           changeWatcher.addComparer(Comparer.new(p.name,stage_project.name,"name"))
           changeWatcher.addComparer(Comparer.new(p.ms_person,stage_username,"ms_person"))
           changeWatcher.addComparer(Comparer.new(p.is_deleted,"false","is_deleted"))
-          changeWatcher.addComparer(Comparer.new(p.sla_enabled,stage_project.sla_enabled,"sla_enabled"))
+          changeWatcher.addComparer(Comparer.new(p.sla_enabled,(stage_project.sla_enabled == "Enabled" ? true : false),"sla_enabled"))
           changeWatcher.addComparer(Comparer.new(p.sla_type,stage_project.sla_type,"sla_type"))
           changeWatcher.addComparer(Comparer.new(p.sla_value,stage_project.sla_value,"sla_value"))
 
@@ -50,11 +50,11 @@ module SLAWatcher
           end
         else
           # Project is not in LOG database, we need to create him
-          Project.create(:project_pid => stage_project.de_project_pid, :status => stage_project.de_operational_status, :name => stage_project.name,:ms_person => stage_username,:sla_enabled => stage_project.sla_enabled,:sla_type => stage_project.sla_type, :sla_value => stage_project.sla_value)
+          Project.create(:project_pid => stage_project.de_project_pid, :status => stage_project.de_operational_status, :name => stage_project.name,:ms_person => stage_username,:sla_enabled => (stage_project.sla_enabled == "Enabled" ? true : false),:sla_type => stage_project.sla_type, :sla_value => stage_project.sla_value)
           @@log.info "The project #{stage_project.name} (#{stage_project.de_project_pid}) has been created"
           @@log.info "Status - new value: #{stage_project.de_operational_status}"
           @@log.info "Name - new value: #{stage_project.name}"
-          @@log.info "Sla Enabled - new value: #{stage_project.sla_enabled}"
+          @@log.info "Sla Enabled - new value: #{(stage_project.sla_enabled == "Enabled" ? true : false)}"
           @@log.info "Sla Type - new value: #{stage_project.sla_type}"
           @@log.info "Sla Value - new value: #{stage_project.sla_value}"
           @@log.info "-----------------------------------------------------------------"
@@ -110,6 +110,7 @@ module SLAWatcher
               changeWatcher.addComparer(Comparer.new(s.cron,stage_schedule.cron.downcase,"cron"))
               changeWatcher.addComparer(Comparer.new(s.server,stage_schedule.server.downcase,"server"))
               changeWatcher.addComparer(Comparer.new(s.is_deleted,"false","is_deleted"))
+              changeWatcher.addComparer(Comparer.new(s.main,stage_schedule.main,"main"))
 
               if (!changeWatcher.same?)
 
@@ -124,10 +125,11 @@ module SLAWatcher
               end
             else
               # Schedule is is not in LOG database, we need to create it
-              Schedule.create(:r_project => stage_schedule.project_pid, :mode => Helper.downcase(stage_schedule.mode), :graph_name => stage_schedule.graph.downcase, :server => stage_schedule.server,:cron => stage_schedule.cron)
+              Schedule.create(:r_project => stage_schedule.project_pid, :mode => Helper.downcase(stage_schedule.mode), :graph_name => stage_schedule.graph.downcase, :server => stage_schedule.server,:cron => stage_schedule.cron,:main => stage_schedule.main)
               @@log.info "The schedule for project #{stage_schedule.project_pid} (Graph: #{stage_schedule.graph.downcase}, Mode: #{Helper.downcase(stage_schedule.mode)}) has been created"
               @@log.info "Server - new value: #{stage_schedule.server}"
               @@log.info "Cron - new value: #{stage_schedule.cron}"
+              @@log.info "Main - new value: #{stage_schedule.main}"
               @@log.info "-----------------------------------------------------------------"
             end
           end
