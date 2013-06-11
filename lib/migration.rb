@@ -26,7 +26,6 @@ module SLAWatcher
         stage_username = stage_project.email || stage_project.ms_person
         if (!p.nil?) then
             # Project is already in LOG database
-
           changeWatcher = ChangeWatcher.new(p.project_pid)
           changeWatcher.addComparer(Comparer.new(p.status,stage_project.de_operational_status,"status"))
           changeWatcher.addComparer(Comparer.new(p.name,stage_project.name,"name"))
@@ -110,7 +109,7 @@ module SLAWatcher
               changeWatcher.addComparer(Comparer.new(s.cron,stage_schedule.cron.downcase,"cron"))
               changeWatcher.addComparer(Comparer.new(s.server,stage_schedule.server.downcase,"server"))
               changeWatcher.addComparer(Comparer.new(s.is_deleted,"false","is_deleted"))
-              changeWatcher.addComparer(Comparer.new(s.main,stage_schedule.main,"main"))
+              changeWatcher.addComparer(Comparer.new(s.main,(stage_schedule.main == "Yes" ? true : false),"main"))
 
               if (!changeWatcher.same?)
 
@@ -125,11 +124,11 @@ module SLAWatcher
               end
             else
               # Schedule is is not in LOG database, we need to create it
-              Schedule.create(:r_project => stage_schedule.project_pid, :mode => Helper.downcase(stage_schedule.mode), :graph_name => stage_schedule.graph.downcase, :server => stage_schedule.server,:cron => stage_schedule.cron,:main => stage_schedule.main)
+              Schedule.create(:r_project => stage_schedule.project_pid, :mode => Helper.downcase(stage_schedule.mode), :graph_name => stage_schedule.graph.downcase, :server => stage_schedule.server,:cron => stage_schedule.cron,:main => (stage_schedule.main == "Yes" ? true : false))
               @@log.info "The schedule for project #{stage_schedule.project_pid} (Graph: #{stage_schedule.graph.downcase}, Mode: #{Helper.downcase(stage_schedule.mode)}) has been created"
               @@log.info "Server - new value: #{stage_schedule.server}"
               @@log.info "Cron - new value: #{stage_schedule.cron}"
-              @@log.info "Main - new value: #{stage_schedule.main}"
+              @@log.info "Main - new value: #{stage_schedule.main == "Yes" ? true : false}"
               @@log.info "-----------------------------------------------------------------"
             end
           end
