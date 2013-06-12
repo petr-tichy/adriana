@@ -34,20 +34,20 @@ module SLAWatcher
            current_duration = ((Time.now - start_time)/60).round
 
            if (current_duration >= duration)
-             event = CustomEvent.new(Key.new(project.r_project,nil,nil),@SEVERITY,@EVENT_TYPE,"We are over SLA by: #{(current_duration - duration)} minutes",DateTime.now,false)
+             event = CustomEvent.new(Key.new(project.r_project,project.graph_name,project.mode),@SEVERITY,@EVENT_TYPE,"We are over SLA by: #{(current_duration - duration)} minutes",DateTime.now,false)
              @events.push_event(event)
            elsif (current_duration >= duration - @WARNING_INTERVAL)
-             event = CustomEvent.new(Key.new(project.r_project,nil,nil),@SEVERITY-1,@EVENT_TYPE,"We nearly over SLA (current duration: #{(current_duration )} min, SLA duration: #{duration})",DateTime.now,false)
+             event = CustomEvent.new(Key.new(project.r_project,project.graph_name,project.mode),@SEVERITY-1,@EVENT_TYPE,"We nearly over SLA (current duration: #{(current_duration )} min, SLA duration: #{duration})",DateTime.now,false)
              @events.push_event(event)
            end
          elsif (project.sla_type == "Fixed Time")
            # All values will be in UTC
            sla_time = Time.parse(project.sla_value + " UTC")
            if (Time.now.utc > sla_time)
-             event = CustomEvent.new(Key.new(project.r_project,nil,nil),@SEVERITY,@EVENT_TYPE,"We are over SLA. Should have been loaded till: #{sla_time.in_time_zone("CET")}",DateTime.now,false)
+             event = CustomEvent.new(Key.new(project.r_project,project.graph_name,project.mode),@SEVERITY,@EVENT_TYPE,"We are over SLA. Should have been loaded till: #{sla_time.in_time_zone("CET")}",DateTime.now,false)
              @events.push_event(event)
            elsif (Time.now.utc > sla_time - @WARNING_INTERVAL.minutes)
-             event = CustomEvent.new(Key.new(project.r_project,nil,nil),@SEVERITY-1,@EVENT_TYPE,"We will be soon over SLA. SLA Time: #{sla_time.in_time_zone("CET")}",DateTime.now,false)
+             event = CustomEvent.new(Key.new(project.r_project,project.graph_name,project.mode),@SEVERITY-1,@EVENT_TYPE,"We will be soon over SLA. SLA Time: #{sla_time.in_time_zone("CET")}",DateTime.now,false)
              @events.push_event(event)
            end
          end
