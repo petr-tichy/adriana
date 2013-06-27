@@ -93,6 +93,20 @@ command :not_started do |c|
 end
 
 
+desc 'Tests'
+command :testcase do |c|
+#  c.desc 'Execute only for one entity.'
+#  c.default_value false
+#  c.flag [:o, :only]
+
+  c.action do |global_options,options,args|
+    SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
+    SLAWatcher.run_test_case
+  end
+end
+
+
+
 
 
 pre do |global,command,options,args|

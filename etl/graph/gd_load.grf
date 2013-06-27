@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Graph author="root" created="Wed Jun 05 09:46:33 CEST 2013" guiVersion="3.3.2" id="1370436658892" licenseType="Commercial" modified="Fri Jun 07 11:03:06 CEST 2013" modifiedBy="root" name="gd_load" revision="1.48" showComponentDetails="true">
+<Graph author="root" created="Wed Jun 05 09:46:33 CEST 2013" guiVersion="3.3.2" id="1370436658892" licenseType="Commercial" modified="Mon Jun 24 12:53:42 CEST 2013" modifiedBy="root" name="gd_load" revision="1.71" showComponentDetails="true">
 <Global>
 <Metadata id="Metadata7" previewAttachmentCharset="ISO-8859-1">
 <Record fieldDelimiter=";" name="event_log" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
@@ -52,6 +52,8 @@
 <Field eofAsDelimiter="false" name="time__second_of_day_executioneventenddate" nullable="true" shift="0" size="0" type="string"/>
 <Field eofAsDelimiter="false" name="time__second_of_day_executioneventstartdate" nullable="true" shift="0" size="0" type="string"/>
 <Field name="dummy" type="string"/>
+<Field name="project_status" type="string"/>
+<Field name="sla_event" type="string"/>
 </Record>
 </Metadata>
 <Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
@@ -61,6 +63,12 @@
 <Field eofAsDelimiter="false" name="project_pid" nullable="true" shift="0" size="0" type="string"/>
 <Field eofAsDelimiter="false" name="status" nullable="true" shift="0" size="0" type="string"/>
 <Field name="is_deleted" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="gdCustomProperties">
+<Record fieldDelimiter="\n" name="gdCustomProperties" recordSize="-1" type="delimited">
+<Field delimiter="," eofAsDelimiter="false" name="key" nullable="true" shift="0" type="string"/>
+<Field delimiter="," eofAsDelimiter="false" name="value" nullable="true" shift="0" type="string"/>
 </Record>
 </Metadata>
 <Metadata id="Metadata4" previewAttachmentCharset="ISO-8859-1">
@@ -73,6 +81,7 @@
 <Field eofAsDelimiter="false" name="detailed_status" nullable="true" shift="0" size="256" type="string"/>
 <Field eofAsDelimiter="false" format="yyyy-MM-dd HH:mm:ss" name="event_start" nullable="true" shift="0" size="35" type="date"/>
 <Field eofAsDelimiter="false" format="yyyy-MM-dd HH:mm:ss" name="event_end" nullable="true" shift="0" size="35" type="date"/>
+<Field name="project_status" type="string"/>
 </Record>
 </Metadata>
 <Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
@@ -82,6 +91,25 @@
 <Field eofAsDelimiter="false" name="name" nullable="true" shift="0" size="0" type="string"/>
 <Field eofAsDelimiter="false" name="ms_person" nullable="true" shift="0" size="0" type="string"/>
 <Field name="is_deleted" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata11" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="," name="interval" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" type="delimited">
+<Field name="date_from" type="date"/>
+<Field name="date_to" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata9" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="," name="IO_lookup" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" type="delimited">
+<Field name="key" type="string"/>
+<Field name="value" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata10" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="," name="IO_lookup_dummy" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" type="delimited">
+<Field name="key" type="string"/>
+<Field name="value" type="string"/>
+<Field name="dummy" type="integer"/>
 </Record>
 </Metadata>
 <Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
@@ -108,10 +136,11 @@
 </Metadata>
 <Connection database="POSTGRE" dbURL="jdbc:postgresql://${SERVER}/ms" id="JDBC0" jdbcSpecific="POSTGRE" name="LogingDB" password="a12345" type="JDBC" user="exporter"/>
 <Property fileURL="workspace.prm" id="GraphParameter0"/>
+<LookupTable id="LookupTable0" metadata="gdCustomProperties" name="gd_lookup" type="gdLookup"/>
 <Dictionary/>
 </Global>
 <Phase number="0">
-<Node enabled="disabled" guiHeight="73" guiName="DataGenerator" guiWidth="134" guiX="344" guiY="542" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
+<Node enabled="disabled" guiHeight="73" guiName="DataGenerator" guiWidth="134" guiX="358" guiY="755" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
 <attr name="generate"><![CDATA[//#CTL2
 
 // Generates output record.
@@ -177,7 +206,7 @@ function integer transform() {
 // function string getMessage() {}
 ]]></attr>
 </Node>
-<Node enabled="disabled" guiHeight="73" guiName="Trash" guiWidth="128" guiX="94" guiY="548" id="TRASH0" type="TRASH"/>
+<Node enabled="disabled" guiHeight="73" guiName="Trash" guiWidth="128" guiX="108" guiY="761" id="TRASH0" type="TRASH"/>
 <Edge debugMode="true" fromNode="DB_INPUT_TABLE0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="REFORMAT0:0"/>
 <Edge fromNode="REFORMAT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER0:0"/>
 </Phase>
@@ -231,7 +260,7 @@ function integer transform() {
 </Phase>
 <Phase number="4">
 <Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBInputTable" guiWidth="128" guiX="78" guiY="298" id="DB_INPUT_TABLE2" type="DB_INPUT_TABLE">
-<attr name="sqlQuery"><![CDATA[SELECT l.id,s.r_project,s.graph_name,s.mode,l.status,l.detailed_status,l.event_start,l.event_end FROM log2.execution_log l INNER JOIN log2.schedule s ON l.r_schedule = s.id ]]></attr>
+<attr name="sqlQuery"><![CDATA[SELECT l.id,s.r_project,s.graph_name,s.mode,l.status,l.detailed_status,l.event_start,l.event_end,p.status FROM log2.execution_log l INNER JOIN log2.schedule s ON l.r_schedule = s.id INNER JOIN log2.project p on p.project_pid = s.r_project]]></attr>
 </Node>
 <Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="369" guiY="298" id="REFORMAT2" type="REFORMAT">
 <attr name="transform"><![CDATA[//#CTL2
@@ -247,6 +276,8 @@ function integer transform() {
 	$out.0.time__second_of_day_executioneventstartdate = num2str(dateDiff($in.0.event_start,extractDate($in.0.event_start),second)):"0";
 	$out.0.time__second_of_day_executioneventenddate = num2str(dateDiff($in.0.event_end,extractDate($in.0.event_end),second)):"0";
 	$out.0.dummy = "1";
+	$out.0.project_status = $in.0.project_status;
+	$out.0.sla_event = "N/A";
 	return ALL;
 }
 
@@ -273,13 +304,13 @@ function integer transform() {
 <Edge debugMode="true" fromNode="REFORMAT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER2:0"/>
 </Phase>
 <Phase number="5">
-<Node dataset="dataset.execution_log" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.execution_log&quot;,&quot;datasetTitle&quot;:&quot;Execution_log&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.execution_log.detailed_status&quot;,&quot;title&quot;:&quot;detailed_status&quot;,&quot;prettyId&quot;:&quot;attr_execution_log_detailed_status&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.detailed_status&quot;,&quot;title&quot;:&quot;detailed_status&quot;,&quot;prettyId&quot;:&quot;detailed_status&quot;,&quot;assignedMetadataField&quot;:&quot;detailed_status&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.detailed_status&quot;,&quot;title&quot;:&quot;detailed_status&quot;,&quot;prettyId&quot;:&quot;detailed_status&quot;,&quot;assignedMetadataField&quot;:&quot;detailed_status&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.execution_log.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_execution_log_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.execution_log.status&quot;,&quot;title&quot;:&quot;status&quot;,&quot;prettyId&quot;:&quot;attr_execution_log_status&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.status&quot;,&quot;title&quot;:&quot;status&quot;,&quot;prettyId&quot;:&quot;status&quot;,&quot;assignedMetadataField&quot;:&quot;status&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.status&quot;,&quot;title&quot;:&quot;status&quot;,&quot;prettyId&quot;:&quot;status&quot;,&quot;assignedMetadataField&quot;:&quot;status&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.schedule.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_schedule_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.schedule.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;schedule__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;schedule__id&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.schedule.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;schedule__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.time.second.of.day.executioneventenddate&quot;,&quot;title&quot;:&quot;Time (ExecutionEventEndDate)&quot;,&quot;prettyId&quot;:&quot;attr_time_second_of_day_executioneventenddate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.executioneventenddate&quot;,&quot;title&quot;:&quot;Time (hh:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__executioneventenddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.executioneventenddate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_executioneventenddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.twelve.executioneventenddate&quot;,&quot;title&quot;:&quot;Time (HH:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__twelve_executioneventenddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;time__second_of_day_executioneventenddate&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.executioneventenddate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_executioneventenddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.time.second.of.day.executioneventstartdate&quot;,&quot;title&quot;:&quot;Time (ExecutionEventStartDate)&quot;,&quot;prettyId&quot;:&quot;attr_time_second_of_day_executioneventstartdate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.executioneventstartdate&quot;,&quot;title&quot;:&quot;Time (hh:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__executioneventstartdate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.executioneventstartdate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_executioneventstartdate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.twelve.executioneventstartdate&quot;,&quot;title&quot;:&quot;Time (HH:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__twelve_executioneventstartdate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;time__second_of_day_executioneventstartdate&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.executioneventstartdate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_executioneventstartdate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;executioneventenddate.date&quot;,&quot;title&quot;:&quot;Date (ExecutionEventEndDate)&quot;,&quot;prettyId&quot;:&quot;executioneventenddate&quot;,&quot;assignedMetadataField&quot;:&quot;executioneventenddate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;executioneventenddate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (ExecutionEventEndDate)&quot;,&quot;prettyId&quot;:&quot;executioneventenddate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;executioneventenddate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (ExecutionEventEndDate)&quot;,&quot;prettyId&quot;:&quot;executioneventenddate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.execution_log.executioneventenddate&quot;,&quot;title&quot;:&quot;event_end&quot;,&quot;prettyId&quot;:&quot;dt_execution_log_executioneventenddate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;executioneventstartdate.date&quot;,&quot;title&quot;:&quot;Date (ExecutionEventStartDate)&quot;,&quot;prettyId&quot;:&quot;executioneventstartdate&quot;,&quot;assignedMetadataField&quot;:&quot;executioneventstartdate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;executioneventstartdate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (ExecutionEventStartDate)&quot;,&quot;prettyId&quot;:&quot;executioneventstartdate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;executioneventstartdate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (ExecutionEventStartDate)&quot;,&quot;prettyId&quot;:&quot;executioneventstartdate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.execution_log.executioneventstartdate&quot;,&quot;title&quot;:&quot;event_start&quot;,&quot;prettyId&quot;:&quot;dt_execution_log_executioneventstartdate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.execution_log.dummy&quot;,&quot;title&quot;:&quot;dummy&quot;,&quot;prettyId&quot;:&quot;dummy&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;dummy&quot;}}],&quot;dateFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.execution_log.executioneventenddate&quot;,&quot;title&quot;:&quot;event_end&quot;,&quot;prettyId&quot;:&quot;dt_execution_log_executioneventenddate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.execution_log.executioneventstartdate&quot;,&quot;title&quot;:&quot;event_start&quot;,&quot;prettyId&quot;:&quot;dt_execution_log_executioneventstartdate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiHeight="73" guiName="GD Dataset Writer" guiWidth="161" guiX="680" guiY="298" id="GD_DATASET_WRITER2" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+<Node dataset="dataset.execution_log" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.execution_log&quot;,&quot;datasetTitle&quot;:&quot;Execution_log&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.execution_log.detailed_status&quot;,&quot;title&quot;:&quot;detailed_status&quot;,&quot;prettyId&quot;:&quot;attr_execution_log_detailed_status&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.detailed_status&quot;,&quot;title&quot;:&quot;detailed_status&quot;,&quot;prettyId&quot;:&quot;detailed_status&quot;,&quot;assignedMetadataField&quot;:&quot;detailed_status&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.detailed_status&quot;,&quot;title&quot;:&quot;detailed_status&quot;,&quot;prettyId&quot;:&quot;detailed_status&quot;,&quot;assignedMetadataField&quot;:&quot;detailed_status&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.execution_log.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_execution_log_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.execution_log.project_status&quot;,&quot;title&quot;:&quot;project_status&quot;,&quot;prettyId&quot;:&quot;attr_execution_log_project_status&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.project_status&quot;,&quot;title&quot;:&quot;project_status&quot;,&quot;prettyId&quot;:&quot;project_status&quot;,&quot;assignedMetadataField&quot;:&quot;project_status&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.project_status&quot;,&quot;title&quot;:&quot;project_status&quot;,&quot;prettyId&quot;:&quot;project_status&quot;,&quot;assignedMetadataField&quot;:&quot;project_status&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.execution_log.status&quot;,&quot;title&quot;:&quot;status&quot;,&quot;prettyId&quot;:&quot;attr_execution_log_status&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.status&quot;,&quot;title&quot;:&quot;status&quot;,&quot;prettyId&quot;:&quot;status&quot;,&quot;assignedMetadataField&quot;:&quot;status&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.execution_log.status&quot;,&quot;title&quot;:&quot;status&quot;,&quot;prettyId&quot;:&quot;status&quot;,&quot;assignedMetadataField&quot;:&quot;status&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.schedule.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_schedule_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.schedule.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;schedule__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;schedule__id&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.schedule.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;schedule__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_reporting__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;sla_event&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_reporting__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.time.second.of.day.executioneventenddate&quot;,&quot;title&quot;:&quot;Time (ExecutionEventEndDate)&quot;,&quot;prettyId&quot;:&quot;attr_time_second_of_day_executioneventenddate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.executioneventenddate&quot;,&quot;title&quot;:&quot;Time (hh:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__executioneventenddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.executioneventenddate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_executioneventenddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.twelve.executioneventenddate&quot;,&quot;title&quot;:&quot;Time (HH:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__twelve_executioneventenddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;time__second_of_day_executioneventenddate&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.executioneventenddate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_executioneventenddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.time.second.of.day.executioneventstartdate&quot;,&quot;title&quot;:&quot;Time (ExecutionEventStartDate)&quot;,&quot;prettyId&quot;:&quot;attr_time_second_of_day_executioneventstartdate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.executioneventstartdate&quot;,&quot;title&quot;:&quot;Time (hh:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__executioneventstartdate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.executioneventstartdate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_executioneventstartdate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.twelve.executioneventstartdate&quot;,&quot;title&quot;:&quot;Time (HH:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__twelve_executioneventstartdate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;time__second_of_day_executioneventstartdate&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.executioneventstartdate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_executioneventstartdate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;executioneventenddate.date&quot;,&quot;title&quot;:&quot;Date (ExecutionEventEndDate)&quot;,&quot;prettyId&quot;:&quot;executioneventenddate&quot;,&quot;assignedMetadataField&quot;:&quot;executioneventenddate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;executioneventenddate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (ExecutionEventEndDate)&quot;,&quot;prettyId&quot;:&quot;executioneventenddate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;executioneventenddate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (ExecutionEventEndDate)&quot;,&quot;prettyId&quot;:&quot;executioneventenddate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.execution_log.executioneventenddate&quot;,&quot;title&quot;:&quot;event_end&quot;,&quot;prettyId&quot;:&quot;dt_execution_log_executioneventenddate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;executioneventstartdate.date&quot;,&quot;title&quot;:&quot;Date (ExecutionEventStartDate)&quot;,&quot;prettyId&quot;:&quot;executioneventstartdate&quot;,&quot;assignedMetadataField&quot;:&quot;executioneventstartdate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;executioneventstartdate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (ExecutionEventStartDate)&quot;,&quot;prettyId&quot;:&quot;executioneventstartdate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;executioneventstartdate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (ExecutionEventStartDate)&quot;,&quot;prettyId&quot;:&quot;executioneventstartdate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.execution_log.executioneventstartdate&quot;,&quot;title&quot;:&quot;event_start&quot;,&quot;prettyId&quot;:&quot;dt_execution_log_executioneventstartdate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.execution_log.dummy&quot;,&quot;title&quot;:&quot;dummy&quot;,&quot;prettyId&quot;:&quot;dummy&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;dummy&quot;}}],&quot;dateFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.execution_log.executioneventenddate&quot;,&quot;title&quot;:&quot;event_end&quot;,&quot;prettyId&quot;:&quot;dt_execution_log_executioneventenddate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.execution_log.executioneventstartdate&quot;,&quot;title&quot;:&quot;event_start&quot;,&quot;prettyId&quot;:&quot;dt_execution_log_executioneventstartdate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiHeight="73" guiName="GD Dataset Writer" guiWidth="161" guiX="680" guiY="298" id="GD_DATASET_WRITER2" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
 </Phase>
 <Phase number="6">
 <Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBInputTable" guiWidth="128" guiX="78" guiY="431" id="DB_INPUT_TABLE3" type="DB_INPUT_TABLE">
 <attr name="sqlQuery"><![CDATA[SELECT id,project_pid,graph_name,mode,severity,event_type,text,persistent,created_date,notified,updated_date FROM log2.event_log]]></attr>
 </Node>
-<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="361" guiY="431" id="REFORMAT3" type="REFORMAT">
+<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="369" guiY="431" id="REFORMAT3" type="REFORMAT">
 <attr name="transform"><![CDATA[//#CTL2
 
 // Transforms input record into output record.
@@ -336,5 +367,154 @@ function integer transform() {
 </Phase>
 <Phase number="7">
 <Node dataset="dataset.event_log" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.event_log&quot;,&quot;datasetTitle&quot;:&quot;Event_log&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.event_log.event_type&quot;,&quot;title&quot;:&quot;event_type&quot;,&quot;prettyId&quot;:&quot;attr_event_log_event_type&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.event_type&quot;,&quot;title&quot;:&quot;event_type&quot;,&quot;prettyId&quot;:&quot;event_type&quot;,&quot;assignedMetadataField&quot;:&quot;event_type&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.event_type&quot;,&quot;title&quot;:&quot;event_type&quot;,&quot;prettyId&quot;:&quot;event_type&quot;,&quot;assignedMetadataField&quot;:&quot;event_type&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.event_log.id&quot;,&quot;title&quot;:&quot;event_id&quot;,&quot;prettyId&quot;:&quot;attr_event_log_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.event_log.notified&quot;,&quot;title&quot;:&quot;notified&quot;,&quot;prettyId&quot;:&quot;attr_event_log_notified&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.notified&quot;,&quot;title&quot;:&quot;notified&quot;,&quot;prettyId&quot;:&quot;notified&quot;,&quot;assignedMetadataField&quot;:&quot;notified&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.notified&quot;,&quot;title&quot;:&quot;notified&quot;,&quot;prettyId&quot;:&quot;notified&quot;,&quot;assignedMetadataField&quot;:&quot;notified&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.event_log.persistent&quot;,&quot;title&quot;:&quot;persistent&quot;,&quot;prettyId&quot;:&quot;attr_event_log_persistent&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.persistent&quot;,&quot;title&quot;:&quot;persistent&quot;,&quot;prettyId&quot;:&quot;persistent&quot;,&quot;assignedMetadataField&quot;:&quot;persistent&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.persistent&quot;,&quot;title&quot;:&quot;persistent&quot;,&quot;prettyId&quot;:&quot;persistent&quot;,&quot;assignedMetadataField&quot;:&quot;persistent&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.event_log.severity&quot;,&quot;title&quot;:&quot;severity&quot;,&quot;prettyId&quot;:&quot;attr_event_log_severity&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.severity&quot;,&quot;title&quot;:&quot;severity&quot;,&quot;prettyId&quot;:&quot;severity&quot;,&quot;assignedMetadataField&quot;:&quot;severity&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.severity&quot;,&quot;title&quot;:&quot;severity&quot;,&quot;prettyId&quot;:&quot;severity&quot;,&quot;assignedMetadataField&quot;:&quot;severity&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.event_log.text&quot;,&quot;title&quot;:&quot;text&quot;,&quot;prettyId&quot;:&quot;attr_event_log_text&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.text&quot;,&quot;title&quot;:&quot;text&quot;,&quot;prettyId&quot;:&quot;text&quot;,&quot;assignedMetadataField&quot;:&quot;text&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.event_log.text&quot;,&quot;title&quot;:&quot;text&quot;,&quot;prettyId&quot;:&quot;text&quot;,&quot;assignedMetadataField&quot;:&quot;text&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.schedule.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_schedule_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.schedule.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;schedule__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;schedule__id&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.schedule.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;schedule__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.time.second.of.day.eventcreateddate&quot;,&quot;title&quot;:&quot;Time (EventCreatedDate)&quot;,&quot;prettyId&quot;:&quot;attr_time_second_of_day_eventcreateddate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.eventcreateddate&quot;,&quot;title&quot;:&quot;Time (hh:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__eventcreateddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.eventcreateddate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_eventcreateddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.twelve.eventcreateddate&quot;,&quot;title&quot;:&quot;Time (HH:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__twelve_eventcreateddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;time__second_of_day_eventcreateddate&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.eventcreateddate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_eventcreateddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.time.second.of.day.eventupdateddate&quot;,&quot;title&quot;:&quot;Time (EventUpdatedDate)&quot;,&quot;prettyId&quot;:&quot;attr_time_second_of_day_eventupdateddate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.eventupdateddate&quot;,&quot;title&quot;:&quot;Time (hh:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__eventupdateddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.eventupdateddate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_eventupdateddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}},{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.twelve.eventupdateddate&quot;,&quot;title&quot;:&quot;Time (HH:mm:ss)&quot;,&quot;prettyId&quot;:&quot;time__twelve_eventupdateddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;time__second_of_day_eventupdateddate&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.time.second.of.day.eventupdateddate&quot;,&quot;title&quot;:&quot;Second of Day&quot;,&quot;prettyId&quot;:&quot;time__second_of_day_eventupdateddate&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;eventcreateddate.date&quot;,&quot;title&quot;:&quot;Date (EventCreatedDate)&quot;,&quot;prettyId&quot;:&quot;eventcreateddate&quot;,&quot;assignedMetadataField&quot;:&quot;eventcreateddate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;eventcreateddate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (EventCreatedDate)&quot;,&quot;prettyId&quot;:&quot;eventcreateddate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;eventcreateddate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (EventCreatedDate)&quot;,&quot;prettyId&quot;:&quot;eventcreateddate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.event_log.eventcreateddate&quot;,&quot;title&quot;:&quot;created_date&quot;,&quot;prettyId&quot;:&quot;dt_event_log_eventcreateddate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;eventupdateddate.date&quot;,&quot;title&quot;:&quot;Date (EventUpdatedDate)&quot;,&quot;prettyId&quot;:&quot;eventupdateddate&quot;,&quot;assignedMetadataField&quot;:&quot;eventupdateddate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;eventupdateddate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (EventUpdatedDate)&quot;,&quot;prettyId&quot;:&quot;eventupdateddate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;eventupdateddate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (EventUpdatedDate)&quot;,&quot;prettyId&quot;:&quot;eventupdateddate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.event_log.eventupdateddate&quot;,&quot;title&quot;:&quot;updated_date&quot;,&quot;prettyId&quot;:&quot;dt_event_log_eventupdateddate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}}],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.event_log.eventcreateddate&quot;,&quot;title&quot;:&quot;created_date&quot;,&quot;prettyId&quot;:&quot;dt_event_log_eventcreateddate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.event_log.eventupdateddate&quot;,&quot;title&quot;:&quot;updated_date&quot;,&quot;prettyId&quot;:&quot;dt_event_log_eventupdateddate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiHeight="73" guiName="GD Dataset Writer" guiWidth="161" guiX="680" guiY="431" id="GD_DATASET_WRITER3" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+<Phase number="8">
+<Node enabled="disabled" guiHeight="73" guiName="Denormalizer" guiWidth="128" guiX="608" guiY="583" id="DENORMALIZER0" key="dummy" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+// This function is called for each input record from a group of records
+// with the same key.
+string date_from;
+string date_to;
+
+
+function integer append() {
+	if ($in.0.key == "DATE_FROM"){
+		date_from = $in.0.value;
+	}else if ($in.0.key == "DATE_TO"){
+		date_to = $in.0.value;
+	}
+	return OK;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.date_from = str2date(date_from,"yyyy-MM-dd");
+	$out.0.date_to = str2date(date_to,"yyyy-MM-dd");
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="disabled" guiHeight="73" guiName="LookupTableReaderWriter" guiWidth="216" guiX="78" guiY="583" id="LOOKUP_TABLE_READER_WRITER0" lookupTable="LookupTable0" type="LOOKUP_TABLE_READER_WRITER"/>
+<Node enabled="disabled" guiHeight="73" guiName="Normalizer" guiWidth="128" guiX="840" guiY="583" id="NORMALIZER0" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+// This transformation defines the way in which a single input record is normalized
+// into multiple output records.
+
+// This function is called for all input records.
+// It parses each single input record and returns the number of records
+// that should be created from such input record.
+function integer count() {
+	long number_of_days = dateDiff($in.0.date_to,$in.0.date_from,day);
+	printLog(info,"Kokos");
+	printLog(info,number_of_days);
+	return long2integer(number_of_days);
+}
+
+// This function creates new records for the output, based on single input record
+// that has been parsed by the count() function.
+// It is called count() times for each input record.
+// The idx argument specifies which output record is being created,
+// its values range is from 0 to count() - 1.
+function integer transform(integer idx) {
+	$out.0.date_from = dateAdd($in.0.date_from,idx,day);
+	$out.0.date_to = dateAdd($in.0.date_from,idx+1,day);
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if count() throws an exception.
+// function integer countOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace, integer idx) {
+// }
+
+// Called after transform(count-1) to return the resources that have been used to their initial state
+// so that next input record may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="disabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="369" guiY="583" id="REFORMAT4" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.key = $in.0.key;
+	$out.0.value = $in.0.value;
+	$out.0.dummy = 1;
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="disabled" guiHeight="73" guiName="Trash" guiWidth="128" guiX="1081" guiY="583" id="TRASH1" type="TRASH"/>
+<Edge debugMode="true" fromNode="DENORMALIZER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata11" outPort="Port 0 (out)" toNode="NORMALIZER0:0"/>
+<Edge debugMode="true" fromNode="LOOKUP_TABLE_READER_WRITER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata9" outPort="Port 0 (out)" toNode="REFORMAT4:0"/>
+<Edge debugMode="true" fromNode="NORMALIZER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata11" outPort="Port 0 (out)" toNode="TRASH1:0"/>
+<Edge debugMode="true" fromNode="REFORMAT4:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata10" outPort="Port 0 (out)" toNode="DENORMALIZER0:0"/>
 </Phase>
 </Graph>

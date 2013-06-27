@@ -12,6 +12,7 @@ require 'composite_primary_keys'
 %w(base timeline projects statistics).each {|a| require "lib/objects/#{a}"}
 %w(events severity key event test livetest startedtest finishedtest slatest).each {|a| require "lib/tests/#{a}"}
 %w(splunk_downloader).each {|a| require "lib/splunk/#{a}"}
+%w(testcases).each {|a| require "lib/testcases/#{a}"}
 
 
 
@@ -86,6 +87,11 @@ module SLAWatcher
 
 
       #pp ExecutionLog.get_last_events_in_interval("test",["prod2","prod3"],"app",DateTime.now - 12.hour)
+    end
+
+    def run_test_case()
+      TestCase.testcase12()
+      #TestCase.cleartestcases
     end
 
 

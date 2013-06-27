@@ -49,7 +49,7 @@ module SLAWatcher
           end
         else
           # Project is not in LOG database, we need to create him
-          Project.create(:project_pid => stage_project.de_project_pid, :status => stage_project.de_operational_status, :name => stage_project.name,:ms_person => stage_username,:sla_enabled => (stage_project.sla_enabled == "Enabled" ? true : false),:sla_type => stage_project.sla_type, :sla_value => stage_project.sla_value)
+          Project.create(:project_pid => stage_project.de_project_pid, :status => stage_project.de_operational_status, :name => stage_project.name,:ms_person => stage_username,:sla_enabled => (stage_project.sla_enabled == "Enabled" ? true : false),:sla_type => stage_project.sla_type, :sla_value => stage_project.sla_value,:created_at => DateTime.now)
           @@log.info "The project #{stage_project.name} (#{stage_project.de_project_pid}) has been created"
           @@log.info "Status - new value: #{stage_project.de_operational_status}"
           @@log.info "Name - new value: #{stage_project.name}"
@@ -124,7 +124,7 @@ module SLAWatcher
               end
             else
               # Schedule is is not in LOG database, we need to create it
-              Schedule.create(:r_project => stage_schedule.project_pid, :mode => Helper.downcase(stage_schedule.mode), :graph_name => stage_schedule.graph.downcase, :server => stage_schedule.server,:cron => stage_schedule.cron,:main => (stage_schedule.main == "Yes" ? true : false))
+              Schedule.create(:r_project => stage_schedule.project_pid, :mode => Helper.downcase(stage_schedule.mode), :graph_name => stage_schedule.graph.downcase, :server => stage_schedule.server,:cron => stage_schedule.cron,:main => (stage_schedule.main == "Yes" ? true : false),:created_at => DateTime.now)
               @@log.info "The schedule for project #{stage_schedule.project_pid} (Graph: #{stage_schedule.graph.downcase}, Mode: #{Helper.downcase(stage_schedule.mode)}) has been created"
               @@log.info "Server - new value: #{stage_schedule.server}"
               @@log.info "Cron - new value: #{stage_schedule.cron}"
