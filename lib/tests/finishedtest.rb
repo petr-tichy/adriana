@@ -22,9 +22,7 @@ module SLAWatcher
       # Test if project is running more then normaly
       @running_projects.each do |execution|
         statistical_value = @statistics_data.find{|s| s.r_schedule == execution.r_schedule }
-        if (!statistical_value.nil?)
-
-
+        if (!statistical_value.nil? and !statistical_value.avg_run.nil? )
 
           run_statistical_time =  Helper.interval_to_minutes(statistical_value.avg_run)
           run_actual_time = (@now - execution.event_start)/60
