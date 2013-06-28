@@ -1,0 +1,650 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="root" created="Tue Jun 11 13:31:46 CEST 2013" guiVersion="3.3.2" id="1371040284464" licenseType="Commercial" modified="Fri Jun 28 13:35:38 CEST 2013" modifiedBy="root" name="gd_load_sla" revision="1.147" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="," name="execution_log" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field name="execution_id" type="integer"/>
+<Field name="r_schedule" type="integer"/>
+<Field format="yyyy-MM-dd HH:mm:ss" name="event_start" type="date"/>
+<Field format="yyyy-MM-dd HH:mm:ss" name="second_event_start" type="date"/>
+<Field format="yyyy-MM-dd HH:mm:ss" name="second_event_end" type="date"/>
+<Field name="duration" type="string"/>
+<Field name="second_execution_id" type="string"/>
+<Field name="status" type="string"/>
+<Field name="second_status" type="string"/>
+<Field name="project_pid" type="string"/>
+<Field name="one_day_order" type="string"/>
+<Field name="project_name" type="string"/>
+<Field name="project_status" type="string"/>
+<Field name="sla_event_start" type="string"/>
+<Field name="second_sla_event_start" type="string"/>
+<Field name="sla_enabled" type="string"/>
+<Field name="sla_type" type="string"/>
+<Field name="sla_value" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="," name="GD_dataset_sla_reporting" recordDelimiter="\n\\|\r\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="id" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="project_pid" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="sla_project_name" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="sla_type" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="sla_value" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" length="12" name="duration" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" format="yyyy-MM-dd" name="sladate" nullable="true" shift="0" size="0" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="," name="I_sla_settings" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" type="delimited">
+<Field name="project_pid" type="string"/>
+<Field name="status" type="string"/>
+<Field name="sla_enabled" type="string"/>
+<Field name="sla_type" type="string"/>
+<Field name="sla_value" type="string"/>
+<Field name="date" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata6">
+<Record fieldDelimiter="," name="O_gd_lookup" recordDelimiter="\n" type="delimited">
+<Field name="key" type="string"/>
+<Field name="value" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="," name="O_sla_settings" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" type="delimited">
+<Field name="project_pid" type="string"/>
+<Field name="status" type="string"/>
+<Field name="sla_enabled" type="string"/>
+<Field name="sla_type" type="string"/>
+<Field name="sla_value" type="string"/>
+<Field name="date" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="result" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" type="delimited">
+<Field name="result" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="sql_query" recordDelimiter="\n" type="delimited">
+<Field eofAsDelimiter="true" name="query" type="string"/>
+</Record>
+</Metadata>
+<Connection database="POSTGRE" dbURL="jdbc:postgresql://${SERVER}/ms" id="JDBC0" jdbcSpecific="POSTGRE" name="LogingDB" password="a12345" type="JDBC" user="exporter"/>
+<Property id="GraphParameter0" name="DATE_AFTER" value="2013-06-12"/>
+<Property id="GraphParameter1" name="DATE_BEFORE" value="2013-06-10"/>
+<Property id="GraphParameter2" name="DATE_SLA" value="2013-06-11"/>
+<Property fileURL="workspace.prm" id="GraphParameter3"/>
+<LookupTable id="LookupTable1" metadata="Metadata6" name="gd_lookup" type="gdLookup"/>
+<LookupTable id="LookupTable0" initialSize="512" key="project_pid;date" metadata="Metadata0" name="project_validity" type="simpleLookup"/>
+<Note alignment="1" backgroundColorB="253" backgroundColorG="243" backgroundColorR="231" folded="false" height="100" id="Note0" textColorB="0" textColorG="0" textColorR="0" textFontSize="8" title="New note" titleColorB="0" titleColorG="0" titleColorR="0" titleFontSize="10" width="100" x="195" y="291">
+<attr name="text"><![CDATA[Data for SLA projects, which have not finished day before]]></attr>
+</Note>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="195" guiY="80" id="DB_EXECUTE0" type="DB_EXECUTE">
+<attr name="sqlQuery"><![CDATA[
+
+DROP TABLE log2.temp_project_history;
+
+CREATE TABLE log2.temp_project_history
+  (
+	project_pid VARCHAR(255),
+	valid_from DATE,
+	valid_to DATE,
+	key VARCHAR(100),
+	value VARCHAR(255),
+	h_order INT
+  );
+
+
+INSERT INTO log2.temp_project_history 
+SELECT  
+	ph_newer.project_pid as project_pid,
+	COALESCE(ph_older.updated_at,p.created_at) as valid_from,
+	COALESCE(ph_newer.updated_at,now()) as valid_to,
+	ph_newer.key as key,
+	CAST(ph_newer.old_value as VARCHAR(255)) as value,
+	ROW_NUMBER() OVER (PARTITION BY ph_newer.project_pid,ph_newer.key,ph_older.updated_at::date ORDER BY ph_older.updated_at DESC) AS e_order
+FROM log2.project_history ph_newer 
+INNER JOIN log2.project p ON p.project_pid = ph_newer.project_pid
+LEFT OUTER JOIN log2.project_history ph_older ON ph_newer.project_pid = ph_older.project_pid AND ph_older.updated_at < ph_newer.updated_at AND ph_older.key = ph_newer.key 
+WHERE 
+	NOT EXISTS (
+		SELECT ph_midle.id 
+		FROM log2.project_history ph_midle 
+		WHERE 
+			ph_midle.project_pid=ph_newer.project_pid 
+				AND 
+			ph_midle.key = ph_newer.key 
+				AND
+			ph_midle.updated_at > ph_older.updated_at 
+				AND 
+			ph_midle.updated_at < ph_newer.updated_at 
+		);
+
+DROP TABLE log2.temp_project_history_denorm;
+
+CREATE TABLE log2.temp_project_history_denorm
+  (
+	project_pid VARCHAR(255),
+	status VARCHAR(100),
+	sla_enabled boolean,
+	sla_type VARCHAR(100),
+	sla_value VARCHAR(100),
+	generated_date DATE
+  );
+
+
+INSERT INTO log2.temp_project_history_denorm
+SELECT 
+	p.project_pid,
+	CASE 
+		WHEN temp_ph_status.value IS NULL AND temp_ph_status.project_pid IS NULL AND p.created_at < dates.generate_series THEN p.status
+		WHEN temp_ph_status.value IS NOT NULL AND temp_ph_status.project_pid IS NOT NULL THEN temp_ph_status.value 
+		ELSE NULL
+	END as sla_status,
+	CASE 
+		WHEN temp_ph_sla_enabled.value IS NULL AND temp_ph_sla_enabled.project_pid IS NULL AND p.created_at < dates.generate_series THEN p.sla_enabled
+		WHEN temp_ph_sla_enabled.value IS NOT NULL AND temp_ph_sla_enabled.project_pid IS NOT NULL THEN CAST(temp_ph_sla_enabled.value as boolean)
+		ELSE NULL
+	END as sla_enabled,
+	CASE 
+		WHEN temp_ph_sla_type.value IS NULL AND temp_ph_sla_type.project_pid IS NULL AND p.created_at < dates.generate_series THEN p.sla_type
+		WHEN temp_ph_sla_type.value IS NOT NULL AND temp_ph_sla_type.project_pid IS NOT NULL THEN temp_ph_sla_type.value
+		ELSE NULL
+	END as sla_type,
+	CASE 
+		WHEN temp_ph_sla_value.value IS NULL AND temp_ph_sla_value.project_pid IS NULL AND p.created_at < dates.generate_series THEN p.sla_value
+		WHEN temp_ph_sla_value.value IS NOT NULL AND temp_ph_sla_value.project_pid IS NOT NULL THEN temp_ph_sla_value.value
+		ELSE NULL
+	END as sla_value,
+	dates.generate_series 
+FROM log2.project p
+-- Create record for each day
+CROSS JOIN (
+	SELECT generate_series FROM generate_series('${DATE_BEFORE}'::date,'${DATE_AFTER}', '1 day')
+) as dates
+LEFT OUTER JOIN log2.temp_project_history temp_ph_status ON
+	p.project_pid = temp_ph_status.project_pid 
+	AND (dates.generate_series >= temp_ph_status.valid_from OR temp_ph_status.valid_from IS NULL) 
+	AND dates.generate_series < temp_ph_status.valid_to
+	AND temp_ph_status.key = 'status'
+	AND temp_ph_status.h_order = 1
+LEFT OUTER JOIN log2.temp_project_history temp_ph_sla_enabled ON
+	p.project_pid = temp_ph_sla_enabled.project_pid 
+	AND (dates.generate_series >= temp_ph_sla_enabled.valid_from OR temp_ph_sla_enabled.valid_from IS NULL) 
+	AND dates.generate_series < temp_ph_sla_enabled.valid_to
+	AND temp_ph_sla_enabled.key = 'sla_enabled'
+	AND temp_ph_sla_enabled.h_order = 1
+LEFT OUTER JOIN log2.temp_project_history temp_ph_sla_type ON
+	p.project_pid = temp_ph_sla_type.project_pid 
+	AND (dates.generate_series >= temp_ph_sla_type.valid_from OR temp_ph_sla_type.valid_from IS NULL) 
+	AND dates.generate_series < temp_ph_sla_type.valid_to
+	AND temp_ph_sla_type.key = 'sla_type'
+	AND temp_ph_sla_type.h_order = 1
+LEFT OUTER JOIN log2.temp_project_history temp_ph_sla_value ON
+	p.project_pid = temp_ph_sla_value.project_pid 
+	AND (dates.generate_series >= temp_ph_sla_value.valid_from OR temp_ph_sla_value.valid_from IS NULL) 
+	AND dates.generate_series < temp_ph_sla_value.valid_to
+	AND temp_ph_sla_value.key = 'sla_value'	
+	AND temp_ph_sla_value.h_order = 1
+ORDER BY p.project_pid,dates.generate_series
+
+]]></attr>
+</Node>
+</Phase>
+<Phase number="1">
+<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBInputTable" guiWidth="128" guiX="195" guiY="206" id="DB_INPUT_TABLE0" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	p.project_pid,
+	p.status as status,
+	p.sla_enabled as sla_enabled,
+	p.sla_type as sla_type,
+	p.sla_value as sla_value,
+	p.generated_date as date
+FROM log2.temp_project_history_denorm p]]></attr>
+</Node>
+<Node enabled="enabled" guiHeight="73" guiName="LookupTableReaderWriter" guiWidth="216" guiX="737" guiY="206" id="LOOKUP_TABLE_READER_WRITER0" lookupTable="LookupTable0" type="LOOKUP_TABLE_READER_WRITER"/>
+<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="448" guiY="206" id="REFORMAT1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.project_pid = $in.0.project_pid;
+	$out.0.status = $in.0.status;
+	$out.0.sla_enabled = $in.0.sla_enabled;
+	$out.0.sla_type = $in.0.sla_type;
+	$out.0.sla_value = $in.0.sla_value;
+	$out.0.date = date2str($in.0.date,"yyyy-MM-dd");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="DB_INPUT_TABLE0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="REFORMAT1:0"/>
+<Edge debugMode="true" fromNode="REFORMAT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="LOOKUP_TABLE_READER_WRITER0:0"/>
+</Phase>
+<Phase number="2">
+<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="195" guiY="428" id="DB_EXECUTE1" type="DB_EXECUTE">
+<attr name="sqlQuery"><![CDATA[
+DROP INDEX log2."IX_order_schedule";
+
+DROP TABLE log2.execution_order;
+
+CREATE TABLE log2.execution_order
+  (
+	execution_id INT,
+	r_schedule INT,
+	e_order INT,
+	status VARCHAR(100),
+	detailed_status VARCHAR(255),
+	event_start timestamp with time zone,
+	event_end timestamp with time zone,
+	sla_event_start INT
+  );
+
+
+
+
+INSERT INTO log2.execution_order
+SELECT  l.id as execution_id,l.r_schedule as r_schedule,ROW_NUMBER() OVER (PARTITION BY l.r_schedule ORDER BY l.event_start) AS e_order,l.status,l.detailed_status,l.event_start,l.event_end,l.sla_event_start
+FROM log2.execution_log l
+INNER JOIN log2.schedule s ON s.id = l.r_schedule
+WHERE 
+	s.main = 'true' 
+	AND l.event_start >= '${DATE_BEFORE}' AND l.event_start < '${DATE_AFTER}' and l.detailed_status = 'FOR TESTING';
+
+CREATE INDEX "IX_order_schedule"
+  ON log2.execution_order
+  USING btree
+  (r_schedule  NULLS FIRST, e_order  NULLS FIRST);]]></attr>
+</Node>
+</Phase>
+<Phase number="3">
+<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBInputTable" guiWidth="128" guiX="195" guiY="544" id="DB_INPUT_TABLE1" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT l.execution_id,l.r_schedule,l.event_start,l2.event_start,l2.event_end,(l2.event_end - l.event_start) as duration,l2.execution_id,l.status,l2.status,s.r_project as project_pid,ROW_NUMBER() OVER (PARTITION BY l.r_schedule,date_part('day', l.event_start) ORDER BY l.event_start) as one_day_order,p.name,l.sla_event_start as sla_event_start,l2.sla_event_start as second_sla_event_start FROM log2.execution_order l
+INNER JOIN log2.execution_order l2 ON l.r_schedule = l2.r_schedule AND l.e_order <= l2.e_order
+INNER JOIN log2.schedule s ON s.id = l.r_schedule
+INNER JOIN log2.project p ON s.r_project = p.project_pid
+WHERE (
+	(
+	l2.status = 'FINISHED'
+		AND
+		NOT EXISTS (
+			SELECT l3.r_schedule FROM log2.execution_order l3 WHERE l3.r_schedule = l.r_schedule AND l3.status = 'FINISHED' AND
+			l2.e_order > l3.e_order AND l.e_order <= l3.e_order
+		)
+	AND
+		NOT EXISTS (
+			SELECT l4.r_schedule FROM log2.execution_order l4 WHERE l4.r_schedule = l.r_schedule AND l4.e_order = l.e_order - 1 AND l4.status = 'ERROR'
+		)
+	)
+	OR
+	(
+		(l2.status = 'ERROR' OR l2.status = 'RUNNING')
+			AND
+		NOT EXISTS (
+			SELECT l7.r_schedule FROM log2.execution_order l7 WHERE l7.r_schedule = l.r_schedule AND l7.e_order = l2.e_order + 1 
+		) AND
+		NOT EXISTS (
+			SELECT l5.r_schedule FROM log2.execution_order l5 WHERE l5.r_schedule = l.r_schedule AND l5.e_order = l.e_order - 1 AND l5.status = 'ERROR'
+		)
+		AND
+		NOT EXISTS (
+			SELECT l3.r_schedule FROM log2.execution_order l3 WHERE l3.r_schedule = l.r_schedule AND l3.status = 'FINISHED' AND
+			l2.e_order > l3.e_order AND l.e_order <= l3.e_order
+		)
+
+	)
+	)
+]]></attr>
+</Node>
+<Node enabled="enabled" guiHeight="73" guiName="ExtFilter" guiWidth="128" guiX="847" guiY="436" id="EXT_FILTER0" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.sla_enabled == "t"]]></attr>
+</Node>
+<Node enabled="enabled" guiHeight="73" guiName="ExtFilter" guiWidth="128" guiX="847" guiY="557" id="EXT_FILTER1" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.sla_enabled == "t"]]></attr>
+</Node>
+<Node dataset="dataset.sla_reporting" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.sla_reporting&quot;,&quot;datasetTitle&quot;:&quot;Sla_reporting&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_project_pid&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_project_name&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_type&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_value&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;sladate.date&quot;,&quot;title&quot;:&quot;Date (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate&quot;,&quot;assignedMetadataField&quot;:&quot;sladate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sla_reporting.duration&quot;,&quot;title&quot;:&quot;duration&quot;,&quot;prettyId&quot;:&quot;duration&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;duration&quot;}}],&quot;dateFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiHeight="73" guiName="GD Dataset Writer" guiWidth="161" guiX="1674" guiY="436" id="GD_DATASET_WRITER0" mode="INCREMENTAL" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="520" guiY="544" id="REFORMAT0" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	date sla_date = str2date("${DATE_SLA}","yyyy-MM-dd");
+	date date_after = str2date("${DATE_AFTER}","yyyy-MM-dd");
+	date date_before = str2date("${DATE_BEFORE}","yyyy-MM-dd");
+
+
+
+	string  event_start_string = date2str($in.0.event_start,"yyyy-MM-dd");
+	/*printLog(info,"Looking for:");
+	printLog(info,event_start_string);
+	printLog(info,$in.0.project_pid);*/
+	O_sla_settings sla = lookup(project_validity).get($in.0.project_pid,event_start_string);
+	
+
+	if ($in.0.event_start >= sla_date and $in.0.event_start < date_after and $in.0.second_event_end < date_after and $in.0.second_status == "FINISHED" ) {
+		$out.0.* = $in.0.*;
+		if (sla != null){
+			$out.0.sla_enabled = sla.sla_enabled;
+			$out.0.sla_type = sla.sla_type;
+			$out.0.sla_value = sla.sla_value;
+			$out.0.project_status = sla.status;
+		}
+		return 0;
+	} else if ($in.0.event_start >= date_before and $in.0.event_start < sla_date and $in.0.second_event_end >= sla_date and $in.0.second_event_end < date_after and $in.0.second_status == "FINISHED" ) {
+		$out.0.* = $in.0.*;
+		if (sla != null){
+			$out.0.sla_enabled = sla.sla_enabled;
+			$out.0.sla_type = sla.sla_type;
+			$out.0.sla_value = sla.sla_value;
+			$out.0.project_status = sla.status;
+		}
+		
+		return 0;
+	}else if ($in.0.event_start >= date_before and $in.0.event_start < sla_date and $in.0.second_status == "ERROR") {
+		$out.1.* = $in.0.*;
+		if (sla != null){
+			$out.1.sla_enabled = sla.sla_enabled;
+			$out.1.sla_type = sla.sla_type;
+			$out.1.sla_value = sla.sla_value;
+			$out.1.project_status = sla.status;
+		}
+		
+		return 1;		
+	}else {
+		return SKIP;
+	}
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="1105" guiY="436" id="REFORMAT2" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.* = $in.0.*;
+	if ($in.0.sla_type == "Fixed Time" and $in.0.one_day_order == "1"){
+			string today_date = date2str($in.0.event_start,"yyyy-MM-dd");
+			today_date = today_date + " " + $in.0.sla_value;
+			date sla_date = jodaStr2date(today_date,["yyyy-MM-dd HH:mm:ss"],"en_US","UTC","CET");
+
+			long duration = dateDiff($in.0.second_event_end,sla_date,second);
+
+			if (duration > 0){
+				$out.0.duration = duration;
+				$out.0.project_pid = $in.0.project_pid;
+				$out.0.sla_type = $in.0.sla_type;
+				$out.0.sla_value = $in.0.sla_value;
+				$out.0.sla_project_name = $in.0.project_name;
+				$out.0.sladate = $in.0.event_start;
+				$out.0.id = toString($in.0.execution_id);
+				return ALL;
+			}else{return SKIP;}
+			
+	}
+	// For Fixed Time we are ignoring other events in this day
+	else if ($in.0.sla_type == "Fixed Time" and $in.0.one_day_order != "1"){
+		return SKIP;
+	}else if ($in.0.sla_type == "Fixed Duration"){
+	
+			long sla_duration = interval_to_seconds($in.0.sla_value);
+			date sla_date = dateAdd($in.0.event_start,sla_duration,second);
+
+			long duration = dateDiff($in.0.second_event_end,sla_date,second);
+			if (duration > 0){
+				$out.0.duration = duration;
+				$out.0.project_pid = $in.0.project_pid;
+				$out.0.sla_type = $in.0.sla_type;
+				$out.0.sla_value = $in.0.sla_value;
+				$out.0.sla_project_name = $in.0.project_name;
+				$out.0.sladate = $in.0.event_start;
+				$out.0.id = toString($in.0.execution_id);
+			return ALL;
+			}else {return SKIP;}
+	}else{
+		return SKIP;
+	}
+}
+
+
+function long interval_to_seconds(string value){
+	if (matches(value,".*day")){
+		string tmp = find(value,".*day")[0];
+		integer d = str2integer(split(tmp," ")[0]);
+		
+		string matched_values = find(value,"\\d{2}:\\d{2}:\\d{2}")[0];
+		integer hours = str2integer(split(matched_values,":")[0]);
+		integer minutes = str2integer(split(matched_values,":")[1]);
+		integer seconds = str2integer(split(matched_values,":")[2]);
+		return d*3600*24 + hours*3600 + minutes*60 + seconds;		
+		
+	}else{
+		string matched_values = find(value,"\\d{2}:\\d{2}:\\d{2}")[0];
+		integer hours = str2integer(split(matched_values,":")[0]);
+		integer minutes = str2integer(split(matched_values,":")[1]);
+		integer seconds = str2integer(split(matched_values,":")[2]);
+		return hours*3600 + minutes*60 + seconds;		
+		
+	
+	}
+
+}
+
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="disabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="1519" guiY="270" id="REFORMAT3" type="REFORMAT"/>
+<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="1094" guiY="575" id="REFORMAT4" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.* = $in.0.*;
+	
+	// When the status of project is Live and it was not counted in different SLA, we will update the SLA
+	if ($in.0.project_status == 'Live' and isnull($in.0.sla_event_start) and $in.0.sla_type == "Fixed Time"){
+			string today_date = date2str($in.0.event_start,"yyyy-MM-dd");
+			today_date = today_date + " " + $in.0.sla_value;
+			date sla_date = jodaStr2date(today_date,["yyyy-MM-dd HH:mm:ss"],"en_US","UTC","CET");
+			// In this case we are using END of SLA date as midnight of second date.
+			date midnight_date = str2date("${DATE_AFTER} 00:00:00","yyyy-MM-dd HH:mm:ss");
+			long duration = dateDiff(midnight_date,sla_date,second);
+			printLog(info,duration);
+			if (duration > 0){
+				$out.0.duration = duration;
+				$out.0.project_pid = $in.0.project_pid;
+				$out.0.sla_type = $in.0.sla_type;
+				$out.0.sla_value = $in.0.sla_value;
+				$out.0.sla_project_name = $in.0.project_name;
+				$out.0.sladate = $in.0.event_start;
+				$out.0.id = toString($in.0.execution_id);
+				return ALL;
+			}else{return SKIP;}
+	}else if ($in.0.project_status == 'Live' and isnull($in.0.sla_event_start) and $in.0.sla_type == "Fixed Duration"){
+			long sla_duration = interval_to_seconds($in.0.sla_value);
+			date sla_date = dateAdd($in.0.event_start,sla_duration,second);
+			date midnight_date = str2date("${DATE_AFTER} 00:00:00","yyyy-MM-dd HH:mm:ss");
+			long duration = dateDiff(midnight_date,sla_date,second);
+			if (duration > 0){
+				$out.0.duration = duration;
+				$out.0.project_pid = $in.0.project_pid;
+				$out.0.sla_type = $in.0.sla_type;
+				$out.0.sla_value = $in.0.sla_value;
+				$out.0.sla_project_name = $in.0.project_name;
+				$out.0.sladate = $in.0.event_start;
+				$out.0.id = toString($in.0.execution_id);
+				return ALL;
+			}
+	}else {
+		return SKIP;
+	}
+	return SKIP;
+}
+
+
+function long interval_to_seconds(string value){
+	if (matches(value,".*day")){
+		string tmp = find(value,".*day")[0];
+		integer d = str2integer(split(tmp," ")[0]);
+		
+		string matched_values = find(value,"\\d{2}:\\d{2}:\\d{2}")[0];
+		integer hours = str2integer(split(matched_values,":")[0]);
+		integer minutes = str2integer(split(matched_values,":")[1]);
+		integer seconds = str2integer(split(matched_values,":")[2]);
+		return d*3600*24 + hours*3600 + minutes*60 + seconds;		
+		
+	}else{
+		string matched_values = find(value,"\\d{2}:\\d{2}:\\d{2}")[0];
+		integer hours = str2integer(split(matched_values,":")[0]);
+		integer minutes = str2integer(split(matched_values,":")[1]);
+		integer seconds = str2integer(split(matched_values,":")[2]);
+		return hours*3600 + minutes*60 + seconds;		
+		
+	
+	}
+
+}
+
+
+]]></attr>
+</Node>
+<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="1499" guiY="575" id="REFORMAT5" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.query = "UPDATE log2.execution_log e SET sla_event_start = "+ $in.0.execution_id +" WHERE e.event_start >= '"+ date2str($in.0.event_start,"yyyy-MM-dd HH:mm:ss") + "' AND e.event_start <= '" + date2str($in.0.second_event_start,"yyyy-MM-dd HH:mm:ss") +"' AND e.r_schedule = "+ $in.0.r_schedule +";";
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="enabled" guiHeight="73" guiName="SimpleGather" guiWidth="128" guiX="1325" guiY="436" id="SIMPLE_GATHER0" type="SIMPLE_GATHER"/>
+<Node enabled="enabled" guiHeight="73" guiName="SimpleGather" guiWidth="128" guiX="1325" guiY="575" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
+<Edge debugMode="true" fromNode="DB_INPUT_TABLE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="REFORMAT0:0"/>
+<Edge debugMode="true" fromNode="EXT_FILTER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (accepted)" toNode="REFORMAT2:0"/>
+<Edge debugMode="true" fromNode="EXT_FILTER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (accepted)" toNode="REFORMAT4:0"/>
+<Edge debugMode="true" fromNode="REFORMAT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="EXT_FILTER0:0"/>
+<Edge debugMode="true" fromNode="REFORMAT0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="EXT_FILTER1:0"/>
+<Edge debugMode="true" fromNode="REFORMAT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER0:0"/>
+<Edge fromNode="REFORMAT2:1" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:0"/>
+<Edge debugMode="true" fromNode="REFORMAT4:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER0:1"/>
+<Edge fromNode="REFORMAT4:1" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 1 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:1"/>
+<Edge debugMode="true" fromNode="REFORMAT5:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (input parameters)" metadata="Metadata4" outPort="Port 0 (out)" toNode="DB_EXECUTE2:0"/>
+<Edge debugMode="true" fromNode="SIMPLE_GATHER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER0:0"/>
+<Edge debugMode="true" fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="REFORMAT5:0"/>
+</Phase>
+<Phase number="4">
+<Node callStatement="false" dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="1715" guiY="575" id="DB_EXECUTE2" inTransaction="one" printStatements="true" type="DB_EXECUTE" url="port:$0.query:discrete"/>
+</Phase>
+<Phase number="99">
+<Node enabled="enabled" guiHeight="73" guiName="DataGenerator" guiWidth="134" guiX="192" guiY="681" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.key = "LAST_PROCESSED_DATE";
+	$out.0.value = "${DATE_AFTER}";
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="enabled" guiHeight="73" guiName="LookupTableReaderWriter" guiWidth="216" guiX="469" guiY="681" id="LOOKUP_TABLE_READER_WRITER1" lookupTable="LookupTable1" type="LOOKUP_TABLE_READER_WRITER"/>
+<Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge21" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="LOOKUP_TABLE_READER_WRITER1:0"/>
+</Phase>
+</Graph>
