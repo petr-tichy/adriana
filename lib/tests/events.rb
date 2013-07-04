@@ -74,7 +74,7 @@ module SLAWatcher
           body << "---------------------------------------- \n"
         end
       end
-      Pony.mail(:to => "adrian.toman@gooddata.com,jan.cisar@gooddata.com,jiri.stovicek@gooddata.com,miloslav.zientek@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Monitor - PagerDuty incident", :body => body ) if (!body.empty? and body != "")
+      Pony.mail(:to => "clover@gooddata.pagerduty.com",:from => 'sla@gooddata.com', :subject => "SLA Monitor - PagerDuty incident", :body => body ) if (!body.empty? and body != "")
     end
 
     private
