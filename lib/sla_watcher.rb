@@ -8,7 +8,7 @@ require 'composite_primary_keys'
 
 %w(crontab_parser log helper change_watcher).each {|a| require "lib/helpers/#{a}"}
 %w(project task).each {|a| require "lib/data/stage/#{a}"}
-%w(execution_log project settings schedule project_history schedule_history event_log).each {|a| require "lib/data/log/#{a}"}
+%w(execution_log project settings schedule project_history schedule_history event_log request).each {|a| require "lib/data/log/#{a}"}
 %w(base timeline projects statistics).each {|a| require "lib/objects/#{a}"}
 %w(events severity key event test livetest startedtest finishedtest slatest).each {|a| require "lib/tests/#{a}"}
 %w(splunk_downloader).each {|a| require "lib/splunk/#{a}"}
@@ -39,9 +39,38 @@ module SLAWatcher
     end
 
 
+    def check_request_id(values,type)
+      #Fill temp_request table
+      SLAWatcher::Request.delete_all()
+      values.each do |value|
+        SLAWatcher::Request.create(:request_id => value[:request_id])
+      end
+
+      if (type == 'STARTED')
+        requests = SLAWatcher::Request.check_request_id_started
+      else
+        requests = SLAWatcher::Request.check_request_id_finished
+      end
+
+
+      values.delete_if do |element|
+        e = requests.find{|r| r.request_id == element[:request_id]}
+        if (e.nil?)
+          true
+        else
+          false
+        end
+      end
+      values
+    end
+
+
     def load_last_run
       Helper.value_to_datetime(SLAWatcher::Settings.load_last_splunk_synchronization.first.value)
     end
+
+
+
 
     def save_last_run(time)
       SLAWatcher::Settings.save_last_splunk_synchronization(time)
@@ -50,6 +79,10 @@ module SLAWatcher
 
     def log_execution(pid,graph_name,mode,status,detailed_status,time = nil)
       SLAWatcher::ExecutionLog.log_execution(pid,graph_name,mode,status,detailed_status,time)
+    end
+
+    def log_execution_splunk(pid,graph_name,mode,status,detailed_status,time = nil,request_id = nil)
+      SLAWatcher::ExecutionLog.log_execution_splunk(pid,graph_name,mode,status,detailed_status,time,request_id)
     end
 
     def start_migration()
