@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Graph author="root" created="Tue Jun 11 13:31:46 CEST 2013" guiVersion="3.3.2" id="1371040284464" licenseType="Commercial" modified="Fri Jun 28 13:35:38 CEST 2013" modifiedBy="root" name="gd_load_sla" revision="1.147" showComponentDetails="true">
+<Graph author="root" created="Tue Jun 11 13:31:46 CEST 2013" guiVersion="3.3.2" id="1371040284464" licenseType="Commercial" modified="Fri Jul 19 11:04:23 CEST 2013" modifiedBy="root" name="gd_load_sla" revision="1.149" showComponentDetails="true">
 <Global>
 <Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
 <Record fieldDelimiter="," name="execution_log" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
@@ -23,8 +23,8 @@
 <Field name="sla_value" type="string"/>
 </Record>
 </Metadata>
-<Metadata id="Metadata3">
-<Record fieldDelimiter="," name="GD_dataset_sla_reporting" recordDelimiter="\n\\|\r\n" recordSize="-1" type="delimited">
+<Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="," name="GD_dataset_sla_reporting" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n\\|\r\n" recordSize="-1" type="delimited">
 <Field eofAsDelimiter="false" name="id" nullable="true" shift="0" size="0" type="string"/>
 <Field eofAsDelimiter="false" name="project_pid" nullable="true" shift="0" size="0" type="string"/>
 <Field eofAsDelimiter="false" name="sla_project_name" nullable="true" shift="0" size="0" type="string"/>
@@ -32,6 +32,7 @@
 <Field eofAsDelimiter="false" name="sla_value" nullable="true" shift="0" size="0" type="string"/>
 <Field eofAsDelimiter="false" length="12" name="duration" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
 <Field eofAsDelimiter="false" format="yyyy-MM-dd" name="sladate" nullable="true" shift="0" size="0" type="date"/>
+<Field name="r_sla_project" type="string"/>
 </Record>
 </Metadata>
 <Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
@@ -327,7 +328,7 @@ $in.0.sla_enabled == "t"]]></attr>
 <attr name="filterExpression"><![CDATA[//#CTL2
 $in.0.sla_enabled == "t"]]></attr>
 </Node>
-<Node dataset="dataset.sla_reporting" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.sla_reporting&quot;,&quot;datasetTitle&quot;:&quot;Sla_reporting&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_project_pid&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_project_name&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_type&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_value&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;sladate.date&quot;,&quot;title&quot;:&quot;Date (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate&quot;,&quot;assignedMetadataField&quot;:&quot;sladate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sla_reporting.duration&quot;,&quot;title&quot;:&quot;duration&quot;,&quot;prettyId&quot;:&quot;duration&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;duration&quot;}}],&quot;dateFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiHeight="73" guiName="GD Dataset Writer" guiWidth="161" guiX="1674" guiY="436" id="GD_DATASET_WRITER0" mode="INCREMENTAL" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+<Node dataset="dataset.sla_reporting" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.sla_reporting&quot;,&quot;datasetTitle&quot;:&quot;Sla_reporting&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_project_pid&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_project_name&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_type&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_value&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_project_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_project__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;r_sla_project&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_project__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;sladate.date&quot;,&quot;title&quot;:&quot;Date (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate&quot;,&quot;assignedMetadataField&quot;:&quot;sladate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sla_reporting.duration&quot;,&quot;title&quot;:&quot;duration&quot;,&quot;prettyId&quot;:&quot;duration&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;duration&quot;}}],&quot;dateFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiHeight="73" guiName="GD Dataset Writer" guiWidth="161" guiX="1674" guiY="436" id="GD_DATASET_WRITER0" mode="INCREMENTAL" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
 <Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="520" guiY="544" id="REFORMAT0" type="REFORMAT">
 <attr name="transform"><![CDATA[//#CTL2
 
@@ -420,6 +421,7 @@ function integer transform() {
 				$out.0.sla_project_name = $in.0.project_name;
 				$out.0.sladate = $in.0.event_start;
 				$out.0.id = toString($in.0.execution_id);
+				$out.0.r_sla_project = byte2hex(md5($in.0.project_pid + to_first_day_of_month($in.0.event_start)));
 				return ALL;
 			}else{return SKIP;}
 			
@@ -441,6 +443,7 @@ function integer transform() {
 				$out.0.sla_project_name = $in.0.project_name;
 				$out.0.sladate = $in.0.event_start;
 				$out.0.id = toString($in.0.execution_id);
+				$out.0.r_sla_project = byte2hex(md5($in.0.project_pid + to_first_day_of_month($in.0.event_start)));
 			return ALL;
 			}else {return SKIP;}
 	}else{
@@ -471,6 +474,13 @@ function long interval_to_seconds(string value){
 	}
 
 }
+
+function date to_first_day_of_month(date value){
+	string date_string = date2str(value,"yyyy-MM");
+	date_string = date_string + "-01";
+	return str2date(date_string,"yyyy-MM-dd");
+}
+
 
 
 // Called during component initialization.
@@ -517,6 +527,7 @@ function integer transform() {
 				$out.0.sla_project_name = $in.0.project_name;
 				$out.0.sladate = $in.0.event_start;
 				$out.0.id = toString($in.0.execution_id);
+				$out.0.r_sla_project = byte2hex(md5($in.0.project_pid + to_first_day_of_month($in.0.event_start)));
 				return ALL;
 			}else{return SKIP;}
 	}else if ($in.0.project_status == 'Live' and isnull($in.0.sla_event_start) and $in.0.sla_type == "Fixed Duration"){
@@ -532,6 +543,7 @@ function integer transform() {
 				$out.0.sla_project_name = $in.0.project_name;
 				$out.0.sladate = $in.0.event_start;
 				$out.0.id = toString($in.0.execution_id);
+				$out.0.r_sla_project = byte2hex(md5($in.0.project_pid + to_first_day_of_month($in.0.event_start)));
 				return ALL;
 			}
 	}else {
@@ -563,6 +575,13 @@ function long interval_to_seconds(string value){
 	}
 
 }
+
+function date to_first_day_of_month(date value){
+	string date_string = date2str(value,"yyyy-MM");
+	date_string = date_string + "-01";
+	return str2date(date_string,"yyyy-MM-dd");
+}
+
 
 
 ]]></attr>
