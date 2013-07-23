@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
   s.add_dependency "pony"
   s.add_dependency "nokogiri","= 1.5.5"
   s.add_dependency "splunk-client"
+  s.add_dependency "google_drive","= 0.3.6"
 
 
 end

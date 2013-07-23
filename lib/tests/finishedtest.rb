@@ -12,7 +12,7 @@ module SLAWatcher
       @EVENT_TYPE       =   "FINISHED_TEST"
       @SEVERITY         =   Severity.MEDIUM
       @STATISTICS_INTERVAL    =   2 #How many months back we are creating statistics
-      @WARNING_INTERVAL =   30 #Minutes
+      @WARNING_INTERVAL =   60 #Minutes
     end
 
     def start()

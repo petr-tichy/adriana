@@ -5,13 +5,15 @@ require "lib/data/connection.rb"
 require 'logger'
 require 'lib/migration.rb'
 require 'composite_primary_keys'
+require 'google_drive'
 
 %w(crontab_parser log helper change_watcher).each {|a| require "lib/helpers/#{a}"}
 %w(project task).each {|a| require "lib/data/stage/#{a}"}
-%w(execution_log project settings schedule project_history schedule_history event_log request).each {|a| require "lib/data/log/#{a}"}
+%w(execution_log project settings schedule project_history schedule_history event_log request sla_description).each {|a| require "lib/data/log/#{a}"}
 %w(base timeline projects statistics).each {|a| require "lib/objects/#{a}"}
 %w(events severity key event test livetest startedtest finishedtest slatest).each {|a| require "lib/tests/#{a}"}
 %w(splunk_downloader).each {|a| require "lib/splunk/#{a}"}
+%w(google_downloader).each {|a| require "lib/google/#{a}"}
 %w(testcases).each {|a| require "lib/testcases/#{a}"}
 
 
@@ -19,6 +21,9 @@ require 'composite_primary_keys'
 module SLAWatcher
 
   class << self
+
+
+    attr_accessor :google
 
     def connect_to_db(hostname,port,username,password,database)
       SLAWatcher::Connection.connect(hostname,port,username,password,database)
@@ -37,6 +42,8 @@ module SLAWatcher
     def get_projects
       SLAWatcher::Project.load_projects
     end
+
+
 
 
     def check_request_id(values,type)
@@ -126,6 +133,24 @@ module SLAWatcher
       TestCase.testcase12()
       #TestCase.cleartestcases
     end
+
+
+    def get_sla_descriptions
+      SLAWatcher::SLADescription.get_data_for_sheet
+    end
+
+    def get_unchanged_sla_descriptions
+      SLAWatcher::SLADescription.select("*")
+    end
+
+
+
+    def connect_to_google(login,password,document)
+      @google =  SLAWatcher::GoogleDownloader.new(login,password,document,0)
+    end
+
+
+
 
 
 
