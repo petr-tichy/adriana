@@ -10,7 +10,7 @@ module SLAWatcher
     def initialize(events)
       super(events)
       @EVENT_TYPE       =   "SLA_TEST"
-      @SEVERITY         =   Severity.HIGH
+      @SEVERITY         =   Severity.MEDIUM
       @TIME_INTERVAL    =   12 #How many hours back are we checking
       @WARNING_INTERVAL =   30 #Minutes
     end

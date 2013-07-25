@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Graph author="root" created="Tue Jun 11 13:31:46 CEST 2013" guiVersion="3.3.2" id="1371040284464" licenseType="Commercial" modified="Mon Jul 22 16:17:28 CEST 2013" modifiedBy="root" name="gd_load_sla" revision="1.151" showComponentDetails="true">
+<Graph author="root" created="Tue Jun 11 13:31:46 CEST 2013" guiVersion="3.3.2" id="1371040284464" licenseType="Commercial" modified="Thu Jul 25 10:47:45 CEST 2013" modifiedBy="root" name="gd_load_sla" revision="1.164" showComponentDetails="true">
 <Global>
 <Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
 <Record fieldDelimiter="," name="execution_log" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
@@ -21,6 +21,29 @@
 <Field name="sla_enabled" type="string"/>
 <Field name="sla_type" type="string"/>
 <Field name="sla_value" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata7" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="," name="execution_log_and_duration" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field name="execution_id" type="integer"/>
+<Field name="r_schedule" type="integer"/>
+<Field format="yyyy-MM-dd HH:mm:ss" name="event_start" type="date"/>
+<Field format="yyyy-MM-dd HH:mm:ss" name="second_event_start" type="date"/>
+<Field format="yyyy-MM-dd HH:mm:ss" name="second_event_end" type="date"/>
+<Field name="duration" type="string"/>
+<Field name="second_execution_id" type="string"/>
+<Field name="status" type="string"/>
+<Field name="second_status" type="string"/>
+<Field name="project_pid" type="string"/>
+<Field name="one_day_order" type="string"/>
+<Field name="project_name" type="string"/>
+<Field name="project_status" type="string"/>
+<Field name="sla_event_start" type="string"/>
+<Field name="second_sla_event_start" type="string"/>
+<Field name="sla_enabled" type="string"/>
+<Field name="sla_type" type="string"/>
+<Field name="sla_value" type="string"/>
+<Field name="duration_in_sec" type="long"/>
 </Record>
 </Metadata>
 <Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
@@ -72,9 +95,9 @@
 </Record>
 </Metadata>
 <Connection database="POSTGRE" dbURL="jdbc:postgresql://${SERVER}/ms" id="JDBC0" jdbcSpecific="POSTGRE" name="LogingDB" password="a12345" type="JDBC" user="exporter"/>
-<Property id="GraphParameter0" name="DATE_AFTER" value="2013-06-12"/>
-<Property id="GraphParameter1" name="DATE_BEFORE" value="2013-06-10"/>
-<Property id="GraphParameter2" name="DATE_SLA" value="2013-06-11"/>
+<Property id="GraphParameter0" name="DATE_AFTER" value="2013-07-25"/>
+<Property id="GraphParameter1" name="DATE_BEFORE" value="2013-07-23"/>
+<Property id="GraphParameter2" name="DATE_SLA" value="2013-07-24"/>
 <Property fileURL="workspace.prm" id="GraphParameter3"/>
 <LookupTable id="LookupTable1" metadata="Metadata6" name="gd_lookup" type="gdLookup"/>
 <LookupTable id="LookupTable0" initialSize="512" key="project_pid;date" metadata="Metadata0" name="project_validity" type="simpleLookup"/>
@@ -85,47 +108,7 @@
 </Global>
 <Phase number="0">
 <Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="195" guiY="80" id="DB_EXECUTE0" type="DB_EXECUTE">
-<attr name="sqlQuery"><![CDATA[
-
-DROP TABLE log2.temp_project_history;
-
-CREATE TABLE log2.temp_project_history
-  (
-	project_pid VARCHAR(255),
-	valid_from DATE,
-	valid_to DATE,
-	key VARCHAR(100),
-	value VARCHAR(255),
-	h_order INT
-  );
-
-
-INSERT INTO log2.temp_project_history 
-SELECT  
-	ph_newer.project_pid as project_pid,
-	COALESCE(ph_older.updated_at,p.created_at) as valid_from,
-	COALESCE(ph_newer.updated_at,now()) as valid_to,
-	ph_newer.key as key,
-	CAST(ph_newer.old_value as VARCHAR(255)) as value,
-	ROW_NUMBER() OVER (PARTITION BY ph_newer.project_pid,ph_newer.key,ph_older.updated_at::date ORDER BY ph_older.updated_at DESC) AS e_order
-FROM log2.project_history ph_newer 
-INNER JOIN log2.project p ON p.project_pid = ph_newer.project_pid
-LEFT OUTER JOIN log2.project_history ph_older ON ph_newer.project_pid = ph_older.project_pid AND ph_older.updated_at < ph_newer.updated_at AND ph_older.key = ph_newer.key 
-WHERE 
-	NOT EXISTS (
-		SELECT ph_midle.id 
-		FROM log2.project_history ph_midle 
-		WHERE 
-			ph_midle.project_pid=ph_newer.project_pid 
-				AND 
-			ph_midle.key = ph_newer.key 
-				AND
-			ph_midle.updated_at > ph_older.updated_at 
-				AND 
-			ph_midle.updated_at < ph_newer.updated_at 
-		);
-
-DROP TABLE log2.temp_project_history_denorm;
+<attr name="sqlQuery"><![CDATA[DROP TABLE log2.temp_project_history_denorm;
 
 CREATE TABLE log2.temp_project_history_denorm
   (
@@ -273,7 +256,7 @@ FROM log2.execution_log l
 INNER JOIN log2.schedule s ON s.id = l.r_schedule
 WHERE 
 	s.main = 'true' 
-	AND l.event_start >= '${DATE_BEFORE}' AND l.event_start < '${DATE_AFTER}' and l.detailed_status = 'FOR TESTING';
+	AND l.event_start >= '${DATE_BEFORE}' AND l.event_start < '${DATE_AFTER}';
 
 CREATE INDEX "IX_order_schedule"
   ON log2.execution_order
@@ -328,7 +311,7 @@ $in.0.sla_enabled == "t"]]></attr>
 <attr name="filterExpression"><![CDATA[//#CTL2
 $in.0.sla_enabled == "t"]]></attr>
 </Node>
-<Node dataset="dataset.sla_reporting" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.sla_reporting&quot;,&quot;datasetTitle&quot;:&quot;Sla_reporting&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_project_pid&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_project_name&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_type&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_value&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_project_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_project__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;r_sla_project&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_project__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;sladate.date&quot;,&quot;title&quot;:&quot;Date (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate&quot;,&quot;assignedMetadataField&quot;:&quot;sladate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sla_reporting.duration&quot;,&quot;title&quot;:&quot;duration&quot;,&quot;prettyId&quot;:&quot;duration&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;duration&quot;}}],&quot;dateFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiHeight="73" guiName="GD Dataset Writer" guiWidth="161" guiX="1715" guiY="445" id="GD_DATASET_WRITER0" mode="INCREMENTAL" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+<Node dataset="dataset.sla_reporting" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.sla_reporting&quot;,&quot;datasetTitle&quot;:&quot;Sla_reporting&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_project_pid&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_project_name&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_type&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_value&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_project_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_project__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;r_sla_project&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_project__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;sladate.date&quot;,&quot;title&quot;:&quot;Date (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate&quot;,&quot;assignedMetadataField&quot;:&quot;sladate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sla_reporting.duration&quot;,&quot;title&quot;:&quot;duration&quot;,&quot;prettyId&quot;:&quot;duration&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;duration&quot;}}],&quot;dateFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="disabled" guiHeight="73" guiName="GD Dataset Writer" guiWidth="161" guiX="1677" guiY="278" id="GD_DATASET_WRITER0" mode="INCREMENTAL" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
 <Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="520" guiY="544" id="REFORMAT0" type="REFORMAT">
 <attr name="transform"><![CDATA[//#CTL2
 
@@ -422,6 +405,10 @@ function integer transform() {
 				$out.0.sladate = $in.0.event_start;
 				$out.0.id = toString($in.0.execution_id);
 				$out.0.r_sla_project = byte2hex(md5($in.0.project_pid + to_first_day_of_month($in.0.event_start)));
+				
+				
+				$out.1.duration_in_sec = duration;
+				
 				return ALL;
 			}else{return SKIP;}
 			
@@ -444,6 +431,8 @@ function integer transform() {
 				$out.0.sladate = $in.0.event_start;
 				$out.0.id = toString($in.0.execution_id);
 				$out.0.r_sla_project = byte2hex(md5($in.0.project_pid + to_first_day_of_month($in.0.event_start)));
+				
+				$out.1.duration_in_sec = duration;
 			return ALL;
 			}else {return SKIP;}
 	}else{
@@ -502,7 +491,6 @@ function date to_first_day_of_month(date value){
 // function string getMessage() {}
 ]]></attr>
 </Node>
-<Node enabled="disabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="1519" guiY="270" id="REFORMAT3" type="REFORMAT"/>
 <Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="1094" guiY="575" id="REFORMAT4" type="REFORMAT">
 <attr name="transform"><![CDATA[//#CTL2
 
@@ -528,6 +516,10 @@ function integer transform() {
 				$out.0.sladate = $in.0.event_start;
 				$out.0.id = toString($in.0.execution_id);
 				$out.0.r_sla_project = byte2hex(md5($in.0.project_pid + to_first_day_of_month($in.0.event_start)));
+				
+				
+				$out.1.duration_in_sec = duration;
+				
 				return ALL;
 			}else{return SKIP;}
 	}else if ($in.0.project_status == 'Live' and isnull($in.0.sla_event_start) and $in.0.sla_type == "Fixed Duration"){
@@ -544,6 +536,9 @@ function integer transform() {
 				$out.0.sladate = $in.0.event_start;
 				$out.0.id = toString($in.0.execution_id);
 				$out.0.r_sla_project = byte2hex(md5($in.0.project_pid + to_first_day_of_month($in.0.event_start)));
+				
+				$out.1.duration_in_sec = duration;
+				
 				return ALL;
 			}
 	}else {
@@ -592,7 +587,7 @@ function date to_first_day_of_month(date value){
 // Transforms input record into output record.
 function integer transform() {
 	$out.0.query = "UPDATE log2.execution_log e SET sla_event_start = "+ $in.0.execution_id +" WHERE e.event_start >= '"+ date2str($in.0.event_start,"yyyy-MM-dd HH:mm:ss") + "' AND e.event_start <= '" + date2str($in.0.second_event_start,"yyyy-MM-dd HH:mm:ss") +"' AND e.r_schedule = "+ $in.0.r_schedule +";";
-	$out.1.query = "INSERT INTO log2.sla_description (id,sla_type,sla_duration) VALUES (" + $in.0.execution_id + ",'" + $in.0.sla_type +"','" + $in.0.sla_value + "');";
+	$out.1.query = "INSERT INTO log2.sla_description (id,sla_type,sla_value,duration) VALUES (" + $in.0.execution_id + ",'" + $in.0.sla_type +"','" + $in.0.sla_value + "'," +  $in.0.duration_in_sec + ");";
 	return ALL;
 }
 
@@ -617,28 +612,29 @@ function integer transform() {
 </Node>
 <Node enabled="enabled" guiHeight="73" guiName="SimpleGather" guiWidth="128" guiX="1325" guiY="436" id="SIMPLE_GATHER0" type="SIMPLE_GATHER"/>
 <Node enabled="enabled" guiHeight="73" guiName="SimpleGather" guiWidth="128" guiX="1325" guiY="575" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
+<Node enabled="enabled" guiHeight="73" guiName="Trash" guiWidth="128" guiX="1654" guiY="436" id="TRASH0" type="TRASH"/>
 <Edge debugMode="true" fromNode="DB_INPUT_TABLE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="REFORMAT0:0"/>
 <Edge debugMode="true" fromNode="EXT_FILTER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (accepted)" toNode="REFORMAT2:0"/>
 <Edge debugMode="true" fromNode="EXT_FILTER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (accepted)" toNode="REFORMAT4:0"/>
 <Edge debugMode="true" fromNode="REFORMAT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="EXT_FILTER0:0"/>
 <Edge debugMode="true" fromNode="REFORMAT0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="EXT_FILTER1:0"/>
 <Edge debugMode="true" fromNode="REFORMAT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER0:0"/>
-<Edge fromNode="REFORMAT2:1" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:0"/>
+<Edge fromNode="REFORMAT2:1" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" metadata="Metadata7" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:0"/>
 <Edge debugMode="true" fromNode="REFORMAT4:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER0:1"/>
-<Edge fromNode="REFORMAT4:1" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 1 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:1"/>
+<Edge fromNode="REFORMAT4:1" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 1 (in)" metadata="Metadata7" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:1"/>
 <Edge debugMode="true" fromNode="REFORMAT5:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (input parameters)" metadata="Metadata4" outPort="Port 0 (out)" toNode="DB_EXECUTE2:0"/>
 <Edge fromNode="REFORMAT5:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (input parameters)" metadata="Metadata4" outPort="Port 1 (out)" toNode="DB_EXECUTE3:0"/>
-<Edge debugMode="true" fromNode="SIMPLE_GATHER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER0:0"/>
-<Edge debugMode="true" fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="REFORMAT5:0"/>
+<Edge debugMode="true" fromNode="SIMPLE_GATHER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="TRASH0:0"/>
+<Edge debugMode="true" fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" metadata="Metadata7" outPort="Port 0 (out)" toNode="REFORMAT5:0"/>
 </Phase>
 <Phase number="4">
 <Node callStatement="false" dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="1781" guiY="575" id="DB_EXECUTE2" inTransaction="one" printStatements="false" type="DB_EXECUTE" url="port:$0.query:discrete"/>
 </Phase>
 <Phase number="5">
-<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="1781" guiY="681" id="DB_EXECUTE3" inTransaction="one" type="DB_EXECUTE" url="port:$0.query:discrete"/>
+<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="1781" guiY="690" id="DB_EXECUTE3" inTransaction="one" type="DB_EXECUTE" url="port:$0.query:discrete"/>
 </Phase>
 <Phase number="99">
-<Node enabled="enabled" guiHeight="73" guiName="DataGenerator" guiWidth="134" guiX="192" guiY="681" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
+<Node enabled="enabled" guiHeight="73" guiName="DataGenerator" guiWidth="134" guiX="195" guiY="718" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
 <attr name="generate"><![CDATA[//#CTL2
 
 // Generates output record.
@@ -668,7 +664,7 @@ function integer generate() {
 // function string getMessage() {}
 ]]></attr>
 </Node>
-<Node enabled="enabled" guiHeight="73" guiName="LookupTableReaderWriter" guiWidth="216" guiX="469" guiY="681" id="LOOKUP_TABLE_READER_WRITER1" lookupTable="LookupTable1" type="LOOKUP_TABLE_READER_WRITER"/>
+<Node enabled="enabled" guiHeight="73" guiName="LookupTableReaderWriter" guiWidth="216" guiX="472" guiY="718" id="LOOKUP_TABLE_READER_WRITER1" lookupTable="LookupTable1" type="LOOKUP_TABLE_READER_WRITER"/>
 <Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge21" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="LOOKUP_TABLE_READER_WRITER1:0"/>
 </Phase>
 </Graph>
