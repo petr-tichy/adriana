@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Graph author="root" created="Tue Jun 11 13:31:46 CEST 2013" guiVersion="3.3.2" id="1371040284464" licenseType="Commercial" modified="Thu Jul 25 10:47:45 CEST 2013" modifiedBy="root" name="gd_load_sla" revision="1.164" showComponentDetails="true">
+<Graph author="root" created="Tue Jun 11 13:31:46 CEST 2013" guiVersion="3.3.2" id="1371040284464" licenseType="Commercial" modified="Thu Jul 25 14:24:39 CEST 2013" modifiedBy="root" name="gd_load_sla" revision="1.170" showComponentDetails="true">
 <Global>
 <Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
 <Record fieldDelimiter="," name="execution_log" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
@@ -586,7 +586,7 @@ function date to_first_day_of_month(date value){
 
 // Transforms input record into output record.
 function integer transform() {
-	$out.0.query = "UPDATE log2.execution_log e SET sla_event_start = "+ $in.0.execution_id +" WHERE e.event_start >= '"+ date2str($in.0.event_start,"yyyy-MM-dd HH:mm:ss") + "' AND e.event_start <= '" + date2str($in.0.second_event_start,"yyyy-MM-dd HH:mm:ss") +"' AND e.r_schedule = "+ $in.0.r_schedule +";";
+	$out.0.query = "UPDATE log2.execution_log e SET sla_event_start = "+ $in.0.execution_id +" WHERE e.id >= "+ $in.0.execution_id +" AND e.id <= " + $in.0.second_execution_id  +" AND e.r_schedule = "+ $in.0.r_schedule +";";
 	$out.1.query = "INSERT INTO log2.sla_description (id,sla_type,sla_value,duration) VALUES (" + $in.0.execution_id + ",'" + $in.0.sla_type +"','" + $in.0.sla_value + "'," +  $in.0.duration_in_sec + ");";
 	return ALL;
 }
@@ -613,6 +613,7 @@ function integer transform() {
 <Node enabled="enabled" guiHeight="73" guiName="SimpleGather" guiWidth="128" guiX="1325" guiY="436" id="SIMPLE_GATHER0" type="SIMPLE_GATHER"/>
 <Node enabled="enabled" guiHeight="73" guiName="SimpleGather" guiWidth="128" guiX="1325" guiY="575" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
 <Node enabled="enabled" guiHeight="73" guiName="Trash" guiWidth="128" guiX="1654" guiY="436" id="TRASH0" type="TRASH"/>
+<Node enabled="disabled" guiHeight="73" guiName="Trash" guiWidth="128" guiX="1638" guiY="746" id="TRASH1" type="TRASH"/>
 <Edge debugMode="true" fromNode="DB_INPUT_TABLE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="REFORMAT0:0"/>
 <Edge debugMode="true" fromNode="EXT_FILTER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (accepted)" toNode="REFORMAT2:0"/>
 <Edge debugMode="true" fromNode="EXT_FILTER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (accepted)" toNode="REFORMAT4:0"/>
@@ -623,7 +624,7 @@ function integer transform() {
 <Edge debugMode="true" fromNode="REFORMAT4:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER0:1"/>
 <Edge fromNode="REFORMAT4:1" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 1 (in)" metadata="Metadata7" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:1"/>
 <Edge debugMode="true" fromNode="REFORMAT5:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (input parameters)" metadata="Metadata4" outPort="Port 0 (out)" toNode="DB_EXECUTE2:0"/>
-<Edge fromNode="REFORMAT5:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (input parameters)" metadata="Metadata4" outPort="Port 1 (out)" toNode="DB_EXECUTE3:0"/>
+<Edge debugMode="true" fromNode="REFORMAT5:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (input parameters)" metadata="Metadata4" outPort="Port 1 (out)" toNode="DB_EXECUTE3:0"/>
 <Edge debugMode="true" fromNode="SIMPLE_GATHER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="TRASH0:0"/>
 <Edge debugMode="true" fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" metadata="Metadata7" outPort="Port 0 (out)" toNode="REFORMAT5:0"/>
 </Phase>
