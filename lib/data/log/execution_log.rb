@@ -29,7 +29,7 @@ module SLAWatcher
     end
 
     def self.get_run_statistics(day_of_week,statistics_start)
-      select("r_schedule,AVG(event_end - event_start) as avg_run").where("EXTRACT(DOW FROM event_start) = ? AND status = 'FINISHED' AND event_start > ?",day_of_week,statistics_start).group("r_schedule")
+      select("r_schedule,AVG(event_end - event_start) as avg_run").where("EXTRACT(DOW FROM event_start) = ? AND status = 'FINISHED' AND event_start > ? AND (event_end - event_start) > '2 minutes'",day_of_week,statistics_start).group("r_schedule")
     end
 
 
