@@ -134,9 +134,8 @@ command :sync_google do |c|
     data = SLAWatcher.get_unchanged_sla_descriptions
     data_in_sheet.each do |s|
       sla = data.find { |d| d.id.to_s == s[:id].to_s}
-
       if (!sla.nil?)
-        if (s[:sla_description_type] != sla[:description_type] or s[:sla_description_text] != sla[:description_text])
+        if (s[:sla_description_type] != sla.sla_description_type or s[:sla_description_text] != sla.sla_description_text)
           sla.sla_description_type = s[:sla_description_type]
           sla.sla_description_text = s[:sla_description_text]
           sla.save
