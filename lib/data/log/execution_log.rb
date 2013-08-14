@@ -41,6 +41,12 @@ module SLAWatcher
       select("execution_log.id,execution_log.r_schedule, s.r_project as project_pid, s.id as r_schedule, s.server as server, execution_log.event_start, execution_log.event_end ").joins("INNER JOIN log2.schedule s ON s.id = execution_log.r_schedule").joins("INNER JOIN log2.project p ON s.r_project = p.project_pid").where("(execution_log.status = 'RUNNING' OR execution_log.status = 'ERROR') AND s.is_deleted = 'false' AND p.status = 'Live' AND NOT EXISTS (SELECT l2.id FROM log2.execution_log l2 WHERE l2.r_schedule = execution_log.r_schedule	AND	l2.id > execution_log.id AND l2.status = 'FINISHED')")
     end
 
+
+    # THis query will be used to manual fix of wrongly logged executions
+    def self.get_wrongly_logged_executions
+      select("execution_log.id,p.name as project_name,p.project_pid as project_pid,s.graph_name as graph_name,s.mode as mode,execution_log.event_start as event_start,execution_log.event_end as event_end,execution_log.status as status, execution_log.detailed_status as detailed_status").joins("INNER JOIN log2.schedule s ON s.id = execution_log.r_schedule").joins("INNER JOIN log2.project p ON s.r_project = p.project_pid").where("execution_log.status = 'RUNNING'").order("execution_log.event_start")
+    end
+
     def self.check_request_id(values)
 
     end

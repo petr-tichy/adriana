@@ -142,12 +142,28 @@ command :sync_google do |c|
         end
       end
     end
-
     data_description = SLAWatcher.get_sla_descriptions
-    SLAWatcher.google.clean_active_worksheet
     SLAWatcher.google.put_data_to_worksheet(data_description)
-    SLAWatcher.google.save
 
+    wrongly_logged = SLAWatcher.get_wrongly_logged_executions
+    wrongly_logged_in_sheet = SLAWatcher.google.load_error_worksheet
+    wrongly_logged_in_sheet.each do |w|
+      execution = wrongly_logged.find { |d| d.id.to_s == w[:id].to_s}
+      if (!execution.nil?)
+            if (!w[:event_end].nil? and !w[:event_end].empty? and (w[:status] == "FINISHED" or w[:status] == "ERROR"))
+              begin
+                event_end = DateTime.strptime(w[:event_end],"%Y-%m-%d %H:%M:%S")
+                execution.event_end = event_end
+                execution.status = w[:status]
+                execution.detailed_status = w[:detailed_status]
+                execution.save
+              rescue => e
+              end
+            end
+          end
+    end
+    wrongly_logged = SLAWatcher.get_wrongly_logged_executions
+    SLAWatcher.google.fill_error_worksheet(wrongly_logged)
   end
 end
 

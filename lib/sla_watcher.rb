@@ -117,7 +117,6 @@ module SLAWatcher
       events.mail_status
       events.save
 
-
       #
       #events.each do |e|
       #  puts "----------------- Event START -------------------------"
@@ -143,6 +142,9 @@ module SLAWatcher
       SLAWatcher::SLADescription.select("*")
     end
 
+    def get_wrongly_logged_executions
+      SLAWatcher::ExecutionLog.get_wrongly_logged_executions
+    end
 
 
     def connect_to_google(login,password,document)
