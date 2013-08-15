@@ -22,42 +22,61 @@ module SLAWatcher
       @@log.info "Starting Stage > Log project migration"
       @projects_in_stage.each do |stage_project|
 
-        p = @projects_in_log.find {|log_project| stage_project.de_project_pid == log_project.project_pid}
-        stage_username = stage_project.email || stage_project.ms_person
-        if (!p.nil?) then
-            # Project is already in LOG database
-          changeWatcher = ChangeWatcher.new(p.project_pid)
-          changeWatcher.addComparer(Comparer.new(p.status,stage_project.de_operational_status,"status"))
-          changeWatcher.addComparer(Comparer.new(p.name,stage_project.name,"name"))
-          changeWatcher.addComparer(Comparer.new(p.ms_person,stage_username,"ms_person"))
-          changeWatcher.addComparer(Comparer.new(p.is_deleted,"false","is_deleted"))
-          changeWatcher.addComparer(Comparer.new(p.sla_enabled,(stage_project.sla_enabled == "Enabled" ? true : false),"sla_enabled"))
-          changeWatcher.addComparer(Comparer.new(p.sla_type,stage_project.sla_type,"sla_type"))
-          changeWatcher.addComparer(Comparer.new(p.sla_value,stage_project.sla_value,"sla_value"))
+        valid = true
 
-          if (!changeWatcher.same?)
+        #Sla-value test
+        begin
+          minutes = Helper.interval_to_minutes(stage_project.sla_value) if !stage_project.sla_value.nil? && !stage_project.sla_value.empty?
+        rescue => e
+          create_validity_message(stage_project.de_project_pid,nil,nil,nil,"Sla-value settings: #{stage_project.sla_value} is not valid")
+          valid = false
+        end
 
-            ActiveRecord::Base.transaction do
-              changeWatcher.log_changes(@@log,"project",p.name,p.project_pid)
-              changeWatcher.save_history_to_db("project_history")
-              changeWatcher.different_values.each do |value|
-                p[value.key] = value.secondValue
+
+        if (valid)
+
+          p = @projects_in_log.find {|log_project| stage_project.de_project_pid == log_project.project_pid}
+          stage_username = stage_project.email || stage_project.ms_person
+          if (!p.nil?) then
+              # Project is already in LOG database
+            changeWatcher = ChangeWatcher.new(p.project_pid)
+            changeWatcher.addComparer(Comparer.new(p.status,stage_project.de_operational_status,"status"))
+            changeWatcher.addComparer(Comparer.new(p.name,stage_project.name,"name"))
+            changeWatcher.addComparer(Comparer.new(p.ms_person,stage_username,"ms_person"))
+            changeWatcher.addComparer(Comparer.new(p.is_deleted,"false","is_deleted"))
+            changeWatcher.addComparer(Comparer.new(p.sla_enabled,(stage_project.sla_enabled == "Enabled" ? true : false),"sla_enabled"))
+            changeWatcher.addComparer(Comparer.new(p.sla_type,stage_project.sla_type,"sla_type"))
+            changeWatcher.addComparer(Comparer.new(p.sla_value,stage_project.sla_value,"sla_value"))
+            changeWatcher.addComparer(Comparer.new(p.customer_name,stage_project.de_customer_name,"customer_name"))
+            changeWatcher.addComparer(Comparer.new(p.customer_contact_name,stage_project.de_customer_contact_name,"customer_contact_name"))
+            changeWatcher.addComparer(Comparer.new(p.customer_contact_email,stage_project.de_customer_contact_email,"customer_contact_email"))
+            if (!changeWatcher.same?)
+
+              ActiveRecord::Base.transaction do
+                changeWatcher.log_changes(@@log,"project",p.name,p.project_pid)
+                changeWatcher.save_history_to_db("project_history")
+                changeWatcher.different_values.each do |value|
+                  p[value.key] = value.secondValue
+                end
+                p.save
               end
-              p.save
+
             end
+          else
+            # Project is not in LOG database, we need to create him
+            Project.create(:project_pid => stage_project.de_project_pid, :status => stage_project.de_operational_status, :name => stage_project.name,:ms_person => stage_username,:sla_enabled => (stage_project.sla_enabled == "Enabled" ? true : false),:sla_type => stage_project.sla_type, :sla_value => stage_project.sla_value,:customer_name => stage_project.de_customer_name,:customer_contact_name => stage_project.de_customer_contact_name,:customer_contact_email => stage_project.de_customer_contact_email,:created_at => DateTime.now)
+            @@log.info "The project #{stage_project.name} (#{stage_project.de_project_pid}) has been created"
+            @@log.info "Status - new value: #{stage_project.de_operational_status}"
+            @@log.info "Name - new value: #{stage_project.name}"
+            @@log.info "Sla Enabled - new value: #{(stage_project.sla_enabled == "Enabled" ? true : false)}"
+            @@log.info "Sla Type - new value: #{stage_project.sla_type}"
+            @@log.info "Sla Value - new value: #{stage_project.sla_value}"
+            @@log.info "Customer Name - new value: #{stage_project.de_customer_name}"
+            @@log.info "Customer Contact Name - new value: #{stage_project.sla_customer_contact_name}"
+            @@log.info "Customer Contact Email - new value: #{stage_project.sla_customer_contact_email}"
+            @@log.info "-----------------------------------------------------------------"
 
           end
-        else
-          # Project is not in LOG database, we need to create him
-          Project.create(:project_pid => stage_project.de_project_pid, :status => stage_project.de_operational_status, :name => stage_project.name,:ms_person => stage_username,:sla_enabled => (stage_project.sla_enabled == "Enabled" ? true : false),:sla_type => stage_project.sla_type, :sla_value => stage_project.sla_value,:created_at => DateTime.now)
-          @@log.info "The project #{stage_project.name} (#{stage_project.de_project_pid}) has been created"
-          @@log.info "Status - new value: #{stage_project.de_operational_status}"
-          @@log.info "Name - new value: #{stage_project.name}"
-          @@log.info "Sla Enabled - new value: #{(stage_project.sla_enabled == "Enabled" ? true : false)}"
-          @@log.info "Sla Type - new value: #{stage_project.sla_type}"
-          @@log.info "Sla Value - new value: #{stage_project.sla_value}"
-          @@log.info "-----------------------------------------------------------------"
-
         end
       end
 
@@ -159,8 +178,9 @@ module SLAWatcher
       ## TO DO - validation message sending
       @validity_check.each do |e|
         @@log.warn "---------- Validation Message ----------"
-        @@log.warn "Project - #{e.key} has following validation problems:"
-        e.value.each do |v|
+        @@log.warn "Project - #{e.keys.first} has following validation problems:"
+        e.values.first.each do |v|
+          pp v
           @@log.warn "Graph name - #{v[:graph_name]} mode - #{v[:mode]}"
           @@log.warn v[:message]
         end

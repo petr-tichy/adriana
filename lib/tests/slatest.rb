@@ -23,11 +23,16 @@ module SLAWatcher
       end
       sort_execution
 
+
+
+
       # Lets test only project when we should minitor SLA
      @executions.each do |e|
        project = @projects.find{|p| p.project_pid == e[:project_pid]}
        if (!project.nil? and project.sla_enabled == 't')
          start_time = e[:executions].first[:event_start]
+
+         pp e
 
          if (project.sla_type == "Fixed Duration")
            duration = Helper.interval_to_minutes(project.sla_value)
