@@ -60,11 +60,19 @@ module SLAWatcher
                 end
                 p.save
               end
-
             end
           else
             # Project is not in LOG database, we need to create him
             Project.create(:project_pid => stage_project.de_project_pid, :status => stage_project.de_operational_status, :name => stage_project.name,:ms_person => stage_username,:sla_enabled => (stage_project.sla_enabled == "Enabled" ? true : false),:sla_type => stage_project.sla_type, :sla_value => stage_project.sla_value,:customer_name => stage_project.de_customer_name,:customer_contact_name => stage_project.de_customer_contact_name,:customer_contact_email => stage_project.de_customer_contact_email,:created_at => DateTime.now)
+            ProjectHistory.create(:project_pid => stage_project.de_project_pid, :key => "name", :value => stage_project.name, :updated_by => 'logger')
+            ProjectHistory.create(:project_pid => stage_project.de_project_pid, :key => "status", :value => stage_project.de_operational_status, :updated_by => 'logger')
+            ProjectHistory.create(:project_pid => stage_project.de_project_pid, :key => "sla_enabled", :value => (stage_project.sla_enabled == "Enabled" ? true : false), :updated_by => 'logger')
+            ProjectHistory.create(:project_pid => stage_project.de_project_pid, :key => "sla_value", :value => stage_project.sla_value, :updated_by => 'logger')
+            ProjectHistory.create(:project_pid => stage_project.de_project_pid, :key => "sla_type", :value => stage_project.sla_type, :updated_by => 'logger')
+            ProjectHistory.create(:project_pid => stage_project.de_project_pid, :key => "customer_name", :value => stage_project.de_customer_name, :updated_by => 'logger')
+            ProjectHistory.create(:project_pid => stage_project.de_project_pid, :key => "customer_contact_name", :value => stage_project.sla_customer_contact_name, :updated_by => 'logger')
+            ProjectHistory.create(:project_pid => stage_project.de_project_pid, :key => "customer_contact_email", :value => stage_project.sla_customer_contact_email, :updated_by => 'logger')
+
             @@log.info "The project #{stage_project.name} (#{stage_project.de_project_pid}) has been created"
             @@log.info "Status - new value: #{stage_project.de_operational_status}"
             @@log.info "Name - new value: #{stage_project.name}"

@@ -46,7 +46,12 @@ module SLAWatcher
 
       if (table_name == "project_history")
         different_values.each do |v|
-          ProjectHistory.create(:project_pid => @id,:old_value => v.firstValue, :new_value => v.secondValue,:key => v.key )
+          previous_version = ProjectHistory.select("*").where("project_pid = ? and key = ? and valid_to IS NULL",@id,v.key).first
+          if (!previous_version.nil?)
+            previous_version[:valid_to] = DateTime.now()
+            previous_version.save()
+          end
+          ProjectHistory.create(:project_pid => @id,:value => v.secondValue,:key => v.key, :valid_from => DateTime.now(),:updated_by => 'logger' )
         end
       elsif (table_name == "schedule_history")
         different_values.each do |v|
