@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Graph author="root" created="Wed Jun 05 09:46:33 CEST 2013" guiVersion="3.3.2" id="1370436658892" licenseType="Commercial" modified="Thu Aug 15 13:36:13 CEST 2013" modifiedBy="root" name="gd_load" revision="1.116" showComponentDetails="true">
+<Graph author="root" created="Wed Jun 05 09:46:33 CEST 2013" guiVersion="3.3.2" id="1370436658892" licenseType="Commercial" modified="Mon Aug 19 14:00:46 CEST 2013" modifiedBy="root" name="gd_load" revision="1.118" showComponentDetails="true">
 <Global>
 <Metadata id="Metadata7" previewAttachmentCharset="ISO-8859-1">
 <Record fieldDelimiter=";" name="event_log" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
@@ -213,7 +213,7 @@
 <Dictionary/>
 </Global>
 <Phase number="0">
-<Node dbConnection="JDBC0" enabled="disabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="78" guiY="-27" id="DB_EXECUTE0" type="DB_EXECUTE">
+<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="78" guiY="-27" id="DB_EXECUTE0" type="DB_EXECUTE">
 <attr name="sqlQuery"><![CDATA[DROP TABLE log2.temp_project_history;
 
 CREATE TABLE log2.temp_project_history
@@ -226,36 +226,16 @@ CREATE TABLE log2.temp_project_history
 	h_order INT
   );
 
-set enable_hashjoin = off;
-
 INSERT INTO log2.temp_project_history
 SELECT  
-	ph_newer.project_pid as project_pid,
-	COALESCE(ph_older.updated_at,p.created_at) as valid_from,
-	COALESCE(ph_newer.updated_at,now()) as valid_to,
-	ph_newer.key as key,
-	CAST(ph_newer.old_value as VARCHAR(255)) as value,
-	ROW_NUMBER() OVER (PARTITION BY ph_newer.project_pid,ph_newer.key,ph_older.updated_at::date ORDER BY ph_older.updated_at DESC) AS e_order
-FROM log2.project_history ph_newer 
-INNER JOIN log2.project p ON p.project_pid = ph_newer.project_pid
-LEFT OUTER JOIN log2.project_history ph_older ON ph_newer.project_pid = ph_older.project_pid AND ph_older.updated_at < ph_newer.updated_at AND ph_older.key = ph_newer.key AND (ph_older.key = 'sla_enabled' OR ph_older.key = 'sla_value' OR ph_older.key = 'sla_type' OR ph_older.key = 'status' OR ph_older.key = 'is_deleted')
-WHERE 
-	NOT EXISTS (
-		SELECT ph_midle.id 
-		FROM log2.project_history ph_midle 
-		WHERE 
-			ph_midle.key IN ('sla_enabled','sla_value','sla_type','status','is_deleted')
-				AND
-			ph_midle.project_pid=ph_newer.project_pid 
-				AND 
-			ph_midle.key = ph_newer.key 
-				AND
-			ph_midle.updated_at > ph_older.updated_at 
-				AND 
-			ph_midle.updated_at < ph_newer.updated_at 
-		);
-
-set enable_hashjoin = on;]]></attr>
+	ph.project_pid as project_pid,
+	COALESCE(ph.valid_from,p.created_at) as valid_from,
+	COALESCE(ph.valid_to,now()) as valid_to,
+	ph.key as key,
+	CAST(ph.value as VARCHAR(255)) as value,
+	ROW_NUMBER() OVER (PARTITION BY ph.project_pid,ph.key,ph.valid_from::date ORDER BY ph.valid_from DESC ) AS e_order
+FROM log2.project_history ph
+INNER JOIN log2.project p ON p.project_pid = ph.project_pid]]></attr>
 </Node>
 <Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBInputTable" guiWidth="128" guiX="78" guiY="77" id="DB_INPUT_TABLE0" type="DB_INPUT_TABLE">
 <attr name="sqlQuery"><![CDATA[SELECT project_pid,status,name,ms_person,is_deleted,customer_name,customer_contact_name,customer_contact_email FROM log2.project]]></attr>

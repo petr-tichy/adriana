@@ -94,7 +94,6 @@ module SLAWatcher
 
       #SLA ID	Project Name	Project PID	SLA Date	SLA Type	SLA Description
       @names.each do |name|
-        find_worksheet_by_name(name[:sheet_name])
         set_active_worksheet(find_worksheet_by_name(name[:sheet_name]))
         clean_active_worksheet
         sheet_row = 2
