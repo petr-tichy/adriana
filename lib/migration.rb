@@ -117,13 +117,13 @@ module SLAWatcher
           valid_list = Helper.validate_cron(stage_schedule.cron)
           valid_list.each do |list|
             if (list[:valid] == false)
-              create_validity_message(stage_schedule.project_pid,stage_schedule.graph.downcase,stage_schedule.mode.downcase,nil,"Cron expresion: #{stage_schedule.cron} is not valid")
+              create_validity_message(stage_schedule.project_pid,stage_schedule.graph.downcase,stage_schedule.mode,nil,"Cron expresion: #{stage_schedule.cron} is not valid")
               valid = false
             end
           end
 
           if (stage_schedule.project_pid == '')
-            create_validity_message(stage_schedule.project_pid,stage_schedule.graph.downcase,stage_schedule.mode.downcase,nil,"Looks like projects and task are not synchronized in stage")
+            create_validity_message(stage_schedule.project_pid,stage_schedule.graph.downcase,stage_schedule.mode,nil,"Looks like projects and task are not synchronized in stage")
             valid = false
           end
 
