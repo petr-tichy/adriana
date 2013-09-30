@@ -10,7 +10,7 @@ module SLAWatcher
       @splunk = SplunkClient.new(username ,password, hostname)
 
       @last_runs_query = 'eventtype=MSF mode (component="workers.clover-executor" OR component="workers.clover-status") starttime=%START_TIME% endtime=%END_TIME%  action=process_run (status=STARTED OR status=FINISHED OR status=ERROR) ( %PIDS% )
-                        | fields project_id, request_id,transformation_id, clover_graph, mode, status, _time
+                        | fields project_id, request_id,transformation_id, mode, status, _time | rex field=_raw "clover_graph=(?<clover_graph>[^=]+) [^=]+="
                         | table project_id, request_id,transformation_id, clover_graph, mode, status, _time'
 
       #@start_query = 'eventtype=MSF mode component="workers.clover-executor" starttime=%START_TIME% endtime=%END_TIME%  action=worker_run status=STARTED ( %PIDS% ) | fields project_id, request_id,transformation_id, clover_graph, mode, status, _time | table project_id, request_id,transformation_id, clover_graph, mode, status, _time'
