@@ -1,0 +1,19 @@
+class CustomerHistory < ActiveRecord::Base
+  self.table_name = 'customer_history'
+  attr_accessible :customer_id,:key,:value,:valid_from,:valid_to,:updated_by
+
+  def self.add_change(customer_id,key,value,user)
+    date = DateTime.now
+    last_record = select("*").where("customer_id = ? and ((valid_from IS NOT NULL AND valid_to IS NULL) OR (valid_from IS NULL and valid_to IS NULL))",customer_id).first
+    if (!last_record.nil?)
+      last_record.valid_to = date
+      last_record.updated_by = user.id
+      last_record.save
+      CustomerHistory.create(:customer_id => customer_id,:key => key,:value => value,:valid_from => date,:valid_to => nil, :updated_by => user.id )
+    else
+      CustomerHistory.create(:customer_id => customer_id,:key => key,:value => value,:valid_from => nil,:valid_to => nil, :updated_by => user.id )
+    end
+
+  end
+
+end
