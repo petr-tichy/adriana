@@ -31,11 +31,17 @@ module SLAWatcher
           schedule = @live_schedules.find{|s| s.id  == execution.r_schedule}
           #Taking only ones with live schedule
           if (!schedule.nil?)
+              running_execution =  @running_projects.find {|e| e.r_schedule == schedule.id}
               if (schedule.server == "CloudConnect")
+
                 now = Time.now.utc
                 next_run = Helper.next_run(schedule.cron,execution.event_start.utc,SLAWatcher::UTCTime)
                 running_late_for = ((next_run - now)/1.minute)*(-1)
-                if (running_late_for > 15)
+                # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
+                if (!running_execution.nil? and running_late_for > 15 and running_late_for < 60)
+                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.MEDIUM,@EVENT_TYPE,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",DateTime.now,false)
+                  @events.push_event(event)
+                elsif (running_late_for > 15)
                   event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",DateTime.now,false)
                   @events.push_event(event)
                 end
@@ -43,7 +49,11 @@ module SLAWatcher
                 now = Time.now
                 next_run = Helper.next_run(schedule.cron,execution.event_start,Time)
                 running_late_for = ((next_run - now)/1.minute)*(-1)
-                if (running_late_for > 15)
+                # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
+                if (!running_execution.nil? and running_late_for > 15 and running_late_for < 60)
+                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.MEDIUM,@EVENT_TYPE,"Schedule not started - should start: #{next_run}",DateTime.now,false)
+                  @events.push_event(event)
+                elsif (running_late_for > 15)
                   event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"Schedule not started - should start: #{next_run}",DateTime.now,false)
                   @events.push_event(event)
                 end
@@ -63,6 +73,7 @@ module SLAWatcher
 
     def load_data()
       @execution_log = ExecutionLog.get_last_starts_of_live_projects
+      @running_projects = ExecutionLog.get_running_projects(DateTime.now - 1.day)
       @live_schedules = Schedule.load_schedules_of_live_projects
     end
 
