@@ -1,6 +1,7 @@
 class Project < ActiveRecord::Base
   self.table_name = 'project'
-  set_primary_key "project_pid"
+  self.primary_key = 'project_pid'
+  #set_primary_key "project_pid"
 
   # Include default devise modules. Others available are:
   # :token_authenticatable, :confirmable,

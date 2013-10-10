@@ -10,7 +10,13 @@ ActiveAdmin.register Project do
     #pp last_executions
     column :name
     column :project_pid
-    column :sla_enabled
+    column :sla_enabled do |project|
+      if (project.sla_enabled)
+         span(image_tag("true_icon.png",:size => "28x20"))
+      else
+         span(image_tag("false_icon.png",:size => "20x20"))
+      end
+    end
     column :sla_type
     column :sla_value
     column :detail do |project|
@@ -102,7 +108,6 @@ ActiveAdmin.register Project do
       ActiveRecord::Base.transaction do
         public_attributes.each do |attr|
           if (!same?(params[:project][attr],project[attr]))
-            puts attr
             ProjectHistory.add_change(project.project_pid,attr,params[:project][attr].to_s,current_active_admin_user)
             project[attr] = params[:project][attr]
           end

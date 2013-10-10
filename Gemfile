@@ -29,6 +29,7 @@ gem "meta_search",    '>= 1.1.0.pre'
 gem 'execjs'
 gem 'therubyracer', :platforms => :ruby
 gem 'pry'
+gem 'just-datetime-picker'
 
 
 # To use ActiveModel has_secure_password

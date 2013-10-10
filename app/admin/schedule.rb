@@ -1,5 +1,4 @@
 ActiveAdmin.register Schedule do
-
   filter :r_project
   filter :mode
   filter :server
@@ -16,27 +15,35 @@ ActiveAdmin.register Schedule do
     schedule.where("server IN ('clover-dev2')")
   end
 
-  index do
-    executions = Schedule.get_last_executions
-    projects = Project.select("*")
+  scope :error do |schedule|
+    schedule.where("e.status = 'ERROR'")
+  end
 
-    column :project_name do |schedule|
-      project = projects.find{|p| p.project_pid == schedule.r_project}
-      if (!project.nil?)
-        project.name
-      end
-    end
+  scope :running do |schedule|
+    schedule.where("e.status = 'RUNNING'")
+  end
+
+  scope :finished do |schedule|
+    schedule.where("e.status = 'FINISHED'")
+  end
+
+  batch_action :restart,:confirm => "Do you want to restart selected schedules?" do |selection|
+    redirect_to new_admin_job_path(:type => "restart",:selection => selection)
+  end
+
+  index do
+    selectable_column
+    column :project_name
     column "Project PID", :r_project
     column :mode
     column :server
     column :cron
     column :main
     column :status do |schedule|
-      execution = executions.find{|e| e.id == schedule.id}
-      if (!execution.nil?)
-        if (execution["status"] == "RUNNING")
+      if (!schedule["status"].nil?)
+        if (schedule["status"] == "RUNNING")
           status_tag "RUNNING",:warning
-        elsif (execution["status"] == "FINISHED")
+        elsif (schedule["status"] == "FINISHED")
           status_tag "FINISHED",:ok
         else
           status_tag "ERROR",:error
@@ -44,12 +51,11 @@ ActiveAdmin.register Schedule do
       end
     end
     column :execution_time do |schedule|
-      execution = executions.find{|e| e.id == schedule.id}
-      if (!execution.nil?)
-        if (execution["status"] == "RUNNING")
-          l(DateTime.parse(execution.event_start),:format => :short)
+      if (!schedule["status"].nil?)
+        if (schedule["status"] == "RUNNING")
+          l(DateTime.parse(schedule.event_start),:format => :short)
         else
-          l(DateTime.parse(execution.event_end),:format => :short)
+          l(DateTime.parse(schedule.event_end),:format => :short)
         end
       end
     end
@@ -58,13 +64,15 @@ ActiveAdmin.register Schedule do
   end
 
   controller do
-    before_filter :only => [:index] do
-      if params['commit'].blank?
-        params['q'].merge!({:is_deleted_eq => '0'}) if !params['q'].nil?
-      end
+
+    def scoped_collection
+      Schedule.default
     end
 
+
   end
+
+
 
 
 end                                   
