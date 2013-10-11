@@ -8,4 +8,8 @@ class Customer < ActiveRecord::Base
     ["name","contact_email","contact_person"]
   end
 
+  def self.customer_by_job_id(job_id)
+    select("customer.*").joins("INNER JOIN job_entity je ON  customer.id = je.r_customer").where("je.job_id = ?",job_id).first
+  end
+
 end

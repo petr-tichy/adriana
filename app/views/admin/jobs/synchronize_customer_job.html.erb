@@ -1,0 +1,29 @@
+<%= semantic_form_for 'jobs',:url => admin_jobs_create_customer_sychnronization_path do |a| %>
+
+    <%= a.inputs "Job Synchronize Customer" do %>
+        <%= a.input :job_type, :input_html => { :disabled => true , :value => "Customer Synchronization" } %>
+        <%= a.input :scheduled_at, :as => :just_datetime_picker, :input_html => { :value => {:combined_value => @job.scheduled_at,:date => @job.scheduled_at.to_date}} %>
+        <%= a.input :recurrent,  :as => :radio, :collection => ["true", "false"] %>
+        <%= a.input :key,  :as => :hidden, :input_html => { :value => params["type"] } %>
+        <%= a.input :customer, :as => :hidden, :input_html => { :value => @customer } %>
+    <% end %>
+
+    <%= a.inputs "Parameters" do %>
+        <% @parameters.each do |p| %>
+            <%= a.input p["name"], p["setting"]  %>
+        <%end%>
+    <% end %>
+
+    <%= a.actions do %>
+        <%= a.action :submit %>
+    <% end %>
+
+<% end %>
+
+
+
+
+
+
+
+

@@ -11,6 +11,9 @@ ActiveAdmin.register Customer do
     column :contact_person
     column :created_at
     column :updated_at
+    column :actions do |customer|
+      link_to "Synchronization", :controller => "jobs", :action => "new",:type => "synchronize_customer",:customer => customer.id
+    end
     actions
   end
 

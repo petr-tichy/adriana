@@ -27,7 +27,6 @@ gem 'therubyracer', :platforms => :ruby
 gem 'pry'
 gem 'just-datetime-picker'
 
-
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 

@@ -4,6 +4,7 @@ ActiveAdmin.register Project do
   filter :name
   filter :sla_enabled, :as => :check_boxes, :collection => [true,false]
   filter :sla_type, :as => :select, :collection => ["Fixed Duration","Fixed Time"]
+  filter :status, :as => :select, :collection => ["Live","Paused","Suspended"]
 
   index do |project|
     #last_executions = ExecutionLog.get_last_executions()
@@ -81,7 +82,7 @@ ActiveAdmin.register Project do
 
       column :min_width => "1000px",:min_height => "490px" do
         attributes_table do
-          text_node %{<iframe frameborder="0" src="https://na1.secure.gooddata.com/dashboard.html?label.sla_reporting.project_pid=#{params[:id]}#project=/gdc/projects/e30u9871uuqmtqz9053bshwxw0ph6gwf&dashboard=/gdc/md/e30u9871uuqmtqz9053bshwxw0ph6gwf/obj/303014" width="100%" height="470px"></iframe>}.html_safe
+          text_node %{<iframe frameborder="0" src="https://na1.secure.gooddata.com/dashboard.html?label.sla_project.project_pid=#{params[:id]}#project=/gdc/projects/e30u9871uuqmtqz9053bshwxw0ph6gwf&dashboard=/gdc/md/e30u9871uuqmtqz9053bshwxw0ph6gwf/obj/303014" width="100%" height="470px"></iframe>}.html_safe
         end
       end
     end
