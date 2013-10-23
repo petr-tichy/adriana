@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Graph author="root" created="Tue Jun 11 13:31:46 CEST 2013" guiVersion="3.3.2" id="1371040284464" licenseType="Commercial" modified="Thu Jul 25 14:24:39 CEST 2013" modifiedBy="root" name="gd_load_sla" revision="1.170" showComponentDetails="true">
+<?xml version="1.0" encoding="UTF-8"?><Graph author="root" created="Tue Jun 11 13:31:46 CEST 2013" guiVersion="3.4.3.P" id="1371040284464" licenseType="Commercial" modified="Tue Oct 22 13:41:35 CEST 2013" modifiedBy="root" name="gd_load_sla" revision="1.171" showComponentDetails="true">
 <Global>
 <Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
 <Record fieldDelimiter="," name="execution_log" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
@@ -101,13 +100,13 @@
 <Property fileURL="workspace.prm" id="GraphParameter3"/>
 <LookupTable id="LookupTable1" metadata="Metadata6" name="gd_lookup" type="gdLookup"/>
 <LookupTable id="LookupTable0" initialSize="512" key="project_pid;date" metadata="Metadata0" name="project_validity" type="simpleLookup"/>
-<Note alignment="1" backgroundColorB="253" backgroundColorG="243" backgroundColorR="231" folded="false" height="100" id="Note0" textColorB="0" textColorG="0" textColorR="0" textFontSize="8" title="New note" titleColorB="0" titleColorG="0" titleColorR="0" titleFontSize="10" width="100" x="195" y="291">
+<Note alignment="1" backgroundColorB="253" backgroundColorG="243" backgroundColorR="231" enabled="true" folded="false" height="100" id="Note0" textColorB="0" textColorG="0" textColorR="0" textFontSize="8" title="New note" titleColorB="0" titleColorG="0" titleColorR="0" titleFontSize="10" width="100" x="195" y="291">
 <attr name="text"><![CDATA[Data for SLA projects, which have not finished day before]]></attr>
 </Note>
 <Dictionary/>
 </Global>
 <Phase number="0">
-<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="195" guiY="80" id="DB_EXECUTE0" type="DB_EXECUTE">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBExecute" guiX="195" guiY="80" id="DB_EXECUTE0" type="DB_EXECUTE">
 <attr name="sqlQuery"><![CDATA[DROP TABLE log2.temp_project_history_denorm;
 
 CREATE TABLE log2.temp_project_history_denorm
@@ -174,13 +173,14 @@ LEFT OUTER JOIN log2.temp_project_history temp_ph_sla_value ON
 	AND dates.generate_series < temp_ph_sla_value.valid_to
 	AND temp_ph_sla_value.key = 'sla_value'	
 	AND temp_ph_sla_value.h_order = 1
+WHERE p.contract_id IS NULL
 ORDER BY p.project_pid,dates.generate_series
 
 ]]></attr>
 </Node>
 </Phase>
 <Phase number="1">
-<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBInputTable" guiWidth="128" guiX="195" guiY="206" id="DB_INPUT_TABLE0" type="DB_INPUT_TABLE">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBInputTable" guiX="195" guiY="206" id="DB_INPUT_TABLE0" type="DB_INPUT_TABLE">
 <attr name="sqlQuery"><![CDATA[SELECT 
 	p.project_pid,
 	p.status as status,
@@ -190,8 +190,8 @@ ORDER BY p.project_pid,dates.generate_series
 	p.generated_date as date
 FROM log2.temp_project_history_denorm p]]></attr>
 </Node>
-<Node enabled="enabled" guiHeight="73" guiName="LookupTableReaderWriter" guiWidth="216" guiX="737" guiY="206" id="LOOKUP_TABLE_READER_WRITER0" lookupTable="LookupTable0" type="LOOKUP_TABLE_READER_WRITER"/>
-<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="448" guiY="206" id="REFORMAT1" type="REFORMAT">
+<Node enabled="enabled" guiName="LookupTableReaderWriter" guiX="737" guiY="206" id="LOOKUP_TABLE_READER_WRITER0" lookupTable="LookupTable0" type="LOOKUP_TABLE_READER_WRITER"/>
+<Node enabled="enabled" guiName="Reformat" guiX="448" guiY="206" id="REFORMAT1" type="REFORMAT">
 <attr name="transform"><![CDATA[//#CTL2
 
 // Transforms input record into output record.
@@ -229,7 +229,7 @@ function integer transform() {
 <Edge debugMode="true" fromNode="REFORMAT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="LOOKUP_TABLE_READER_WRITER0:0"/>
 </Phase>
 <Phase number="2">
-<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="195" guiY="428" id="DB_EXECUTE1" type="DB_EXECUTE">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBExecute" guiX="195" guiY="428" id="DB_EXECUTE1" type="DB_EXECUTE">
 <attr name="sqlQuery"><![CDATA[
 DROP INDEX log2."IX_order_schedule";
 
@@ -254,8 +254,11 @@ INSERT INTO log2.execution_order
 SELECT  l.id as execution_id,l.r_schedule as r_schedule,ROW_NUMBER() OVER (PARTITION BY l.r_schedule ORDER BY l.event_start) AS e_order,l.status,l.detailed_status,l.event_start,l.event_end,l.sla_event_start
 FROM log2.execution_log l
 INNER JOIN log2.schedule s ON s.id = l.r_schedule
+INNER JOIN log2.project p ON s.r_project = p.project_pid
 WHERE 
 	s.main = 'true' 
+	AND
+	p.contract_id IS NULL
 	AND l.event_start >= '${DATE_BEFORE}' AND l.event_start < '${DATE_AFTER}';
 
 CREATE INDEX "IX_order_schedule"
@@ -265,12 +268,13 @@ CREATE INDEX "IX_order_schedule"
 </Node>
 </Phase>
 <Phase number="3">
-<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBInputTable" guiWidth="128" guiX="195" guiY="544" id="DB_INPUT_TABLE1" type="DB_INPUT_TABLE">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBInputTable" guiX="195" guiY="544" id="DB_INPUT_TABLE1" type="DB_INPUT_TABLE">
 <attr name="sqlQuery"><![CDATA[SELECT l.execution_id,l.r_schedule,l.event_start,l2.event_start,l2.event_end,(l2.event_end - l.event_start) as duration,l2.execution_id,l.status,l2.status,s.r_project as project_pid,ROW_NUMBER() OVER (PARTITION BY l.r_schedule,date_part('day', l.event_start) ORDER BY l.event_start) as one_day_order,p.name,l.sla_event_start as sla_event_start,l2.sla_event_start as second_sla_event_start FROM log2.execution_order l
 INNER JOIN log2.execution_order l2 ON l.r_schedule = l2.r_schedule AND l.e_order <= l2.e_order
 INNER JOIN log2.schedule s ON s.id = l.r_schedule
 INNER JOIN log2.project p ON s.r_project = p.project_pid
-WHERE (
+WHERE p.contract_id IS NULL AND
+ (
 	(
 	l2.status = 'FINISHED'
 		AND
@@ -303,16 +307,16 @@ WHERE (
 	)
 ]]></attr>
 </Node>
-<Node enabled="enabled" guiHeight="73" guiName="ExtFilter" guiWidth="128" guiX="847" guiY="436" id="EXT_FILTER0" type="EXT_FILTER">
+<Node enabled="enabled" guiName="ExtFilter" guiX="847" guiY="436" id="EXT_FILTER0" type="EXT_FILTER">
 <attr name="filterExpression"><![CDATA[//#CTL2
 $in.0.sla_enabled == "t"]]></attr>
 </Node>
-<Node enabled="enabled" guiHeight="73" guiName="ExtFilter" guiWidth="128" guiX="847" guiY="557" id="EXT_FILTER1" type="EXT_FILTER">
+<Node enabled="enabled" guiName="ExtFilter" guiX="847" guiY="557" id="EXT_FILTER1" type="EXT_FILTER">
 <attr name="filterExpression"><![CDATA[//#CTL2
 $in.0.sla_enabled == "t"]]></attr>
 </Node>
-<Node dataset="dataset.sla_reporting" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.sla_reporting&quot;,&quot;datasetTitle&quot;:&quot;Sla_reporting&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_project_pid&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_project_name&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_type&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_value&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_project_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_project__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;r_sla_project&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_project__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;sladate.date&quot;,&quot;title&quot;:&quot;Date (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate&quot;,&quot;assignedMetadataField&quot;:&quot;sladate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sla_reporting.duration&quot;,&quot;title&quot;:&quot;duration&quot;,&quot;prettyId&quot;:&quot;duration&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;duration&quot;}}],&quot;dateFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="disabled" guiHeight="73" guiName="GD Dataset Writer" guiWidth="161" guiX="1677" guiY="278" id="GD_DATASET_WRITER0" mode="INCREMENTAL" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
-<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="520" guiY="544" id="REFORMAT0" type="REFORMAT">
+<Node dataset="dataset.sla_reporting" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.sla_reporting&quot;,&quot;datasetTitle&quot;:&quot;Sla_reporting&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;id&quot;,&quot;assignedMetadataField&quot;:&quot;id&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_project_pid&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.project_pid&quot;,&quot;title&quot;:&quot;sla_project_pid&quot;,&quot;prettyId&quot;:&quot;project_pid&quot;,&quot;assignedMetadataField&quot;:&quot;project_pid&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_project_name&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_project_name&quot;,&quot;title&quot;:&quot;sla_project_name&quot;,&quot;prettyId&quot;:&quot;sla_project_name&quot;,&quot;assignedMetadataField&quot;:&quot;sla_project_name&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_type&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_type&quot;,&quot;title&quot;:&quot;sla_type&quot;,&quot;prettyId&quot;:&quot;sla_type&quot;,&quot;assignedMetadataField&quot;:&quot;sla_type&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;attr_sla_reporting_sla_value&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_reporting.sla_value&quot;,&quot;title&quot;:&quot;sla_value&quot;,&quot;prettyId&quot;:&quot;sla_value&quot;,&quot;assignedMetadataField&quot;:&quot;sla_value&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;attr_sla_project_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_project__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;r_sla_project&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sla_project.id&quot;,&quot;title&quot;:&quot;id&quot;,&quot;prettyId&quot;:&quot;sla_project__id&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;sladate.date&quot;,&quot;title&quot;:&quot;Date (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate&quot;,&quot;assignedMetadataField&quot;:&quot;sladate&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;sladate.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (SLADate)&quot;,&quot;prettyId&quot;:&quot;sladate_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sla_reporting.duration&quot;,&quot;title&quot;:&quot;duration&quot;,&quot;prettyId&quot;:&quot;duration&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;duration&quot;}}],&quot;dateFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;dt.sla_reporting.sladate&quot;,&quot;title&quot;:&quot;sla_date&quot;,&quot;prettyId&quot;:&quot;dt_sla_reporting_sladate&quot;,&quot;type&quot;:&quot;DATE&quot;,&quot;assignedMetadataField&quot;:null}}],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="disabled" guiName="GD Dataset Writer" guiX="1677" guiY="278" id="GD_DATASET_WRITER0" mode="INCREMENTAL" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+<Node enabled="enabled" guiName="Reformat" guiX="520" guiY="544" id="REFORMAT0" type="REFORMAT">
 <attr name="transform"><![CDATA[//#CTL2
 
 // Transforms input record into output record.
@@ -383,7 +387,7 @@ function integer transform() {
 // function string getMessage() {}
 ]]></attr>
 </Node>
-<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="1105" guiY="436" id="REFORMAT2" type="REFORMAT">
+<Node enabled="enabled" guiName="Reformat" guiX="1105" guiY="436" id="REFORMAT2" type="REFORMAT">
 <attr name="transform"><![CDATA[//#CTL2
 
 // Transforms input record into output record.
@@ -491,7 +495,7 @@ function date to_first_day_of_month(date value){
 // function string getMessage() {}
 ]]></attr>
 </Node>
-<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="1094" guiY="575" id="REFORMAT4" type="REFORMAT">
+<Node enabled="enabled" guiName="Reformat" guiX="1094" guiY="575" id="REFORMAT4" type="REFORMAT">
 <attr name="transform"><![CDATA[//#CTL2
 
 // Transforms input record into output record.
@@ -581,7 +585,7 @@ function date to_first_day_of_month(date value){
 
 ]]></attr>
 </Node>
-<Node enabled="enabled" guiHeight="73" guiName="Reformat" guiWidth="128" guiX="1519" guiY="575" id="REFORMAT5" type="REFORMAT">
+<Node enabled="enabled" guiName="Reformat" guiX="1519" guiY="575" id="REFORMAT5" type="REFORMAT">
 <attr name="transform"><![CDATA[//#CTL2
 
 // Transforms input record into output record.
@@ -610,10 +614,10 @@ function integer transform() {
 // function string getMessage() {}
 ]]></attr>
 </Node>
-<Node enabled="enabled" guiHeight="73" guiName="SimpleGather" guiWidth="128" guiX="1325" guiY="436" id="SIMPLE_GATHER0" type="SIMPLE_GATHER"/>
-<Node enabled="enabled" guiHeight="73" guiName="SimpleGather" guiWidth="128" guiX="1325" guiY="575" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
-<Node enabled="enabled" guiHeight="73" guiName="Trash" guiWidth="128" guiX="1654" guiY="436" id="TRASH0" type="TRASH"/>
-<Node enabled="disabled" guiHeight="73" guiName="Trash" guiWidth="128" guiX="1638" guiY="746" id="TRASH1" type="TRASH"/>
+<Node enabled="enabled" guiName="SimpleGather" guiX="1325" guiY="436" id="SIMPLE_GATHER0" type="SIMPLE_GATHER"/>
+<Node enabled="enabled" guiName="SimpleGather" guiX="1325" guiY="575" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
+<Node enabled="enabled" guiName="Trash" guiX="1654" guiY="436" id="TRASH0" type="TRASH"/>
+<Node enabled="disabled" guiName="Trash" guiX="1638" guiY="746" id="TRASH1" type="TRASH"/>
 <Edge debugMode="true" fromNode="DB_INPUT_TABLE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="REFORMAT0:0"/>
 <Edge debugMode="true" fromNode="EXT_FILTER0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (accepted)" toNode="REFORMAT2:0"/>
 <Edge debugMode="true" fromNode="EXT_FILTER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (accepted)" toNode="REFORMAT4:0"/>
@@ -629,13 +633,13 @@ function integer transform() {
 <Edge debugMode="true" fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" metadata="Metadata7" outPort="Port 0 (out)" toNode="REFORMAT5:0"/>
 </Phase>
 <Phase number="4">
-<Node callStatement="false" dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="1781" guiY="575" id="DB_EXECUTE2" inTransaction="one" printStatements="false" type="DB_EXECUTE" url="port:$0.query:discrete"/>
+<Node callStatement="false" dbConnection="JDBC0" enabled="enabled" guiName="DBExecute" guiX="1781" guiY="575" id="DB_EXECUTE2" inTransaction="one" printStatements="false" type="DB_EXECUTE" url="port:$0.query:discrete"/>
 </Phase>
 <Phase number="5">
-<Node dbConnection="JDBC0" enabled="enabled" guiHeight="73" guiName="DBExecute" guiWidth="128" guiX="1781" guiY="690" id="DB_EXECUTE3" inTransaction="one" type="DB_EXECUTE" url="port:$0.query:discrete"/>
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBExecute" guiX="1781" guiY="690" id="DB_EXECUTE3" inTransaction="one" type="DB_EXECUTE" url="port:$0.query:discrete"/>
 </Phase>
 <Phase number="99">
-<Node enabled="enabled" guiHeight="73" guiName="DataGenerator" guiWidth="134" guiX="195" guiY="718" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
+<Node enabled="enabled" guiName="DataGenerator" guiX="195" guiY="718" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
 <attr name="generate"><![CDATA[//#CTL2
 
 // Generates output record.
@@ -665,7 +669,7 @@ function integer generate() {
 // function string getMessage() {}
 ]]></attr>
 </Node>
-<Node enabled="enabled" guiHeight="73" guiName="LookupTableReaderWriter" guiWidth="216" guiX="472" guiY="718" id="LOOKUP_TABLE_READER_WRITER1" lookupTable="LookupTable1" type="LOOKUP_TABLE_READER_WRITER"/>
+<Node enabled="enabled" guiName="LookupTableReaderWriter" guiX="472" guiY="718" id="LOOKUP_TABLE_READER_WRITER1" lookupTable="LookupTable1" type="LOOKUP_TABLE_READER_WRITER"/>
 <Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge21" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="LOOKUP_TABLE_READER_WRITER1:0"/>
 </Phase>
 </Graph>

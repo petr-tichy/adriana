@@ -14,11 +14,11 @@ module SLAWatcher
       find_by_sql(
           "SELECT DISTINCT p.project_pid FROM log2.project p
             INNER JOIN log2.schedule s On p.project_pid = s.r_project
-            WHERE s.server = 'CloudConnect' AND p.status = 'Live'")
+            WHERE s.server = 'CloudConnect' AND p.status = 'Live' and p.contract_id IS NULL")
     end
 
     def self.load_deleted_projects()
-      where("is_deleted = ?", "false")
+      where("is_deleted = ? and p.contract_id IS NULL", "false")
     end
 
 
