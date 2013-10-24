@@ -1,0 +1,12 @@
+<%= semantic_form_for 'contracts',:url => admin_contracts_create_path do |a| %>
+
+    <%= a.inputs "Create contract for customer" do %>
+        <%= a.input :customer, :input_html => { :disabled => true , :value => params["customer_name"] } %>
+        <%= a.input :name %>
+        <%= a.input :customer_id, :as => :hidden, :input_html => { :value => params["id"] } %>
+    <% end %>
+    <%= a.actions do %>
+        <%= a.action :submit %>
+    <% end %>
+
+<% end %>

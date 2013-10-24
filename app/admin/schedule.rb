@@ -36,7 +36,7 @@ ActiveAdmin.register Schedule do
     column :project_name
     column "Project PID", :r_project
     column :mode
-    column :server
+    column :server_name
     column :cron
     column :main
     column :status do |schedule|

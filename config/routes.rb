@@ -2,7 +2,9 @@ ActiveAdminTest::Application.routes.draw do
   devise_for :admin_users, ActiveAdmin::Devise.config
 
   ActiveAdmin.routes(self)
-  match '/admin/jobs/create_customer_sychnronization' => 'admin/jobs#create'
+  match '/admin/jobs/create_contract_sychnronization' => 'admin/jobs#create'
+  match '/admin/contracts/create' => 'admin/contracts#create'
+
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

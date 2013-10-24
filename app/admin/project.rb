@@ -36,7 +36,7 @@ ActiveAdmin.register Project do
       f.input :ms_person
     end
     f.inputs "SLA" do
-      f.input :sla_enabled
+      f.input :sla_enabled,:checked_value => "t", :unchecked_value => "f"
       f.input :sla_type, :as => :select, :collection => ["Fixed Duration", "Fixed Time"]
       f.input :sla_value
       # etc
@@ -72,7 +72,7 @@ ActiveAdmin.register Project do
 
           panel ("Contact") do
             attributes_table_for project do
-              [:customer_name, :customer_contact_name, :customer_contact_email,].each do |column|
+              [:customer_name, :customer_contact_name, :customer_contact_email].each do |column|
                 row column
               end
             end
@@ -80,7 +80,7 @@ ActiveAdmin.register Project do
 
       end
 
-      column :min_width => "1000px",:min_height => "490px" do
+      column :min_width => "800px",:min_height => "490px" do
         attributes_table do
           text_node %{<iframe frameborder="0" src="https://na1.secure.gooddata.com/dashboard.html?label.sla_project.project_pid=#{params[:id]}#project=/gdc/projects/e30u9871uuqmtqz9053bshwxw0ph6gwf&dashboard=/gdc/md/e30u9871uuqmtqz9053bshwxw0ph6gwf/obj/303014" width="100%" height="470px"></iframe>}.html_safe
         end

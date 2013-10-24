@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20131002083257) do
+ActiveRecord::Schema.define(:version => 20131015144316) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.string   "resource_id",   :null => false
@@ -46,9 +46,26 @@ ActiveRecord::Schema.define(:version => 20131002083257) do
   add_index "admin_users", ["email"], :name => "index_admin_users_on_email", :unique => true
   add_index "admin_users", ["reset_password_token"], :name => "index_admin_users_on_reset_password_token", :unique => true
 
+  create_table "contract", :force => true do |t|
+    t.string   "name",        :limit => 50, :default => "Empty customer", :null => false
+    t.datetime "created_at",                                              :null => false
+    t.datetime "updated_at",                                              :null => false
+    t.boolean  "is_deleted",                :default => false
+    t.integer  "customer_id"
+  end
+
+  create_table "contract_history", :force => true do |t|
+    t.integer  "contract_id"
+    t.string   "value",       :limit => 250
+    t.datetime "valid_from"
+    t.datetime "valid_to"
+    t.text     "updated_by"
+    t.text     "key"
+  end
+
   create_table "customer", :force => true do |t|
     t.string   "name",           :limit => 50, :default => "Empty customer", :null => false
-    t.string   "contact_email"
+    t.string   "email"
     t.string   "contact_person"
     t.datetime "created_at",                                                 :null => false
     t.datetime "updated_at",                                                 :null => false
@@ -105,24 +122,49 @@ ActiveRecord::Schema.define(:version => 20131002083257) do
   add_index "execution_log", ["request_id"], :name => "idx_request_id"
   add_index "execution_log", ["status"], :name => "idx_execution_log4"
 
-  create_table "execution_order", :id => false, :force => true do |t|
-    t.integer  "execution_id"
-    t.integer  "r_schedule"
-    t.integer  "e_order"
-    t.string   "status",          :limit => 100
-    t.string   "detailed_status"
-    t.datetime "event_start"
-    t.datetime "event_end"
-    t.integer  "sla_event_start"
+  create_table "job", :force => true do |t|
+    t.integer  "job_type_id"
+    t.datetime "scheduled_at"
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.string   "status",       :limit => 50, :null => false
+    t.text     "log"
+    t.string   "scheduled_by"
+    t.boolean  "recurrent"
+    t.datetime "created_at",                 :null => false
+    t.datetime "updated_at",                 :null => false
   end
 
-  add_index "execution_order", ["r_schedule", "e_order"], :name => "IX_order_schedule"
+  create_table "job_entity", :force => true do |t|
+    t.integer  "job_id"
+    t.string   "r_project"
+    t.integer  "r_schedule"
+    t.integer  "r_contract"
+    t.string   "status",            :limit => 50, :null => false
+    t.datetime "created_at",                      :null => false
+    t.datetime "updated_at",                      :null => false
+    t.integer  "r_settings_server"
+  end
+
+  create_table "job_parameter", :force => true do |t|
+    t.integer "job_id"
+    t.string  "key",    :null => false
+    t.text    "value",  :null => false
+  end
+
+  create_table "job_type", :id => false, :force => true do |t|
+    t.integer  "id",                       :null => false
+    t.string   "name",       :limit => 50, :null => false
+    t.datetime "created_at",               :null => false
+    t.datetime "updated_at",               :null => false
+    t.string   "key"
+  end
 
   create_table "project", :id => false, :force => true do |t|
     t.text     "project_pid",                                              :null => false
-    t.text     "status"
-    t.text     "name"
-    t.text     "ms_person"
+    t.string   "status"
+    t.string   "name"
+    t.string   "ms_person"
     t.string   "updated_by",             :limit => nil
     t.datetime "updated_at"
     t.boolean  "is_deleted",                            :default => false, :null => false
@@ -133,11 +175,36 @@ ActiveRecord::Schema.define(:version => 20131002083257) do
     t.string   "customer_name"
     t.string   "customer_contact_name"
     t.string   "customer_contact_email"
-    t.integer  "customer_id"
+    t.integer  "contract_id"
   end
 
   add_index "project", ["project_pid"], :name => "iidf"
   add_index "project", ["project_pid"], :name => "project_project_pid_key", :unique => true
+
+  create_table "project_detail", :id => false, :force => true do |t|
+    t.string   "project_pid",           :null => false
+    t.string   "salesforce_type"
+    t.string   "practice_group"
+    t.text     "note"
+    t.string   "solution_architect"
+    t.string   "solution_engineer"
+    t.string   "confluence"
+    t.boolean  "automatic_validation"
+    t.string   "tier"
+    t.string   "working_hours"
+    t.string   "time_zone"
+    t.text     "restart"
+    t.string   "tech_user"
+    t.boolean  "uses_ftp"
+    t.boolean  "uses_es"
+    t.boolean  "archiver"
+    t.string   "sf_downloader_version"
+    t.string   "directory_name"
+    t.string   "salesforce_id"
+    t.string   "salesforce_name"
+    t.datetime "created_at",            :null => false
+    t.datetime "updated_at",            :null => false
+  end
 
   create_table "project_history", :force => true do |t|
     t.text     "project_pid"
@@ -165,11 +232,14 @@ ActiveRecord::Schema.define(:version => 20131002083257) do
     t.text     "server"
     t.text     "cron"
     t.text     "r_project"
-    t.string   "updated_by", :limit => nil
+    t.string   "updated_by",         :limit => nil
     t.datetime "updated_at"
-    t.boolean  "is_deleted",                :default => false, :null => false
+    t.boolean  "is_deleted",                        :default => false, :null => false
     t.boolean  "main"
     t.datetime "created_at"
+    t.integer  "settings_server_id"
+    t.string   "gooddata_schedule"
+    t.string   "gooddata_process"
   end
 
   add_index "schedule", ["graph_name", "r_project", "mode"], :name => "Uniq_r_project_graph_name_mode", :unique => true
@@ -191,6 +261,15 @@ ActiveRecord::Schema.define(:version => 20131002083257) do
     t.datetime "updated_at"
   end
 
+  create_table "settings_server", :force => true do |t|
+    t.string   "name",        :limit => 50, :null => false
+    t.string   "server_url",                :null => false
+    t.string   "webdav_url"
+    t.string   "server_type",               :null => false
+    t.datetime "created_at",                :null => false
+    t.datetime "updated_at",                :null => false
+  end
+
   create_table "sla_description", :id => false, :force => true do |t|
     t.integer "id",                                                      :null => false
     t.string  "sla_description_type", :limit => 50,  :default => "None"
@@ -198,28 +277,6 @@ ActiveRecord::Schema.define(:version => 20131002083257) do
     t.string  "sla_type",             :limit => 100
     t.string  "sla_value",            :limit => 100
     t.integer "duration",             :limit => 8
-  end
-
-  create_table "temp_project_history", :id => false, :force => true do |t|
-    t.string  "project_pid"
-    t.date    "valid_from"
-    t.date    "valid_to"
-    t.string  "key",         :limit => 100
-    t.string  "value"
-    t.integer "h_order"
-  end
-
-  create_table "temp_project_history_denorm", :id => false, :force => true do |t|
-    t.string  "project_pid"
-    t.string  "status",         :limit => 100
-    t.boolean "sla_enabled"
-    t.string  "sla_type",       :limit => 100
-    t.string  "sla_value",      :limit => 100
-    t.date    "generated_date"
-  end
-
-  create_table "temp_request", :id => false, :force => true do |t|
-    t.string "request_id", :limit => 100
   end
 
 end

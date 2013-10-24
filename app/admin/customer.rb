@@ -7,22 +7,44 @@ ActiveAdmin.register Customer do
 
   index do
     column :name
-    column :contact_email
+    column :email
     column :contact_person
     column :created_at
     column :updated_at
     column :actions do |customer|
-      link_to "Synchronization", :controller => "jobs", :action => "new",:type => "synchronize_customer",:customer => customer.id
+      link_to "New contract", :controller => "contracts", :action => "new",:id => customer.id,:customer_name => customer.name
     end
     actions
+  end
+
+
+  show do
+    panel ("Customer") do
+      attributes_table_for customer do
+        row :name
+        row :email
+        row :contact_person
+        row :updated_at
+        row :created_at
+        row :is_deleted
+      end
+    end
+    panel ("") do
+      table_for Contract.where("customer_id = ?",params["id"]) do
+        column(:name)
+        column(:updated_at)
+        column(:created_at)
+      end
+    end
+  end
+
+  action_item :only => :show do
+    link_to "New contract", :controller => "contracts", :action => "new",:id => customer.id,:customer_name => customer.name
   end
 
   form do |f|
     f.inputs "Customer" do
       f.input :name
-      f.input :contact_email
-      f.input :contact_person
-      # etc
     end
     f.actions
   end
@@ -50,7 +72,6 @@ ActiveAdmin.register Customer do
         end
         customer.save
       end
-
       redirect_to admin_customer_path(params[:id])
     end
 
@@ -59,14 +80,14 @@ ActiveAdmin.register Customer do
       public_attributes = Customer.get_public_attributes
       customer = nil
       ActiveRecord::Base.transaction do
-          customer = Customer.new()
-          public_attributes.each do |attr|
-            customer[attr] =  params[:customer][attr]
-          end
-          customer.save
-          public_attributes.each do |attr|
-            CustomerHistory.add_change(customer.id,attr,params[:customer][attr].to_s,current_active_admin_user)
-          end
+        customer = Customer.new()
+        public_attributes.each do |attr|
+          customer[attr] =  params[:customer][attr]
+        end
+        customer.save
+        public_attributes.each do |attr|
+          CustomerHistory.add_change(customer.id,attr,params[:customer][attr].to_s,current_active_admin_user)
+        end
       end
 
       redirect_to admin_customer_path(customer.id)

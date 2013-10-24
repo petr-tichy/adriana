@@ -60,12 +60,10 @@ ActiveAdmin.register Job do
             end
           end
         end
-      elsif(job.job_type.key == "synchronize_customer")
-        panel ("Customer") do
-          attributes_table_for Customer.customer_by_job_id(params["id"]) do
+      elsif(job.job_type.key == "synchronize_contract")
+        panel ("Contract") do
+          attributes_table_for Contract.contract_by_job_id(params["id"]) do
             row :name
-            row :contact_email
-            row :contact_person
           end
         end
         panel ("Setting Parameters") do
@@ -97,13 +95,13 @@ ActiveAdmin.register Job do
         end
         @selection = selection_array.join(",")
         render "restart_job"
-      elsif (params["type"] == "synchronize_customer")
+      elsif (params["type"] == "synchronize_contract")
         job_type = JobType.find_by_key(params["type"])
         @job = Job.new(:job_type_id => job_type.id,:recurrent => false,:scheduled_at => DateTime.now)
-        @customer = params["customer"]
+        @contract = params["contract"]
         @parameters = []
         @parameters.push({"name" => "param_mode","setting" => {:as => :string,:label => "Mode"}})
-        render "synchronize_customer_job"
+        render "synchronize_contract_job"
       end
     end
 
@@ -120,11 +118,11 @@ ActiveAdmin.register Job do
            end
          end
         redirect_to admin_jobs_path,:notice => "Job was create!"
-      elsif (params.key?("jobs") and params["jobs"]["key"] == "synchronize_customer" )
+      elsif (params.key?("jobs") and params["jobs"]["key"] == "synchronize_contract" )
         # Parameters initialization
         date = "#{params["jobs"]["scheduled_at_date"]}T#{params["jobs"]["scheduled_at_time_hour"]}:#{params["jobs"]["scheduled_at_time_minute"]}:00"
         schedule_at = DateTime.strptime(date,'%Y-%m-%dT%H:%M:%S')
-        customer = params["jobs"]["customer"]
+        contract = params["jobs"]["contract"]
         recurrent = params["jobs"]["recurrent"]
         job_type = JobType.find_by_key(params["jobs"]["key"])
 
@@ -137,7 +135,7 @@ ActiveAdmin.register Job do
         #DB Save
         ActiveRecord::Base.transaction do
           job = Job.create(:job_type_id => job_type.id,:status => "WAITING",:scheduled_by => current_active_admin_user, :recurrent => recurrent,:scheduled_at => schedule_at)
-          JobEntity.create(:job_id => job.id,:status => "WAITING",:r_customer => customer)
+          JobEntity.create(:job_id => job.id,:status => "WAITING",:r_contract => contract)
           parameters.each do |p|
             JobParameter.create(:job_id => job.id,:key => p[:key],:value => p[:value])
           end
