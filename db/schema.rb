@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20131023144037) do
+ActiveRecord::Schema.define(:version => 20131024132546) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.string   "resource_id",   :null => false
@@ -240,11 +240,11 @@ ActiveRecord::Schema.define(:version => 20131023144037) do
   add_index "project_history_old", ["project_pid", "key", "updated_at"], :name => "IX_project_pid_key_updated_at"
 
   create_table "schedule", :force => true do |t|
-    t.text     "graph_name"
-    t.text     "mode"
-    t.text     "server"
-    t.text     "cron"
-    t.text     "r_project"
+    t.string   "graph_name"
+    t.string   "mode"
+    t.string   "server"
+    t.string   "cron"
+    t.string   "r_project"
     t.string   "updated_by",         :limit => nil
     t.datetime "updated_at"
     t.boolean  "is_deleted",                        :default => false, :null => false
@@ -258,21 +258,21 @@ ActiveRecord::Schema.define(:version => 20131023144037) do
   add_index "schedule", ["graph_name", "r_project", "mode"], :name => "Uniq_r_project_graph_name_mode", :unique => true
 
   create_table "schedule_history", :force => true do |t|
-    t.text     "r_schedule"
-    t.text     "old_value"
-    t.text     "new_value"
-    t.datetime "updated_at"
-    t.text     "updated_by"
-    t.text     "key"
-  end
-
-  create_table "schedule_history_new", :force => true do |t|
     t.integer  "schedule_id"
     t.string   "key"
     t.text     "value"
     t.datetime "valid_from"
     t.datetime "valid_to"
     t.string   "updated_by"
+  end
+
+  create_table "schedule_history_old", :force => true do |t|
+    t.text     "r_schedule"
+    t.text     "old_value"
+    t.text     "new_value"
+    t.datetime "updated_at"
+    t.text     "updated_by"
+    t.text     "key"
   end
 
   create_table "settings", :force => true do |t|

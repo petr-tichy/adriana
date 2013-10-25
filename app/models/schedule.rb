@@ -1,15 +1,20 @@
 class Schedule < ActiveRecord::Base
   self.table_name = 'schedule'
-  #self.primary_keys = :project_pid
+  self.primary_key = 'id'
 
   # Include default devise modules. Others available are:
   # :token_authenticatable, :confirmable,
   # :lockable, :timeoutable and :omniauthable
 
   # Setup accessible (or protected) attributes for your model
-  attr_accessible :r_project, :graph_name, :mode, :server, :cron, :main
+  attr_accessible :id,:graph_name, :mode, :cron, :main,:settings_server_id,:gooddata_schedule,:gooddata_process
   belongs_to :settings_server
   # attr_accessible :title, :body
+
+  def self.get_public_attributes
+    ["graph_name","mode","cron","updated_by","is_deleted","main","setting_server_id","gooddata_schedule","gooddata_process"]
+  end
+
 
   def self.get_last_executions
     #select("schedule.id,e.status,e.event_start,e.event_end").joins("INNER JOIN execution_log e ON e.r_schedule = schedule.id").where("NOT EXISTS (SELECT * FROM execution_log e1 WHERE e1.r_schedule = e.r_schedule and e1.id > e.id) and is_deleted = 'f'")
@@ -22,7 +27,7 @@ class Schedule < ActiveRecord::Base
   end
 
   def self.default
-    select("schedule.*,e.status,e.event_start,e.event_end,p.name as project_name,settings_server.name as server_name").joins(:settings_server).joins("INNER JOIN execution_log e ON e.r_schedule = schedule.id").joins("INNER JOIN project p ON p.project_pid = schedule.r_project").where("NOT EXISTS (SELECT * FROM execution_log e1 WHERE e1.r_schedule = e.r_schedule and e1.id > e.id) and schedule.is_deleted = 'f'")
+    select("schedule.*,e.status,e.event_start,e.event_end,p.name as project_name,settings_server.name").joins(:settings_server).joins("INNER JOIN execution_log e ON e.r_schedule = schedule.id").joins("INNER JOIN project p ON p.project_pid = schedule.r_project").where("NOT EXISTS (SELECT e1.id FROM execution_log e1 WHERE e1.r_schedule = e.r_schedule and e1.id > e.id) and schedule.is_deleted = 'f'")
   end
 
   def self.with_project

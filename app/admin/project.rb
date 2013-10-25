@@ -58,6 +58,9 @@ ActiveAdmin.register Project do
               [:name, :status].each do |column|
                 row column
               end
+              row :updated_by do |p|
+                AdminUser.find(p.updated_by).email
+              end
             end
 
           end
@@ -80,7 +83,7 @@ ActiveAdmin.register Project do
 
       end
 
-      column :min_width => "800px",:min_height => "490px" do
+      column :min_width => "800px",:min_height => "520px" do
         attributes_table do
           text_node %{<iframe frameborder="0" src="https://na1.secure.gooddata.com/dashboard.html?label.sla_project.project_pid=#{params[:id]}#project=/gdc/projects/e30u9871uuqmtqz9053bshwxw0ph6gwf&dashboard=/gdc/md/e30u9871uuqmtqz9053bshwxw0ph6gwf/obj/303014" width="100%" height="470px"></iframe>}.html_safe
         end
@@ -113,6 +116,7 @@ ActiveAdmin.register Project do
             project[attr] = params[:project][attr]
           end
         end
+        project.updated_by = current_active_admin_user.id
         project.save
       end
 
@@ -122,9 +126,13 @@ ActiveAdmin.register Project do
 
     def destroy
       project = Project.where("id = ?",params[:id]).first
-      project.is_deleted = true
-      project.save
 
+      ActiveRecord::Base.transaction do
+        ProjectHistory.add_change(project.project_pid,"is_deleted","true",current_active_admin_user)
+        project.is_deleted = true
+        project.updated_by = current_active_admin_user.id
+        project.save
+      end
       redirect_to admin_project_path,:notice => "Project was deleted!"
     end
 
