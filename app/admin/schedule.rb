@@ -181,6 +181,26 @@ ActiveAdmin.register Schedule do
       redirect_to admin_schedule_path,:notice => "Schedule was deleted!"
     end
 
+    def create
+      public_attributes = Schedule.get_public_attributes
+      schedule = nil
+      ActiveRecord::Base.transaction do
+        schedule = Schedule.new()
+        schedule.updated_by = current_active_admin_user.id
+        schedule.settings_server_id = params[:schedule]["settings_server_id"]
+        schedule.r_project = params[:schedule]["r_project"]
+        public_attributes.each do |attr|
+          schedule[attr] =  params[:schedule][attr]
+        end
+        schedule.save
+        public_attributes.each do |attr|
+          ScheduleHistory.add_change(schedule.id,attr,params[:schedule][attr].to_s,current_active_admin_user)
+        end
+      end
+      redirect_to admin_schedule_path(schedule.id)
+    end
+
+
 
   end
 

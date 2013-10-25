@@ -7,7 +7,7 @@ class Schedule < ActiveRecord::Base
   # :lockable, :timeoutable and :omniauthable
 
   # Setup accessible (or protected) attributes for your model
-  attr_accessible :id,:graph_name, :mode, :cron, :main,:settings_server_id,:gooddata_schedule,:gooddata_process,:r_project,:is_deleted
+  attr_accessible :id,:graph_name, :mode, :cron, :main,:settings_server_id,:gooddata_schedule,:gooddata_process,:r_project,:is_deleted,:updated_by
   belongs_to :settings_server
   # attr_accessible :title, :body
 

@@ -90,7 +90,7 @@ ActiveAdmin.register Project do
 
       end
 
-      column :min_width => "800px",:min_height => "520px" do
+      column :min_width => "750px",:min_height => "520px" do
         attributes_table do
           text_node %{<iframe frameborder="0" src="https://na1.secure.gooddata.com/dashboard.html?label.sla_project.project_pid=#{params[:id]}#project=/gdc/projects/e30u9871uuqmtqz9053bshwxw0ph6gwf&dashboard=/gdc/md/e30u9871uuqmtqz9053bshwxw0ph6gwf/obj/303014" width="100%" height="470px"></iframe>}.html_safe
         end
