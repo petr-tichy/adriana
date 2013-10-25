@@ -7,7 +7,7 @@ class Schedule < ActiveRecord::Base
   # :lockable, :timeoutable and :omniauthable
 
   # Setup accessible (or protected) attributes for your model
-  attr_accessible :id,:graph_name, :mode, :cron, :main,:settings_server_id,:gooddata_schedule,:gooddata_process
+  attr_accessible :id,:graph_name, :mode, :cron, :main,:settings_server_id,:gooddata_schedule,:gooddata_process,:r_project,:is_deleted
   belongs_to :settings_server
   # attr_accessible :title, :body
 
@@ -27,12 +27,21 @@ class Schedule < ActiveRecord::Base
   end
 
   def self.default
-    select("schedule.*,e.status,e.event_start,e.event_end,p.name as project_name,settings_server.name").joins(:settings_server).joins("INNER JOIN execution_log e ON e.r_schedule = schedule.id").joins("INNER JOIN project p ON p.project_pid = schedule.r_project").where("NOT EXISTS (SELECT e1.id FROM execution_log e1 WHERE e1.r_schedule = e.r_schedule and e1.id > e.id) and schedule.is_deleted = 'f'")
+    select("schedule.*,e.status,e.event_start,e.event_end,p.name as project_name,settings_server.name").joins(:settings_server).joins("INNER JOIN project p ON p.project_pid = schedule.r_project").joins("LEFT OUTER JOIN execution_log e ON e.r_schedule = schedule.id").where("NOT EXISTS (SELECT e1.id FROM execution_log e1 WHERE e1.r_schedule = e.r_schedule and e1.id > e.id) and schedule.is_deleted = 'f'")
   end
 
   def self.with_project
     select("schedule.*,p.name as project_name").joins("INNER JOIN project p ON p.project_pid = schedule.r_project").where("schedule.is_deleted = 'f'")
   end
+
+  def self.mark_deleted(id,user)
+    schedule = Schedule.find(id)
+    ScheduleHistory.add_change(schedule.id,"is_deleted","true",user)
+    schedule.is_deleted = true
+    schedule.updated_by = user.id
+    schedule.save
+  end
+
 
 
 

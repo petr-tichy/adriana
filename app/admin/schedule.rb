@@ -40,7 +40,11 @@ ActiveAdmin.register Schedule do
       f.input :main
       f.input :settings_server
       f.input :cron
-      f.input :r_project,:as => :hidden
+      if (params["project_pid"].nil?)
+        f.input :r_project,:as => :hidden
+      else
+        f.input :r_project,:as => :hidden, :input_html => { :value => params["project_pid"] }
+      end
       f.input :is_deleted,:as => :hidden
     end
     f.inputs "Detail" do
@@ -171,12 +175,8 @@ ActiveAdmin.register Schedule do
     end
 
     def destroy
-      schedule = Schedule.find(params[:id])
       ActiveRecord::Base.transaction do
-        ScheduleHistory.add_change(schedule.id,"is_deleted","true",current_active_admin_user)
-        schedule.is_deleted = true
-        schedule.updated_by = current_active_admin_user.id
-        schedule.save
+        Schedule.mark_deleted(params[:id],current_active_admin_user)
       end
       redirect_to admin_schedule_path,:notice => "Schedule was deleted!"
     end

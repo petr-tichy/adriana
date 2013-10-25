@@ -1,6 +1,7 @@
 class CustomerHistory < ActiveRecord::Base
   self.table_name = 'customer_history'
   attr_accessible :customer_id,:key,:value,:valid_from,:valid_to,:updated_by
+  belongs_to :customer
 
   def self.add_change(customer_id,key,value,user)
     date = DateTime.now

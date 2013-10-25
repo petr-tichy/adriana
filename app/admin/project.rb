@@ -24,19 +24,26 @@ ActiveAdmin.register Project do
       link_to('Detail', admin_project_detail_path(project.project_pid))
     end
     column :schedules do |project|
-      link_to "Schedules", :controller => "schedules", :action => "index",'q[r_project_eq]' => "#{project.project_pid}".html_safe
+      links = ''.html_safe
+      links += link_to "List", :controller => "schedules", :action => "index",'q[r_project_eq]' => "#{project.project_pid}".html_safe
+      links += " "
+      links += link_to "New", :controller => "schedules", :action => "new",:project_pid =>  project.project_pid
+      links
     end
     actions
   end
 
   form do |f|
     f.inputs "Info" do
+      if f.object.new_record?
+        f.input :project_pid
+      end
       f.input :name
       f.input :status, :as => :select, :collection => ["Live", "Development", "Suspended"]
       f.input :ms_person
     end
     f.inputs "SLA" do
-      f.input :sla_enabled,:checked_value => "t", :unchecked_value => "f"
+      f.input :sla_enabled,:checked_value => "true", :unchecked_value => "false"
       f.input :sla_type, :as => :select, :collection => ["Fixed Duration", "Fixed Time"]
       f.input :sla_value
       # etc
@@ -59,7 +66,7 @@ ActiveAdmin.register Project do
                 row column
               end
               row :updated_by do |p|
-                AdminUser.find(p.updated_by).email
+                AdminUser.find(p.updated_by).email || "Unknown"
               end
             end
 
@@ -134,6 +141,25 @@ ActiveAdmin.register Project do
         project.save
       end
       redirect_to admin_project_path,:notice => "Project was deleted!"
+    end
+
+
+    def create
+      public_attributes = Project.get_public_attributes
+      project = nil
+      ActiveRecord::Base.transaction do
+        project = Project.new()
+        project.project_pid = params[:project]["project_pid"]
+        project.updated_by = current_active_admin_user.id
+        public_attributes.each do |attr|
+          project[attr] =  params[:project][attr]
+        end
+        project.save
+        public_attributes.each do |attr|
+          ProjectHistory.add_change(project.project_pid,attr,params[:project][attr].to_s,current_active_admin_user)
+        end
+      end
+      redirect_to admin_project_path(project.id)
     end
 
 

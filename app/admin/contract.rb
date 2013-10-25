@@ -90,10 +90,9 @@ ActiveAdmin.register Contract do
     end
 
     def destroy
-      contract = Contract.where("id = ?",params[:id]).first
-      contract.is_deleted = true
-      contract.save
-
+      ActiveRecord::Base.transaction do
+        Contract.mark_deleted(params[:id],current_active_admin_user)
+      end
       redirect_to admin_contracts_path,:notice => "Contract was deleted!"
     end
 

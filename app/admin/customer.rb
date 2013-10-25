@@ -89,15 +89,13 @@ ActiveAdmin.register Customer do
           CustomerHistory.add_change(customer.id,attr,params[:customer][attr].to_s,current_active_admin_user)
         end
       end
-
       redirect_to admin_customer_path(customer.id)
     end
 
     def destroy
-      customer = Customer.where("id = ?",params[:id]).first
-      customer.is_deleted = true
-      customer.save
-
+        ActiveRecord::Base.transaction do
+          Customer.mark_deleted(params[:id],current_active_admin_user)
+        end
       redirect_to admin_customers_path,:notice => "Customer was deleted!"
     end
 
