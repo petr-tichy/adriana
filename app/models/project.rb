@@ -1,6 +1,10 @@
 class Project < ActiveRecord::Base
   self.table_name = 'project'
   self.primary_key = 'project_pid'
+
+  belongs_to :contract
+  validates_presence_of :status,:name,:project_pid
+
   #set_primary_key "project_pid"
 
   # Include default devise modules. Others available are:

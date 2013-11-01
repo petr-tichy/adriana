@@ -5,6 +5,7 @@ ActiveAdmin.register Project do
   filter :sla_enabled, :as => :check_boxes, :collection => [true,false]
   filter :sla_type, :as => :select, :collection => ["Fixed Duration","Fixed Time"]
   filter :status, :as => :select, :collection => ["Live","Paused","Suspended"]
+  filter :contract_id,:as => :select, :collection => Contract.all
 
   index do |project|
     #last_executions = ExecutionLog.get_last_executions()
@@ -33,7 +34,7 @@ ActiveAdmin.register Project do
     actions
   end
 
-  form do |f|
+  form :validate => true do |f|
     f.inputs "Info" do
       if f.object.new_record?
         f.input :project_pid
@@ -98,8 +99,13 @@ ActiveAdmin.register Project do
     end
   end
 
+  action_item :only => [:show] do
+    link_to "Schedules", :controller => "schedules", :action => "index",'q[r_project_eq]' => "#{params["id"]}".html_safe
+  end
 
-
+  action_item :only => [:show] do
+    link_to('Detail', admin_project_detail_path(params["id"]))
+  end
 
 
 
@@ -131,8 +137,9 @@ ActiveAdmin.register Project do
     end
 
 
+
     def destroy
-      project = Project.where("id = ?",params[:id]).first
+      project = Project.where("project_pid = ?",params[:id]).first
 
       ActiveRecord::Base.transaction do
         ProjectHistory.add_change(project.project_pid,"is_deleted","true",current_active_admin_user)
@@ -140,7 +147,7 @@ ActiveAdmin.register Project do
         project.updated_by = current_active_admin_user.id
         project.save
       end
-      redirect_to admin_project_path,:notice => "Project was deleted!"
+      redirect_to admin_projects_path,:notice => "Project was deleted!"
     end
 
 
@@ -155,6 +162,11 @@ ActiveAdmin.register Project do
           project[attr] =  params[:project][attr]
         end
         project.save
+
+        project_detail = ProjectDetail.new()
+        project_detail.project_pid = project.project_pid
+        project_detail.save
+
         public_attributes.each do |attr|
           ProjectHistory.add_change(project.project_pid,attr,params[:project][attr].to_s,current_active_admin_user)
         end

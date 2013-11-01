@@ -1,7 +1,7 @@
 class JobEntity < ActiveRecord::Base
   self.table_name = 'job_entity'
   has_one :job
-  attr_accessible :job_id, :status, :r_schedule,:r_project,:r_customer
+  attr_accessible :job_id, :status, :r_schedule,:r_project,:r_customer,:r_contract,:r_settings_server
 
 
   def self.get_job_entities_schedule(job_id)

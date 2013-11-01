@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20131025131358) do
+ActiveRecord::Schema.define(:version => 20131101140208) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.string   "resource_id",   :null => false
@@ -140,14 +140,10 @@ ActiveRecord::Schema.define(:version => 20131025131358) do
   create_table "job", :force => true do |t|
     t.integer  "job_type_id"
     t.datetime "scheduled_at"
-    t.datetime "started_at"
-    t.datetime "finished_at"
-    t.string   "status",       :limit => 50, :null => false
-    t.text     "log"
     t.string   "scheduled_by"
     t.boolean  "recurrent"
-    t.datetime "created_at",                 :null => false
-    t.datetime "updated_at",                 :null => false
+    t.datetime "created_at",   :null => false
+    t.datetime "updated_at",   :null => false
   end
 
   create_table "job_entity", :force => true do |t|
@@ -159,6 +155,16 @@ ActiveRecord::Schema.define(:version => 20131025131358) do
     t.datetime "created_at",                      :null => false
     t.datetime "updated_at",                      :null => false
     t.integer  "r_settings_server"
+  end
+
+  create_table "job_history", :force => true do |t|
+    t.integer  "job_id"
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.string   "status"
+    t.text     "log"
+    t.datetime "created_at",  :null => false
+    t.datetime "updated_at",  :null => false
   end
 
   create_table "job_parameter", :force => true do |t|

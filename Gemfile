@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-
 gem 'rails', '3.2.14'
 
 # Bundle edge Rails instead:
@@ -26,7 +25,8 @@ gem 'execjs'
 gem 'therubyracer', :platforms => :ruby
 gem 'pry'
 gem 'just-datetime-picker'
-
+gem 'client_side_validations'
+gem 'client_side_validations-formtastic'
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 

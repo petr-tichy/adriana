@@ -9,10 +9,12 @@ class Schedule < ActiveRecord::Base
   # Setup accessible (or protected) attributes for your model
   attr_accessible :id,:graph_name, :mode, :cron, :main,:settings_server_id,:gooddata_schedule,:gooddata_process,:r_project,:is_deleted,:updated_by
   belongs_to :settings_server
+  validates_presence_of :graph_name,:cron,:settings_server_id
+
   # attr_accessible :title, :body
 
   def self.get_public_attributes
-    ["graph_name","mode","cron","updated_by","is_deleted","main","setting_server_id","gooddata_schedule","gooddata_process"]
+    ["graph_name","mode","cron","is_deleted","main","setting_server_id","gooddata_schedule","gooddata_process"]
   end
 
 

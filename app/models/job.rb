@@ -2,9 +2,17 @@ class Job < ActiveRecord::Base
   self.table_name = 'job'
   has_many :job_parameters
   has_many :job_entities
+  has_many :job_histories
   belongs_to :job_type
-  attr_accessible :job_type_id, :status, :scheduled_by,:recurrent,:scheduled_at
+  attr_accessible :job_type_id, :scheduled_by,:recurrent,:scheduled_at
   just_define_datetime_picker :scheduled_at, :add_to_attr_accessible => true
+
+  def self.default
+    select("*").joins("LEFT OUTER JOIN (SELECT jh.id as job_history_id,jh.job_id,jh.status,jh.started_at,jh.finished_at FROM job_history jh WHERE NOT EXISTS (SELECT jh2.id FROM job_history jh2 WHERE jh2.job_id = jh.job_id and jh2.id > jh.id)) last_history ON last_history.job_id = job.id")
+  end
+
+
+
 
 
 

@@ -1,6 +1,7 @@
 class Contract < ActiveRecord::Base
   self.table_name = 'contract'
   has_many :contract_history
+  has_many :projects
   belongs_to :customer
 
   attr_accessible :name

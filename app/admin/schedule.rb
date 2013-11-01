@@ -6,13 +6,13 @@ ActiveAdmin.register Schedule do
 
   scope :all, :default => true
   scope :cloudconnect do |schedule|
-    schedule.where("server = ?","CloudConnect")
+    schedule.where("settings_server.server_type = ?","cloudconnect")
   end
-  scope :clover_prod do |schedule|
-    schedule.where("server IN ('clover-prod2','clover-prod3')")
+  scope :infra do |schedule|
+    schedule.where("settings_server.server_type = ?","infra")
   end
-  scope :clover_dev do |schedule|
-    schedule.where("server IN ('clover-dev2')")
+  scope :legacy do |schedule|
+    schedule.where("settings_server.server_type = ?","bash")
   end
 
   scope :error do |schedule|
@@ -31,9 +31,17 @@ ActiveAdmin.register Schedule do
     redirect_to new_admin_job_path(:type => "restart",:selection => selection)
   end
 
+  batch_action :destroy, :confirm => "Do you want to delete following schedules?" do |selection|
+    schedule = params["collection_selection"]
+    schedule.each do |selection|
+      ActiveRecord::Base.transaction do
+        Schedule.mark_deleted(selection,current_active_admin_user)
+      end
+    end
+    redirect_to admin_schedules_path,:notice => "Schedules were deleted!"
+  end
 
-
-  form do |f|
+  form  :validate => true do |f|
     f.inputs "Info" do
       f.input :graph_name
       f.input :mode
@@ -58,7 +66,9 @@ ActiveAdmin.register Schedule do
   index do
     selectable_column
     column :project_name
-    column "Project PID", :r_project
+    column "Project PID" do |schedule|
+      link_to schedule.r_project, :controller => "projects", :action => "show",:id => schedule.r_project
+    end
     column :mode
     column :server do |schedule|
       schedule.settings_server.name
@@ -143,10 +153,12 @@ ActiveAdmin.register Schedule do
       end
     end
 
-
-
-
   end
+
+
+
+
+
 
 
   controller do
@@ -180,6 +192,7 @@ ActiveAdmin.register Schedule do
       end
       redirect_to admin_schedule_path,:notice => "Schedule was deleted!"
     end
+
 
     def create
       public_attributes = Schedule.get_public_attributes
