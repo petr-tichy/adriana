@@ -10,7 +10,7 @@ ActiveAdminTest::Application.configure do
 
   # Disable Rails's static asset server (Apache or nginx will already do this)
   config.assets.compile = true
-  config.assets.precompile += %w[active_admin.css active_admin.js]
+  config.assets.precompile += %w[active_admin.css active_admin.js defaults.js rails.validations.formtastic.js rails.validations.js]
 
   # Compress JavaScripts and CSS
   config.assets.compress = true
