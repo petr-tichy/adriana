@@ -49,9 +49,16 @@ module SLAWatcher
     def check_request_id(values,type)
       #Fill temp_request table
       SLAWatcher::Request.delete_all()
+      batch_size = 500
+      batch = []
       values.each do |value|
-        SLAWatcher::Request.create(:request_id => value[:request_id])
+        batch << SLAWatcher::Request.new(:request_id => value[:request_id])
+        if batch.size >= batch_size
+          SLAWatcher::Request.import batch
+          batch = []
+        end
       end
+      SLAWatcher::Request.import batch
 
       if (type == 'STARTED')
         requests = SLAWatcher::Request.check_request_id_started
