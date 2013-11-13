@@ -1,10 +1,19 @@
 ActiveAdmin.register Schedule do
-  filter :r_project
+  filter :r_project, :label => "Project PID"
+  filter :project, :label => "Project Name", :as => :string
   filter :mode
   filter :main
   filter :settings_server_name, :label => "Server", :as => :select, :collection => proc { (SettingsServer.all).map{|ss| [ss.name, ss.name]} }
 
+  filter :contract, :label => "Contract",:as => :select, :collection => Contract.all
+  #filter :project_contract_id, :label => "Contract", :as => :select, :collection => proc { (Contract.all).map{|c| [c.id, c.id]} }
+
+
   scope :all, :default => true
+  scope :direct  do |schedule|
+    schedule.where("contract_id IS NULL")
+  end
+
   scope :cloudconnect do |schedule|
     schedule.where("settings_server.server_type = ?","cloudconnect")
   end
@@ -163,10 +172,18 @@ ActiveAdmin.register Schedule do
 
   controller do
 
+    #layout 'active_admin'
     include ApplicationHelper
 
     def scoped_collection
       Schedule.default
+    end
+
+    before_filter :only => [:index] do
+      pp params
+      if params['commit'].blank?
+        params['q'] = {:is_deleted_eq => '0'}
+      end
     end
 
     def update

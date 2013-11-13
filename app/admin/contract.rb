@@ -12,6 +12,13 @@ ActiveAdmin.register Contract do
     column :actions do |contract|
       link_to "Synchronization", :controller => "jobs", :action => "new",:type => "synchronize_contract",:contract => contract.id
     end
+    column :links do |contract|
+      links = ''.html_safe
+      links += link_to "Projects", :controller => "projects", :action => "index",'q[contract_id_eq]' => "#{contract.id}".html_safe, 'commit' => "Filter"
+      links += " "
+      links += link_to "Schedules", :controller => "schedules", :action => "index",'q[contract_eq]' => "#{contract.id}".html_safe, 'commit' => "Filter"
+      links
+    end
     actions
   end
 

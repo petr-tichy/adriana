@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20131101140208) do
+ActiveRecord::Schema.define(:version => 20131108091317) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.string   "resource_id",   :null => false
@@ -121,6 +121,7 @@ ActiveRecord::Schema.define(:version => 20131101140208) do
   end
 
   add_index "execution_log", ["event_start"], :name => "idx_execution_log5"
+  add_index "execution_log", ["id", "r_schedule"], :name => "idx_execution_r_schedule"
   add_index "execution_log", ["request_id"], :name => "idx_request_id"
   add_index "execution_log", ["status"], :name => "idx_execution_log4"
 
@@ -142,8 +143,10 @@ ActiveRecord::Schema.define(:version => 20131101140208) do
     t.datetime "scheduled_at"
     t.string   "scheduled_by"
     t.boolean  "recurrent"
-    t.datetime "created_at",   :null => false
-    t.datetime "updated_at",   :null => false
+    t.datetime "created_at",                      :null => false
+    t.datetime "updated_at",                      :null => false
+    t.string   "cron"
+    t.boolean  "is_disabled",  :default => false
   end
 
   create_table "job_entity", :force => true do |t|
@@ -292,12 +295,13 @@ ActiveRecord::Schema.define(:version => 20131101140208) do
   end
 
   create_table "settings_server", :force => true do |t|
-    t.string   "name",        :limit => 50, :null => false
-    t.string   "server_url",                :null => false
+    t.string   "name",            :limit => 50, :null => false
+    t.string   "server_url",                    :null => false
     t.string   "webdav_url"
-    t.string   "server_type",               :null => false
-    t.datetime "created_at",                :null => false
-    t.datetime "updated_at",                :null => false
+    t.string   "server_type",                   :null => false
+    t.datetime "created_at",                    :null => false
+    t.datetime "updated_at",                    :null => false
+    t.string   "default_account"
   end
 
   create_table "sla_description", :id => false, :force => true do |t|

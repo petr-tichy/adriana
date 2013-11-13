@@ -8,6 +8,7 @@ ActiveAdmin.register SettingsServer do
         f.input :server_type, :as => :select, :collection => ["cloudconnect", "infra", "bash"]
         f.input :server_url
         f.input :webdav_url
+        f.input :default_account
       end
       f.actions
     end

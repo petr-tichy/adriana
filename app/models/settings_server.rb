@@ -3,5 +3,5 @@ class SettingsServer < ActiveRecord::Base
   self.primary_key = 'id'
   has_many :schedules
 
-  attr_accessible :name, :server_url,:webdav_url,:server_type
+  attr_accessible :name, :server_url,:webdav_url,:server_type,:default_account
 end

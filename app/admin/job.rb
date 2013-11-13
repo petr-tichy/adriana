@@ -10,11 +10,17 @@ ActiveAdmin.register Job do
         link_to "Contract", :controller => "contracts", :action => "show",:id => entity.r_contract
       end
     end
-    column :scheduled_at
     column :scheduled_by do |job|
       AdminUser.find(job.scheduled_by).email
     end
-    column :recurrent
+    column :scheduling do |job|
+      if (job.recurrent)
+         job.cron
+      else
+         job.scheduled_at
+      end
+    end
+
     column :started_at
     column :finished_at
     column :status do |job|
@@ -50,15 +56,6 @@ ActiveAdmin.register Job do
           AdminUser.find(job.scheduled_by).email
         end
         row :recurrent
-        #row :status do |job|
-        #  if (job.status == "WAITING")
-        #    status_tag "WAITING",:warning
-        #  elsif (job.status == "FINISHED" or job.status == "RUNNING")
-        #    status_tag job.status,:ok
-        #  else
-        #    status_tag "ERROR",:error
-        #  end
-        #end
       end
     end
       if (job.job_type.key == "restart")
@@ -69,9 +66,9 @@ ActiveAdmin.register Job do
             column(:mode)
             column(:status) do |job_entity|
               value = job_entity.status
-              if (value == "WAITING")
+              if (value == "WAITING" or value == "RUNNING")
                 status_tag value,:warning
-              elsif (value == "FINISHED" or value == "RUNNING")
+              elsif (value == "FINISHED" or value == "DONE")
                 status_tag value,:ok
               else
                 status_tag value,:error
@@ -91,6 +88,28 @@ ActiveAdmin.register Job do
             column(:value)
           end
         end
+
+        panel ("Job History") do
+          table_for JobHistory.where("job_id = ?",params["id"]).order("started_at DESC").limit(10) do
+            column(:status) do |job_history|
+              value = job_history.status
+              if (value == "WAITING")
+                status_tag value,:warning
+              elsif (value == "FINISHED" or value == "RUNNING")
+                status_tag value,:ok
+              else
+                status_tag value,:error
+              end
+            end
+            column(:started_at)
+            column(:finished_at)
+            column(:log) do |job_history|
+              link_to "Log", :controller => "jobs", :action => "job_history_log",:id => job_history.id, :target => '_blank'
+            end
+
+          end
+        end
+
       end
     end
 
@@ -126,7 +145,10 @@ ActiveAdmin.register Job do
         render "restart_job"
       elsif (params["type"] == "synchronize_contract")
         job_type = JobType.find_by_key(params["type"])
-        @job = Job.new(:job_type_id => job_type.id,:recurrent => false,:scheduled_at => DateTime.now)
+        @job = SynchronizationJob.new(:job_type_id => job_type.id,:recurrent => "false",:scheduled_at => DateTime.now)
+        #@jobs = CustomJobSynchronization.new({:job_type_id => job_type.id,:recurrent => "false",:scheduled_at => DateTime.now})
+        #@jobs = OpenStruct.new(:job_type_id => job_type.id,:recurrent => false,:scheduled_at => DateTime.now)
+
         @contract = params["contract"]
         @parameters = []
         @parameters.push({"name" => "param_mode","setting" => {:as => :string,:label => "Mode"}})
@@ -136,6 +158,7 @@ ActiveAdmin.register Job do
     end
 
     def create
+
       if (params.key?("job"))
         date = "#{params["job"]["scheduled_at_date"]}T#{params["job"]["scheduled_at_time_hour"]}:#{params["job"]["scheduled_at_time_minute"]}:00"
         schedule_at = DateTime.strptime(date,'%Y-%m-%dT%H:%M:%S')
@@ -148,23 +171,24 @@ ActiveAdmin.register Job do
            end
          end
         redirect_to admin_jobs_path,:notice => "Job was create!"
-      elsif (params.key?("jobs") and params["jobs"]["key"] == "synchronize_contract" )
+      elsif (params.key?("synchronization_job") and params["synchronization_job"]["key"] == "synchronize_contract" )
         # Parameters initialization
-        date = "#{params["jobs"]["scheduled_at_date"]}T#{params["jobs"]["scheduled_at_time_hour"]}:#{params["jobs"]["scheduled_at_time_minute"]}:00"
+        date = "#{params["synchronization_job"]["scheduled_at_date"]}T#{params["synchronization_job"]["scheduled_at_time_hour"]}:#{params["synchronization_job"]["scheduled_at_time_minute"]}:00"
         schedule_at = DateTime.strptime(date,'%Y-%m-%dT%H:%M:%S')
-        contract = params["jobs"]["contract"]
-        recurrent = params["jobs"]["recurrent"]
-        job_type = JobType.find_by_key(params["jobs"]["key"])
+        contract = params["synchronization_job"]["contract"]
+        recurrent = params["synchronization_job"]["recurrent"]
+        job_type = JobType.find_by_key(params["synchronization_job"]["key"])
 
         parameters = []
-        params["jobs"].each_pair do | key, value |
+        params["synchronization_job"].each_pair do | key, value |
           if (key.include?("param_"))
             parameters.push(:key => key.gsub("param_","") ,:value => value)
           end
         end
         #DB Save
+        # scheduled_at - converting to UTC
         ActiveRecord::Base.transaction do
-          job = Job.create(:job_type_id => job_type.id,:scheduled_by => current_active_admin_user, :recurrent => recurrent,:scheduled_at => schedule_at)
+          job = Job.create(:job_type_id => job_type.id,:scheduled_by => current_active_admin_user, :recurrent => recurrent,:scheduled_at => schedule_at.utc)
           JobEntity.create(:job_id => job.id,:status => "WAITING",:r_contract => contract,:r_settings_server => params["jobs"]["settings_server_id"] )
           parameters.each do |p|
             JobParameter.create(:job_id => job.id,:key => p[:key],:value => p[:value])
