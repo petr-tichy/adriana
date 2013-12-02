@@ -1,7 +1,7 @@
 module SLAWatcher
   class Key
 
-    attr_accessor :value,:type
+    attr_accessor :type
 
     def initialize(value,type)
       @value = value
@@ -11,6 +11,11 @@ module SLAWatcher
 
     def to_s
       "Value: #{@value} Type: #{@type}"
+    end
+
+
+    def value
+      @value.to_s
     end
 
   end

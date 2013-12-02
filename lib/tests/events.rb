@@ -29,7 +29,7 @@ module SLAWatcher
 
 
     def find_event_index(event)
-      @events.index{|e| e.key.type == event.key.type and e.key.value == event.key.value and e.event_type == event.event_type}
+      @events.index{|e| e.key.type == event.key.type and e.key.value.to_s == event.key.value.to_s and e.event_type == event.event_type}
     end
 
     def save
@@ -59,6 +59,8 @@ module SLAWatcher
     def mail_incident
       body = ""
       @events.each do |e|
+        pp e.notified
+        pp e
         if (e.severity > Severity.MEDIUM and e.notified == false)
           #stage_schedule = @schedule_in_stage.find{|s| s.r_project == e.key.project_pid and s.graph_name = e.graph and s.mode == e.mode}
           schedule = @schedules.find {|s| s.id.to_s == e.key.value.to_s and e.key.type == "SCHEDULE"}

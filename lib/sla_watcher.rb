@@ -122,7 +122,7 @@ module SLAWatcher
       slaTest.start
 
       events.mail_incident
-      events.mail_status
+      #events.mail_status
       events.save
 
       #
