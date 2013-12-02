@@ -29,13 +29,8 @@ module SLAWatcher
 
 
     def find_event_index(event)
-      @events.index{|e| e.key.md5 == event.key.md5 and e.event_type == event.event_type}
+      @events.index{|e| e.key.type == event.key.type and e.key.value == event.key.value and e.event_type == event.event_type}
     end
-
-    def find_event(event)
-      @events.find{|e| e.key.md5 == event.key.md5 and e.event_type == event.event_type}
-    end
-
 
     def save
       ActiveRecord::Base.transaction do
@@ -52,9 +47,9 @@ module SLAWatcher
       body = ""
       @events.each do |e|
         #stage_schedule = @schedule_in_stage.find{|s| s.r_project == e.key.project_pid and s.graph_name = e.graph and s.mode == e.mode}
-        stage_project = @projects_in_stage.find{|p| p.de_project_pid == e.key.project_pid }
+        schedule = @schedules.find {|s| s.id.to_s == e.key.value.to_s and e.key.type == "SCHEDULE"}
         body << "---------------------------------------- \n"
-        body << "Project Name: #{stage_project.name} Server: #{stage_project.server}\n"
+        body << "Project Name: #{schedule.project.name} Server: #{schedule.settings_server.name} \n"
         body << e.to_s
         body << "---------------------------------------- \n"
       end
@@ -66,10 +61,10 @@ module SLAWatcher
       @events.each do |e|
         if (e.severity > Severity.MEDIUM and e.notified == false)
           #stage_schedule = @schedule_in_stage.find{|s| s.r_project == e.key.project_pid and s.graph_name = e.graph and s.mode == e.mode}
-          stage_project = @projects_in_stage.find{|p| p.de_project_pid == e.key.project_pid }
+          schedule = @schedules.find {|s| s.id.to_s == e.key.value.to_s and e.key.type == "SCHEDULE"}
           e.notified = true
           body << "---------------------------------------- \n"
-          body << "Project Name: #{stage_project.name} Server: #{stage_project.server} \n"
+          body << "Project Name: #{schedule.project.name} Server: #{schedule.settings_server.name} \n"
           body << e.to_s
           body << "---------------------------------------- \n"
         end
@@ -82,7 +77,7 @@ module SLAWatcher
     def load_events_from_database
       events = EventLog.select("*")
       events.each do |db_event|
-        key = Key.new(db_event.project_pid,db_event.graph_name,db_event.mode)
+        key = Key.new(db_event.key,db_event.event_entity)
         custom_event = CustomEvent.new(key,db_event.severity,db_event.event_type,db_event.text,db_event.created_date,db_event.persistent,true,db_event.notified)
         push_event(custom_event)
       end
@@ -90,7 +85,10 @@ module SLAWatcher
       project_category_id = SLAWatcher::Settings.load_project_category_id.first.value
       task_category_id = SLAWatcher::Settings.load_schedule_category_id.first.value
 
-      @projects_in_stage = SLAWatcher::StageProject.project_by_category(project_category_id)
+      @schedules = SLAWatcher::Schedule.includes(:project).includes(:project => :project_detail).includes(:settings_server)
+
+      #Post.joins(comments: :guest)
+
       #@schedule_in_stage = SLAWatcher::StageTask.task_by_category(task_category_id)
 
     end

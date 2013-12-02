@@ -4,6 +4,7 @@ module SLAWatcher
     self.table_name = 'log2.event_log'
     self.primary_key = 'id'
 
+    attr_accessible :event_entity,:severity, :key, :updated_date, :persistent, :event_type, :notified, :text, :created_date
 
      #def self.log_execution(pid,graph_name,mode,status,detailed_status,time = nil)
     #  #time = 'NULL' if time.nil?

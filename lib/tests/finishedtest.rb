@@ -22,8 +22,8 @@ module SLAWatcher
       # Test if project is running more then normaly
       @running_projects.each do |execution|
         statistical_value = @statistics_data.find{|s| s.r_schedule == execution.r_schedule }
-        if (!statistical_value.nil? and !statistical_value.avg_run.nil? )
 
+        if (!statistical_value.nil? and !statistical_value.avg_run.nil? )
           run_statistical_time =  Helper.interval_to_minutes(statistical_value.avg_run)
           run_actual_time = (@now - execution.event_start)/60
           #@@log.info run_statistical_time
@@ -31,15 +31,15 @@ module SLAWatcher
 
           difference = run_actual_time - run_statistical_time
           if (difference > 2*@WARNING_INTERVAL)
-            event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),@SEVERITY+1,@EVENT_TYPE,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",DateTime.now,false)
+            event = CustomEvent.new(Key.new(execution.r_schedule,"SCHEDULE"),@SEVERITY+1,@EVENT_TYPE,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",DateTime.now,false)
             @events.push_event(event)
           elsif (difference > @WARNING_INTERVAL)
-            event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),@SEVERITY,@EVENT_TYPE,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",DateTime.now,false)
+            event = CustomEvent.new(Key.new(execution.r_schedule,"SCHEDULE"),@SEVERITY,@EVENT_TYPE,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",DateTime.now,false)
             @events.push_event(event)
           end
         else
           # We don't have enough statistical data to monitor this schedules ... lets create LOW SEVERITY event to let us know
-          event = CustomEvent.new(Key.new(execution.r_project,execution.graph_name,execution.mode),Severity.LOW,@EVENT_TYPE,"Not enough statistical data - FINISHED test not applied",DateTime.now,false)
+          event = CustomEvent.new(Key.new(execution.r_schedule,"SCHEDULE"),Severity.LOW,@EVENT_TYPE,"Not enough statistical data - FINISHED test not applied",DateTime.now,false)
           @events.push_event(event)
         end
 

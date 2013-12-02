@@ -28,28 +28,28 @@ module SLAWatcher
 
       # Lets test only project when we should minitor SLA
      @executions.each do |e|
-       project = @projects.find{|p| p.project_pid == e[:project_pid]}
-       if (!project.nil? and project.sla_enabled == 't')
+       schedule = @schedules.find{|s| s.project_pid == e[:project_pid]}
+       if (!schedule.nil? and schedule.sla_enabled == 't')
          start_time = e[:executions].first[:event_start]
-         if (project.sla_type == "Fixed Duration")
-           duration = Helper.interval_to_minutes(project.sla_value)
+         if (schedule.sla_type == "Fixed Duration")
+           duration = Helper.interval_to_minutes(schedule.sla_value)
            current_duration = ((Time.now - start_time)/60).round
 
            if (current_duration >= duration)
-             event = CustomEvent.new(Key.new(project.r_project,project.graph_name,project.mode),@SEVERITY,@EVENT_TYPE,"We are over SLA by: #{(current_duration - duration)} minutes",DateTime.now,false)
+             event = CustomEvent.new(Key.new(schedule.id,"SCHEDULE"),@SEVERITY,@EVENT_TYPE,"We are over SLA by: #{(current_duration - duration)} minutes",DateTime.now,false)
              @events.push_event(event)
            elsif (current_duration >= duration - @WARNING_INTERVAL)
-             event = CustomEvent.new(Key.new(project.r_project,project.graph_name,project.mode),@SEVERITY-1,@EVENT_TYPE,"We nearly over SLA (current duration: #{(current_duration )} min, SLA duration: #{duration})",DateTime.now,false)
+             event = CustomEvent.new(Key.new(schedule.id,"SCHEDULE"),@SEVERITY-1,@EVENT_TYPE,"We nearly over SLA (current duration: #{(current_duration )} min, SLA duration: #{duration})",DateTime.now,false)
              @events.push_event(event)
            end
-         elsif (project.sla_type == "Fixed Time")
+         elsif (schedule.sla_type == "Fixed Time")
            # All values will be in UTC
-           sla_time = Time.parse(project.sla_value + " UTC")
+           sla_time = Time.parse(schedule.sla_value + " UTC")
            if (Time.now.utc > sla_time)
-             event = CustomEvent.new(Key.new(project.r_project,project.graph_name,project.mode),@SEVERITY,@EVENT_TYPE,"We are over SLA. Should have been loaded till: #{sla_time.in_time_zone("CET")}",DateTime.now,false)
+             event = CustomEvent.new(Key.new(schedule.id,"SCHEDULE"),@SEVERITY,@EVENT_TYPE,"We are over SLA. Should have been loaded till: #{sla_time.in_time_zone("CET")}",DateTime.now,false)
              @events.push_event(event)
            elsif (Time.now.utc > sla_time - @WARNING_INTERVAL.minutes)
-             event = CustomEvent.new(Key.new(project.r_project,project.graph_name,project.mode),@SEVERITY-1,@EVENT_TYPE,"We will be soon over SLA. SLA Time: #{sla_time.in_time_zone("CET")}",DateTime.now,false)
+             event = CustomEvent.new(Key.new(schedule.id,"SCHEDULE"),@SEVERITY-1,@EVENT_TYPE,"We will be soon over SLA. SLA Time: #{sla_time.in_time_zone("CET")}",DateTime.now,false)
              @events.push_event(event)
            end
          end
@@ -58,7 +58,7 @@ module SLAWatcher
     end
 
     def load_data()
-      @projects = Schedule.load_schedules_of_live_projects_main
+      @schedules = Schedule.load_schedules_of_live_projects_main
       @execution_log = ExecutionLog.get_running_projects_for_sla
     end
 

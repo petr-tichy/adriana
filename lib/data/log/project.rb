@@ -5,6 +5,9 @@ module SLAWatcher
     self.table_name = 'log2.project'
     self.primary_keys = :project_pid
 
+    has_many :running_executions, :through => :schedule
+    has_one :project_detail, :primary_key => "project_pid", :foreign_key => "project_pid"
+
     def self.load_(status)
       where("status = ?", status)
     end
@@ -21,7 +24,6 @@ module SLAWatcher
     def self.load_deleted_projects()
       where("is_deleted = ? and p.contract_id IS NULL", "false")
     end
-
 
 
   end

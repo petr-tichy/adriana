@@ -12,18 +12,15 @@ module SLAWatcher
 
     def start()
       load_data
-
       #Lets check if all live schedules were started event once
       #Severity - MEDIUM
       @live_schedules.each do |live_schedule|
         execution = @execution_log.find{|e| e.r_schedule == live_schedule.id}
         if (execution.nil?)
-          event = CustomEvent.new(Key.new(live_schedule.r_project,live_schedule.graph_name,live_schedule.mode),Severity.MEDIUM,@EVENT_TYPE,"This schedule was not started even once",DateTime.now,true)
+          event = CustomEvent.new(Key.new(live_schedule.id,"SCHEDULE"),Severity.MEDIUM,@EVENT_TYPE,"This schedule was not started even once",DateTime.now,true)
           @events.push_event(event)
         end
       end
-
-
 
       # Check if all events were started regarding cron expresion
       # Severity - HIGH
@@ -32,34 +29,31 @@ module SLAWatcher
           #Taking only ones with live schedule
           if (!schedule.nil?)
               running_execution =  @running_projects.find {|e| e.r_schedule == schedule.id}
-              if (schedule.server == "CloudConnect")
-
+              if (schedule.server_type == "cloudconnect")
 
                 now = Time.now.utc
                 next_run = Helper.next_run(schedule.cron,execution.event_start.utc,SLAWatcher::UTCTime)
                 running_late_for = ((next_run - now)/1.minute)*(-1)
                 # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
                 if (!running_execution.nil? and running_late_for > 25 and running_late_for < 300)
-                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.MEDIUM,@EVENT_TYPE,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",DateTime.now,false)
+                  event = CustomEvent.new(Key.new(schedule.id,"SCHEDULE"),Severity.MEDIUM,@EVENT_TYPE,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",DateTime.now,false)
                   @@log.info("Type: MEDIUM The UTC time is: #{now}, schedule ID is: #{schedule.id}, running_late: #{running_late_for}, cron: #{schedule.cron} execution: #{execution.event_start} #{execution.event_start.utc}, next_run: #{next_run}")
                   @events.push_event(event)
                 elsif (running_late_for > 25)
-                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",DateTime.now,false)
+                  event = CustomEvent.new(Key.new(schedule.id,"SCHEDULE"),Severity.HIGH,@EVENT_TYPE,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",DateTime.now,false)
                   @@log.info("Type: HIGH The UTC time is: #{now}, schedule ID is: #{schedule.id}, running_late: #{running_late_for}, cron: #{schedule.cron} execution: #{execution.event_start} #{execution.event_start.utc}, next_run: #{next_run}")
                   @events.push_event(event)
                 end
-
-
               else
                 now = Time.now
                 next_run = Helper.next_run(schedule.cron,execution.event_start,Time)
                 running_late_for = ((next_run - now)/1.minute)*(-1)
                 # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
                 if (!running_execution.nil? and running_late_for > 25 and running_late_for < 300)
-                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.MEDIUM,@EVENT_TYPE,"Schedule not started - should start: #{next_run}",DateTime.now,false)
+                  event = CustomEvent.new(Key.new(schedule.id,"SCHEDULE"),Severity.MEDIUM,@EVENT_TYPE,"Schedule not started - should start: #{next_run}",DateTime.now,false)
                   @events.push_event(event)
                 elsif (running_late_for > 25)
-                  event = CustomEvent.new(Key.new(schedule.r_project,schedule.graph_name,schedule.mode),Severity.HIGH,@EVENT_TYPE,"Schedule not started - should start: #{next_run}",DateTime.now,false)
+                  event = CustomEvent.new(Key.new(schedule.id,"SCHEDULE"),Severity.HIGH,@EVENT_TYPE,"Schedule not started - should start: #{next_run}",DateTime.now,false)
                   @events.push_event(event)
                 end
               end

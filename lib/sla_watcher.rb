@@ -9,9 +9,9 @@ require 'google_drive'
 
 %w(crontab_parser log helper change_watcher).each {|a| require "lib/helpers/#{a}"}
 %w(project task).each {|a| require "lib/data/stage/#{a}"}
-%w(execution_log project settings schedule project_history schedule_history event_log request sla_description).each {|a| require "lib/data/log/#{a}"}
+%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server).each {|a| require "lib/data/log/#{a}"}
 %w(base timeline projects statistics).each {|a| require "lib/objects/#{a}"}
-%w(events severity key event test livetest startedtest finishedtest slatest).each {|a| require "lib/tests/#{a}"}
+%w(events severity key event test livetest startedtest finishedtest slatest contract_error_test).each {|a| require "lib/tests/#{a}"}
 %w(splunk_downloader).each {|a| require "lib/splunk/#{a}"}
 %w(google_downloader).each {|a| require "lib/google/#{a}"}
 %w(testcases).each {|a| require "lib/testcases/#{a}"}
@@ -108,6 +108,7 @@ module SLAWatcher
 
     def test()
       events = Events.new
+
       livetest = SLAWatcher::LiveTest.new(events)
       livetest.start
       ##
@@ -134,6 +135,25 @@ module SLAWatcher
 
       #pp ExecutionLog.get_last_events_in_interval("test",["prod2","prod3"],"app",DateTime.now - 12.hour)
     end
+
+    def development()
+      events = Events.new
+      ##
+      contractErrorTest = SLAWatcher::ContractErrorTest.new(events)
+      contractErrorTest.start
+      #
+
+      #
+      #events.each do |e|
+      #  puts "----------------- Event START -------------------------"
+      #  puts e.to_s
+      #  puts "----------------- Event STOP  -------------------------"
+      #end
+
+
+      #pp ExecutionLog.get_last_events_in_interval("test",["prod2","prod3"],"app",DateTime.now - 12.hour)
+    end
+
 
     def run_test_case()
       TestCase.testcase12()
