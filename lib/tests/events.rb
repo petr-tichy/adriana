@@ -66,7 +66,8 @@ module SLAWatcher
           schedule = @schedules.find {|s| s.id.to_s == e.key.value.to_s and e.key.type == "SCHEDULE"}
           e.notified = true
           body << "---------------------------------------- \n"
-          body << "Project Name: #{schedule.project.name} Server: #{schedule.settings_server.name} \n"
+          body << "Project Pid: #{schedule.project.project_pid} Project Name: #{schedule.project.name} Server: #{schedule.settings_server.name} \n"
+          body << "Graph: #{schedule.graph_name} Mode: #{schedule.mode} \n"
           body << e.to_s
           body << "---------------------------------------- \n"
         end

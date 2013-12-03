@@ -18,11 +18,10 @@ module SLAWatcher
 
 
     def to_s
-      "Event " + @key.to_s + "\nSeverity: #{@severity} Type: #{@event_type} Created Date: #{@created_date} Updated Date: #{updated_date} \nNotified: #{notified} Persistent: #{@persistent} Type: #{@type}  \n#{@text}\n"
+      "Event " + @key.to_s + "\nSeverity: #{@severity} Type: #{@event_type} Created Date: #{@created_date} Updated Date: #{@updated_date} \nNotified: #{@notified} Persistent: #{@persistent} Type: #{@type}  \n#{@text}\n"
     end
 
     def to_db_entity
-      pp key.type
       {:severity => @severity,:event_type => @event_type, :text => @text, :created_date => @created_date, :persistent => @persistent,:notified => @notified,:updated_date => @updated_date,:event_entity => key.type,:key => key.value}
     end
 
