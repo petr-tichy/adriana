@@ -19,6 +19,7 @@ ActiveAdmin.register Project do
          span(image_tag("false_icon.png",:size => "20x20"))
       end
     end
+    column :status
     column :sla_type
     column :sla_value
     column :detail do |project|
@@ -26,7 +27,7 @@ ActiveAdmin.register Project do
     end
     column :schedules do |project|
       links = ''.html_safe
-      links += link_to "List", :controller => "schedules", :action => "index",'q[r_project_eq]' => "#{project.project_pid}".html_safe
+      links += link_to "List", :controller => "schedules", :action => "index",'q[r_project_contains]' => "#{project.project_pid}".html_safe,'commit' => "Filter"
       links += " "
       links += link_to "New", :controller => "schedules", :action => "new",:project_pid =>  project.project_pid
       links
@@ -118,6 +119,13 @@ ActiveAdmin.register Project do
       end
     end
 
+    def new
+      @project = Project.new(params[:project]) if (!params[:project].nil?)
+      pp params
+      new!
+    end
+
+
     def update
       project = Project.where("project_pid = ?",params[:id]).first
       public_attributes = Project.get_public_attributes
@@ -154,24 +162,30 @@ ActiveAdmin.register Project do
     def create
       public_attributes = Project.get_public_attributes
       project = nil
-      ActiveRecord::Base.transaction do
-        project = Project.new()
-        project.project_pid = params[:project]["project_pid"]
-        project.updated_by = current_active_admin_user.id
-        public_attributes.each do |attr|
-          project[attr] =  params[:project][attr]
-        end
-        project.save
+      begin
+        ActiveRecord::Base.transaction do
+          project = Project.new()
+          project.project_pid = params[:project]["project_pid"]
+          project.updated_by = current_active_admin_user.id
+          public_attributes.each do |attr|
+            project[attr] =  params[:project][attr]
+          end
+          project.save!
 
-        project_detail = ProjectDetail.new()
-        project_detail.project_pid = project.project_pid
-        project_detail.save
+          project_detail = ProjectDetail.new()
+          project_detail.project_pid = project.project_pid
+          project_detail.save!
 
-        public_attributes.each do |attr|
-          ProjectHistory.add_change(project.project_pid,attr,params[:project][attr].to_s,current_active_admin_user)
+          public_attributes.each do |attr|
+            ProjectHistory.add_change(project.project_pid,attr,params[:project][attr].to_s,current_active_admin_user)
+          end
         end
+        #redirect_to admin_project_path(project.id),:notice => "Project was created successfully"
+        redirect_to new_admin_schedule_path(:project_pid =>  project.project_pid),:notice => "Project was created successfully"
+      rescue ActiveRecord::ActiveRecordError => e
+        redirect_to new_admin_project_path(params),:flash => { :error => "There was error in creating project - #{e.message}" }
       end
-      redirect_to admin_project_path(project.id)
+
     end
 
 

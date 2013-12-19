@@ -25,15 +25,15 @@ ActiveAdmin.register Schedule do
   end
 
   scope :error do |schedule|
-    schedule.where("e.status = 'ERROR'")
+    schedule.where("running_executions.status = 'ERROR'")
   end
 
   scope :running do |schedule|
-    schedule.where("e.status = 'RUNNING'")
+    schedule.where("running_executions.status = 'RUNNING'")
   end
 
   scope :finished do |schedule|
-    schedule.where("e.status = 'FINISHED'")
+    schedule.where("running_executions.status = 'FINISHED'")
   end
 
   batch_action :restart,:confirm => "Do you want to restart selected schedules?" do |selection|
@@ -74,7 +74,9 @@ ActiveAdmin.register Schedule do
 
   index do
     selectable_column
-    column :project_name
+    column "Project Name" do |schedule|
+      schedule.project.name
+    end
     column "Project PID" do |schedule|
       link_to schedule.r_project, :controller => "projects", :action => "show",:id => schedule.r_project
     end
@@ -85,10 +87,10 @@ ActiveAdmin.register Schedule do
     column :cron
     column :main
     column :status do |schedule|
-      if (!schedule["status"].nil?)
-        if (schedule["status"] == "RUNNING")
+      if (!schedule.running_executions.status.nil?)
+        if (schedule.running_executions.status == "RUNNING")
           status_tag "RUNNING",:warning
-        elsif (schedule["status"] == "FINISHED")
+        elsif (schedule.running_executions.status == "FINISHED")
           status_tag "FINISHED",:ok
         else
           status_tag "ERROR",:error
@@ -96,11 +98,11 @@ ActiveAdmin.register Schedule do
       end
     end
     column :execution_time do |schedule|
-      if (!schedule["status"].nil?)
-        if (schedule["status"] == "RUNNING")
-          l(DateTime.parse(schedule.event_start),:format => :short)
+      if (!schedule.running_executions.status.nil?)
+        if (schedule.running_executions.status == "RUNNING")
+          l(schedule.running_executions.event_start,:format => :short)
         else
-          l(DateTime.parse(schedule.event_end),:format => :short)
+          l(schedule.running_executions.event_end,:format => :short)
         end
       end
     end
@@ -229,7 +231,6 @@ ActiveAdmin.register Schedule do
       end
       redirect_to admin_schedule_path(schedule.id)
     end
-
 
 
   end

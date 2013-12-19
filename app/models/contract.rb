@@ -7,7 +7,7 @@ class Contract < ActiveRecord::Base
   attr_accessible :name
 
   def self.get_public_attributes
-    ["name"]
+    ["name","sla_enabled","sla_type","sla_value","sla_percentage","monitoring_enabled","monitoring_emails","monitoring_treshhold"]
   end
 
   def self.contract_by_job_id(job_id)

@@ -178,6 +178,8 @@ ActiveAdmin.register Job do
         contract = params["synchronization_job"]["contract"]
         recurrent = params["synchronization_job"]["recurrent"]
         job_type = JobType.find_by_key(params["synchronization_job"]["key"])
+        cron = params["synchronization_job"]["cron"]
+
 
         parameters = []
         params["synchronization_job"].each_pair do | key, value |
@@ -188,8 +190,8 @@ ActiveAdmin.register Job do
         #DB Save
         # scheduled_at - converting to UTC
         ActiveRecord::Base.transaction do
-          job = Job.create(:job_type_id => job_type.id,:scheduled_by => current_active_admin_user, :recurrent => recurrent,:scheduled_at => schedule_at.utc)
-          JobEntity.create(:job_id => job.id,:status => "WAITING",:r_contract => contract,:r_settings_server => params["jobs"]["settings_server_id"] )
+          job = Job.create(:job_type_id => job_type.id,:scheduled_by => current_active_admin_user, :recurrent => recurrent,:scheduled_at => schedule_at.utc,:cron => cron)
+          JobEntity.create(:job_id => job.id,:status => "WAITING",:r_contract => contract,:r_settings_server => params["synchronization_job"]["settings_server_id"] )
           parameters.each do |p|
             JobParameter.create(:job_id => job.id,:key => p[:key],:value => p[:value])
           end

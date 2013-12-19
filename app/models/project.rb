@@ -16,7 +16,7 @@ class Project < ActiveRecord::Base
   end
 
   # Setup accessible (or protected) attributes for your model
-  attr_accessible :status, :name, :ms_person,:sla_enabled,:sla_type,:sla_value,:customer_name,:customer_contact_name,:customer_contact_email
+  attr_accessible :status, :name, :ms_person,:sla_enabled,:sla_type,:sla_value,:customer_name,:customer_contact_name,:customer_contact_email,:project_pid
   # attr_accessible :title, :body
 
   # Added chaining of deletion to schedules

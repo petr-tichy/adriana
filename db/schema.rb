@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20131108091317) do
+ActiveRecord::Schema.define(:version => 20131127152419) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.string   "resource_id",   :null => false
@@ -47,12 +47,19 @@ ActiveRecord::Schema.define(:version => 20131108091317) do
   add_index "admin_users", ["reset_password_token"], :name => "index_admin_users_on_reset_password_token", :unique => true
 
   create_table "contract", :force => true do |t|
-    t.string   "name",        :limit => 50, :default => "Empty customer", :null => false
-    t.datetime "created_at",                                              :null => false
-    t.datetime "updated_at",                                              :null => false
-    t.boolean  "is_deleted",                :default => false
+    t.string   "name",                 :limit => 50, :default => "Empty customer", :null => false
+    t.datetime "created_at",                                                       :null => false
+    t.datetime "updated_at",                                                       :null => false
+    t.boolean  "is_deleted",                         :default => false
     t.integer  "customer_id"
     t.string   "updated_by"
+    t.boolean  "sla_enabled",                        :default => false
+    t.string   "sla_type"
+    t.string   "sla_value"
+    t.integer  "sla_percentage"
+    t.boolean  "monitoring_enabled",                 :default => false
+    t.string   "monitoring_emails"
+    t.integer  "monitoring_treshhold"
   end
 
   create_table "contract_history", :force => true do |t|
@@ -249,6 +256,15 @@ ActiveRecord::Schema.define(:version => 20131108091317) do
   end
 
   add_index "project_history_old", ["project_pid", "key", "updated_at"], :name => "IX_project_pid_key_updated_at"
+
+  create_table "running_executions", :force => true do |t|
+    t.integer  "schedule_id"
+    t.string   "status"
+    t.string   "detailed_status"
+    t.string   "request_id"
+    t.datetime "event_start",     :null => false
+    t.datetime "event_end"
+  end
 
   create_table "schedule", :force => true do |t|
     t.string   "graph_name"
