@@ -7,7 +7,8 @@ ActiveAdmin.register Job do
     column :entity do |job|
       if (job.job_type.key ==  'synchronize_contract')
         entity = JobEntity.find_by_job_id(job.id)
-        link_to "Contract", :controller => "contracts", :action => "show",:id => entity.r_contract
+        contract = Contract.find(entity.r_contract)
+        "#{contract.customer.name} - #{contract.name}"
       end
     end
     column :scheduled_by do |job|
@@ -20,7 +21,6 @@ ActiveAdmin.register Job do
          job.scheduled_at
       end
     end
-
     column :started_at
     column :finished_at
     column :status do |job|
@@ -41,6 +41,12 @@ ActiveAdmin.register Job do
     end
     column :detail do |job|
       link_to "Detail", :controller => "jobs", :action => "show",:id => job.id
+    end
+    column :link do |job|
+      if (job.job_type.key ==  'synchronize_contract')
+        entity = JobEntity.find_by_job_id(job.id)
+        link_to "Contract", :controller => "contracts", :action => "show",:id => entity.r_contract
+      end
     end
   end
 
@@ -122,12 +128,68 @@ ActiveAdmin.register Job do
 
 
   controller do
-    layout 'active_admin',  :only => [:new]
+    layout 'active_admin',  :only => [:new,:edit]
     include ApplicationHelper
 
     def scoped_collection
       Job.default
     end
+
+
+    def edit
+      @edit = true
+      @job = SynchronizationJob.find(params["id"])
+      temp_job = Job.find(params["id"])
+      if (@job.job_type.key == "synchronize_contract")
+        @type = "synchronize_contract"
+        @job.settings_server_id = temp_job.job_entities.first.r_settings_server
+        @contract = temp_job.job_entities.first.r_contract
+        @parameters = []
+        temp_job.job_parameters.each do |param|
+          if (param.key == "mode" )
+            @job.param_mode = param.value
+          elsif (param.key == "resource")
+            @job.param_resource = param.value
+          end
+        end
+        render "synchronize_contract_job"
+      end
+    end
+
+
+    def update
+      job = Job.find(params["job_id"])
+
+
+      if (prams["synchronization_job"]["job_type"] == "synchronize_contract")
+        #Update JOB
+        date = "#{params["synchronization_job"]["scheduled_at_date"]}T#{params["synchronization_job"]["scheduled_at_time_hour"]}:#{params["synchronization_job"]["scheduled_at_time_minute"]}:00"
+        schedule_at = DateTime.strptime(date,'%Y-%m-%dT%H:%M:%S')
+        job.recurrent = params["synchronization_job"]["recurrent"]
+        job.scheduled_at = schedule_at
+        job.cron = params["synchronization_job"]["cron"]
+
+        #Update Job_entity
+        job.job_entities.first.r_settings_server = params["synchronization_job"]["settings_server_id"]
+
+        #Update Job_params
+        job.job_parameters.each do |param|
+          if (param.key == "mode")
+            param.value = params["synchronization_job"]["param_mode"]
+          elsif (param.key == "mode")
+            param.value = params["synchronization_job"]["param_resource"]
+          end
+        end
+
+        ActiveRecord::Base.transaction do
+          job.save
+        end
+        redirect_to admin_job_path(params["job_id"]),:notice => "Job was updated!"
+      end
+    end
+
+
+
 
     def new
       if (params["type"] == "restart")
@@ -144,6 +206,7 @@ ActiveAdmin.register Job do
         @selection = selection_array.join(",")
         render "restart_job"
       elsif (params["type"] == "synchronize_contract")
+        @edit = false
         job_type = JobType.find_by_key(params["type"])
         @job = SynchronizationJob.new(:job_type_id => job_type.id,:recurrent => "false",:scheduled_at => DateTime.now)
         #@jobs = CustomJobSynchronization.new({:job_type_id => job_type.id,:recurrent => "false",:scheduled_at => DateTime.now})

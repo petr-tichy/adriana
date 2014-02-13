@@ -114,8 +114,10 @@ ActiveAdmin.register Project do
     include ApplicationHelper
 
     before_filter :only => [:index] do
-      if params['commit'].blank?
+      if params['commit'].blank? and params['q'].blank?
         params['q'] = {:is_deleted_eq => '0'}
+      elsif !params['q'].blank?
+        params['q'].merge!({:is_deleted_eq => '0'})
       end
     end
 
@@ -123,6 +125,11 @@ ActiveAdmin.register Project do
       @project = Project.new(params[:project]) if (!params[:project].nil?)
       pp params
       new!
+    end
+
+
+    def edit
+      @project = Project.find(params["id"])
     end
 
 

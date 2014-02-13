@@ -87,7 +87,7 @@ ActiveAdmin.register Schedule do
     column :cron
     column :main
     column :status do |schedule|
-      if (!schedule.running_executions.status.nil?)
+      if (!schedule.running_executions.nil? and !schedule.running_executions.status.nil?)
         if (schedule.running_executions.status == "RUNNING")
           status_tag "RUNNING",:warning
         elsif (schedule.running_executions.status == "FINISHED")
@@ -98,7 +98,7 @@ ActiveAdmin.register Schedule do
       end
     end
     column :execution_time do |schedule|
-      if (!schedule.running_executions.status.nil?)
+      if (!schedule.running_executions.nil? and !schedule.running_executions.status.nil?)
         if (schedule.running_executions.status == "RUNNING")
           l(schedule.running_executions.event_start,:format => :short)
         else

@@ -6,6 +6,9 @@ ActiveAdmin.register Contract do
 
 
   index do
+    column :customer_name do |contract|
+      contract.customer.name
+    end
     column :name
     column :sla_enabled do |contract|
       if (contract.sla_enabled)

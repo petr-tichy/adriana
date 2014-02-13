@@ -3,6 +3,7 @@ ActiveAdminTest::Application.routes.draw do
 
   ActiveAdmin.routes(self)
   match '/admin/jobs/create_contract_sychnronization' => 'admin/jobs#create'
+  match '/admin/jobs/update_contract_sychnronization' => 'admin/jobs#update'
   match '/admin/contracts/create' => 'admin/contracts#create'
 
 
