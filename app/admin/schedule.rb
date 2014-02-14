@@ -192,6 +192,9 @@ ActiveAdmin.register Schedule do
       schedule = Schedule.where("id = ?",params[:id]).first
       public_attributes = Schedule.get_public_attributes
 
+      params[:schedule]["mode"].downcase! if !params[:schedule]["mode"].nil?
+      params[:schedule]["graph_name"].downcase!
+
       ActiveRecord::Base.transaction do
         public_attributes.each do |attr|
           if (!same?(params[:schedule][attr],schedule[attr]))
@@ -221,6 +224,8 @@ ActiveAdmin.register Schedule do
         schedule.updated_by = current_active_admin_user.id
         schedule.settings_server_id = params[:schedule]["settings_server_id"]
         schedule.r_project = params[:schedule]["r_project"]
+        params[:schedule]["mode"].downcase! if !params[:schedule]["mode"].nil?
+        params[:schedule]["graph_name"].downcase!
         public_attributes.each do |attr|
           schedule[attr] =  params[:schedule][attr]
         end
