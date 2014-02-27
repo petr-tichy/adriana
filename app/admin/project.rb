@@ -64,6 +64,7 @@ ActiveAdmin.register Project do
       column  :max_width => "350px" do
           panel ("Info") do
             attributes_table_for project do
+              pp project
               [:name, :status].each do |column|
                 row column
               end
@@ -121,16 +122,17 @@ ActiveAdmin.register Project do
       end
     end
 
-    def new
-      @project = Project.new(params[:project]) if (!params[:project].nil?)
-      pp params
-      new!
-    end
 
+    #def resource
+    #  @project = Project.where(project_pid: params[:id])
+    #end
 
-    def edit
-      @project = Project.find(params["id"])
-    end
+    #def new
+    #  @project = Project.new(params[:project]) if (!params[:project].nil?)
+    #  pp params
+    #  new!
+    #end
+
 
 
     def update

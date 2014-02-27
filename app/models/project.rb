@@ -33,5 +33,9 @@ class Project < ActiveRecord::Base
     end
   end
 
+  def self.find_by_id(id)
+    Project.find(id)
+  end
+
 
 end
