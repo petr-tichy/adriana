@@ -5,7 +5,7 @@ ActiveAdminTest::Application.routes.draw do
   match '/admin/jobs/create_contract_sychnronization' => 'admin/jobs#create'
   match '/admin/jobs/update_contract_sychnronization' => 'admin/jobs#update'
   match '/admin/contracts/create' => 'admin/contracts#create'
-
+  match '/admin/attask_print/create_job' => 'admin/attask_print#create'
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

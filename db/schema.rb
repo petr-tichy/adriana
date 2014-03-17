@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20131127152419) do
+ActiveRecord::Schema.define(:version => 20140317115515) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.string   "resource_id",   :null => false
@@ -47,7 +47,7 @@ ActiveRecord::Schema.define(:version => 20131127152419) do
   add_index "admin_users", ["reset_password_token"], :name => "index_admin_users_on_reset_password_token", :unique => true
 
   create_table "contract", :force => true do |t|
-    t.string   "name",                 :limit => 50, :default => "Empty customer", :null => false
+    t.string   "name",                 :limit => 50, :default => "Empty contract", :null => false
     t.datetime "created_at",                                                       :null => false
     t.datetime "updated_at",                                                       :null => false
     t.boolean  "is_deleted",                         :default => false
@@ -113,6 +113,8 @@ ActiveRecord::Schema.define(:version => 20131127152419) do
     t.boolean  "notified"
     t.datetime "updated_date"
     t.integer  "id",                          :null => false
+    t.string   "key"
+    t.string   "event_entity", :limit => 100
   end
 
   create_table "execution_log", :force => true do |t|
@@ -281,8 +283,6 @@ ActiveRecord::Schema.define(:version => 20131127152419) do
     t.string   "gooddata_schedule"
     t.string   "gooddata_process"
   end
-
-  add_index "schedule", ["graph_name", "r_project", "mode"], :name => "Uniq_r_project_graph_name_mode", :unique => true
 
   create_table "schedule_history", :force => true do |t|
     t.integer  "schedule_id"
