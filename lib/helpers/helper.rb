@@ -87,14 +87,6 @@ module SLAWatcher
       days*24*60 + hours * 60 + minutes
     end
 
-
-
-
-
-
-
-
-
   end
 
 
@@ -106,7 +98,6 @@ module SLAWatcher
 
     def self.local(year,month,day,hour,min,param1)
       # Ok So this looks strange, I know it, but it is working
-
       Time.local(year,month,day,hour,min,param1).utc + Time.now.gmt_offset
     end
 

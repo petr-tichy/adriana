@@ -21,6 +21,8 @@ desc 'Synchronize with Splunk'
 command :splunk_synchronization do |c|
   c.action do |global_options,options,args|
 
+    $type = "splunk_synchronization"
+
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
     splunk = SLAWatcher.splunk(@splunk_username,@splunk_password,@splunk_hostname)
 
@@ -64,6 +66,7 @@ end
 desc 'Synchronize with Splunk'
 command :migration do |c|
   c.action do |global_options,options,args|
+    $type = "migration"
 
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
     SLAWatcher.start_migration
@@ -75,6 +78,7 @@ desc 'Test'
 command :test do |c|
   c.action do |global_options,options,args|
 
+    $type = "test"
 
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
     SLAWatcher.test
@@ -86,6 +90,8 @@ end
 desc 'Development'
 command :development do |c|
   c.action do |global_options,options,args|
+
+
 
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
     SLAWatcher.development
@@ -127,6 +133,8 @@ command :testcase do |c|
 #  c.flag [:o, :only]
 
   c.action do |global_options,options,args|
+    $type = "testcase"
+
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
     SLAWatcher.run_test_case
   end
@@ -139,10 +147,11 @@ command :sync_google do |c|
 #  c.desc 'Execute only for one entity.'
 #  c.default_value false
 #  c.flag [:o, :only]
-
   c.action do |global_options,options,args|
     SLAWatcher.connect_to_google(@google_username,@google_password,"0ApmhJLt4M00vdEVTcXhoSm11TE9FdllQT2poUVlnWGc")
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
+
+    $type = "sync_google"
 
     data_in_sheet = SLAWatcher.google.load_data
     data = SLAWatcher.get_unchanged_sla_descriptions
@@ -220,7 +229,7 @@ end
 
 on_error do |exception|
 
-  Pony.mail(:to => "adrian.toman@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Error", :body => "Error: #{exception.backtrace}" )
+  Pony.mail(:to => "adrian.toman@gooddata.com,petr.tichy+sla@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Error - #{$type}", :body => "Error: #{exception.backtrace}" )
   pp exception.backtrace
   if exception.is_a?(SystemExit) && exception.status == 0
     false

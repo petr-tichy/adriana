@@ -137,10 +137,26 @@ module SLAWatcher
     end
 
     def development()
-      events = Events.new
+      #events = Events.new
       ##
-      contractErrorTest = SLAWatcher::ContractErrorTest.new(events)
-      contractErrorTest.start
+      #contractErrorTest = SLAWatcher::ContractErrorTest.new(events)
+      #contractErrorTest.start
+
+      time = DateTime.now.utc - 2.hours
+      counter = 0
+      while (counter < 15)
+        puts "Current time: #{time.strftime("%T")}"
+        next_run =  SLAWatcher::Helper.next_run("30 7,8,9,13,14,16,17 * * *",time,SLAWatcher::UTCTime)
+        puts "Next run: #{next_run.strftime("%T")}"
+        time = time + 30.minutes
+        counter += 1
+      end
+
+
+
+
+
+
       #
 
       #
