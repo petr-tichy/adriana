@@ -189,7 +189,7 @@ command :sync_google do |c|
     wrongly_logged.each do |execution|
       pp execution
       now = DateTime.now().utc
-      pp now
+      pp now - execution.event_start
       if (now - event_start > 12.hours)
         execution.event_end = now
         execution.status = "ERROR"
