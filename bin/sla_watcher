@@ -190,7 +190,7 @@ command :sync_google do |c|
       pp execution
       now = DateTime.now().utc
       pp now.class
-      execution.event_start.class
+      pp execution.event_start.class
       pp now - execution.event_start
       if (now - event_start > 12.hours)
         execution.event_end = now
