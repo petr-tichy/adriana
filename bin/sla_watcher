@@ -187,9 +187,9 @@ command :sync_google do |c|
     end
     wrongly_logged = SLAWatcher.get_wrongly_logged_executions
     wrongly_logged.each do |execution|
+      pp execution
       now = DateTime.now().utc
-      event_start = DateTime.strptime(execution.event_start,"%Y-%m-%d %H:%M:%S")
-      pp now - event_start
+      pp now
       if (now - event_start > 12.hours)
         execution.event_end = now
         execution.status = "ERROR"
