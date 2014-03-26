@@ -12,6 +12,8 @@ class ApiController < ApplicationController
 
   def index
     my_logger.info params
+
+
     pp "kokos"
   end
 

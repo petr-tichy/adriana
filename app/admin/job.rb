@@ -1,6 +1,14 @@
 ActiveAdmin.register Job do
   form :partial => 'form'
 
+  scope :synchronization,:default => true  do |jobs|
+    jobs.where("key  = 'synchronize_contract'")
+  end
+  scope :attask  do |jobs|
+    jobs.where("key = 'attask_print_job'")
+  end
+  scope :all
+
 
   index do
     column :job_type
