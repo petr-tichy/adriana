@@ -188,7 +188,7 @@ command :sync_google do |c|
     wrongly_logged = SLAWatcher.get_wrongly_logged_executions
     wrongly_logged.each do |execution|
       pp execution
-      now = DateTime.now().utc
+      now = Time.now().utc
       pp now.class
       pp execution.event_start.class
       pp now - execution.event_start
