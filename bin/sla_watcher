@@ -186,6 +186,16 @@ command :sync_google do |c|
           end
     end
     wrongly_logged = SLAWatcher.get_wrongly_logged_executions
+    wrongly_logged.each do |execution|
+      now = DateTime.now()
+      if (now - execution.event_start > 12.hours)
+        execution.event_end = now
+        execution.status = "ERROR"
+        execution.detailed_status = "Automatic fix after 12hours"
+        execution.save
+        Pony.mail(:to => "adrian.toman+sla@gooddata.com,petr.tichy+sla@gooddata.com",:from => 'sla@gooddata.com', :subject => "The execution was automaticaly closed", :body => "The execution for #{execution.project_name} (#{execution.project_pid}) was automatically closed after 12h. If there are more errors for one project in line, it looks like something is wrong with this project." )
+      end
+    end
     SLAWatcher.google.fill_error_worksheet(wrongly_logged)
   end
 end
