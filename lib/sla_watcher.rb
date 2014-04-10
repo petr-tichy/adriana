@@ -118,22 +118,12 @@ module SLAWatcher
       finishedTest = SLAWatcher::FinishedTest.new(events)
       finishedTest.start
 
-      slaTest = SLAWatcher::SlaTest.new(events)
-      slaTest.start
+      #slaTest = SLAWatcher::SlaTest.new(events)
+      #slaTest.start
 
       events.mail_incident
       #events.mail_status
       events.save
-
-      #
-      #events.each do |e|
-      #  puts "----------------- Event START -------------------------"
-      #  puts e.to_s
-      #  puts "----------------- Event STOP  -------------------------"
-      #end
-
-
-      #pp ExecutionLog.get_last_events_in_interval("test",["prod2","prod3"],"app",DateTime.now - 12.hour)
     end
 
     def development()
