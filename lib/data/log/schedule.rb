@@ -6,7 +6,7 @@ module SLAWatcher
     belongs_to :settings_server
 
     def self.load_schedules_of_live_projects
-      select("schedule.id as id,ss.server_type as server_type,schedule.cron as cron").joins("INNER JOIN log2.project p ON r_project = p.project_pid").joins("INNER JOIN log2.settings_server ss ON ss.id = schedule.settings_server_id").where("p.status = ? and schedule.is_deleted = ?","Live",false)
+      select("schedule.id as id,ss.server_type as server_type,schedule.cron as cron").joins("INNER JOIN log2.project p ON r_project = p.project_pid").joins("INNER JOIN log2.contract c ON c.id = p.contract_id").joins("INNER JOIN log2.settings_server ss ON ss.id = schedule.settings_server_id").where("p.status = ? and schedule.is_deleted = ? and c.contract_type = ? ","Live",false,"direct")
     end
 
     def self.load_schedules_of_live_projects_main
