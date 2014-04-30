@@ -11,7 +11,7 @@ module SLAWatcher
       super(events)
       @PROJECT_PID      =   "test"
       @GRAPH_NAME       =   "app"
-      @MODES            =   ["prod2","prod3"]
+      @MODES            =   ["prod2"]
       @EVENT_TYPE       =   "LIVE_TEST"
       @SEVERITY         =   Severity.HIGH
       @TIME_INTERVAL    =   12 #How many hours back are we checking
