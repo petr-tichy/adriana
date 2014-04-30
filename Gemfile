@@ -27,6 +27,8 @@ gem 'pry'
 gem 'just-datetime-picker'
 gem 'client_side_validations'
 gem 'client_side_validations-formtastic'
+gem 'acts-as-taggable-on'
+gem 'select2-rails'
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 

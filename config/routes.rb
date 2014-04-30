@@ -7,6 +7,7 @@ ActiveAdminTest::Application.routes.draw do
   match '/admin/contracts/create' => 'admin/contracts#create'
   match '/admin/attask_print/create_job' => 'admin/attask_print#create'
   match '/api' => 'api#index' ,:via => :post
+  get '/admin/autocomplete_tags',to: 'admin/contracts#autocomplete_tags', as: 'autocomplete_tags'
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

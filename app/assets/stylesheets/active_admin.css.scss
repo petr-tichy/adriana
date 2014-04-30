@@ -12,6 +12,12 @@
 @import "active_admin/base";
 @import "just_datetime_picker/base";
 @import "custom.css.scss";
+//= require select2
+
+body.active_admin {
+  @import 'select2';
+}
+
 
 // Overriding any non-variable SASS must be done after the fact.
 // For example, to change the default status-tag color:

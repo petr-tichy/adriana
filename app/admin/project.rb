@@ -2,8 +2,6 @@ ActiveAdmin.register Project do
 
   filter :project_pid
   filter :name
-  filter :sla_enabled, :as => :check_boxes, :collection => [true,false]
-  filter :sla_type, :as => :select, :collection => ["Fixed Duration","Fixed Time"]
   filter :status, :as => :select, :collection => ["Live","Paused","Suspended"]
   filter :contract_id,:as => :select, :collection => Contract.all
 
@@ -12,16 +10,7 @@ ActiveAdmin.register Project do
     #pp last_executions
     column :name
     column :project_pid
-    column :sla_enabled do |project|
-      if (project.sla_enabled)
-         span(image_tag("true_icon.png",:size => "28x20"))
-      else
-         span(image_tag("false_icon.png",:size => "20x20"))
-      end
-    end
     column :status
-    column :sla_type
-    column :sla_value
     column :detail do |project|
       link_to('Detail', admin_project_detail_path(project.project_pid))
     end
@@ -44,16 +33,8 @@ ActiveAdmin.register Project do
       f.input :status, :as => :select, :collection => ["Live", "Development", "Suspended"]
       f.input :ms_person
     end
-    f.inputs "SLA" do
-      f.input :sla_enabled,:checked_value => "true", :unchecked_value => "false"
-      f.input :sla_type, :as => :select, :collection => ["Fixed Duration", "Fixed Time"]
-      f.input :sla_value
-      # etc
-    end
     f.inputs "Contact" do
-      f.input :customer_name
-      f.input :customer_contact_name
-      f.input :customer_contact_email
+      f.input :contract_id, :as => :select,:collection => Contract.all(:order => "name")
     end
     f.actions
 
@@ -74,15 +55,6 @@ ActiveAdmin.register Project do
             end
 
           end
-
-          panel ("SLA") do
-            attributes_table_for project do
-              [:sla_enabled, :sla_type, :sla_value].each do |column|
-                row column
-              end
-            end
-          end
-
           panel ("Contact") do
             attributes_table_for project do
               [:customer_name, :customer_contact_name, :customer_contact_email].each do |column|
@@ -138,7 +110,7 @@ ActiveAdmin.register Project do
     def update
       project = Project.where("project_pid = ?",params[:id]).first
       public_attributes = Project.get_public_attributes
-
+      pp params
       ActiveRecord::Base.transaction do
         public_attributes.each do |attr|
           if (!same?(params[:project][attr],project[attr]))

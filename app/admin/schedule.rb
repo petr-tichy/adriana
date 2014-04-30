@@ -118,6 +118,7 @@ ActiveAdmin.register Schedule do
             row :project do |s|
               Project.find(s.r_project).name
             end
+            row :cron
             row :graph_name
             row :mode
             row :main

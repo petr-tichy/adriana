@@ -3,7 +3,7 @@ class Project < ActiveRecord::Base
   self.primary_key = 'project_pid'
 
   belongs_to :contract
-  validates_presence_of :status,:name,:project_pid
+  validates_presence_of :status,:name,:project_pid,:contract_id
 
   #set_primary_key "project_pid"
 
@@ -12,11 +12,11 @@ class Project < ActiveRecord::Base
   # :lockable, :timeoutable and :omniauthable
 
   def self.get_public_attributes
-    ["status","name","ms_person","sla_enabled","sla_type","sla_value","customer_name","customer_contact_name","customer_contact_email"]
+    ["status","name","ms_person","contract_id"]
   end
 
   # Setup accessible (or protected) attributes for your model
-  attr_accessible :status, :name, :ms_person,:sla_enabled,:sla_type,:sla_value,:customer_name,:customer_contact_name,:customer_contact_email,:project_pid
+  attr_accessible :status, :name, :ms_person,:customer_name,:customer_contact_name,:customer_contact_email,:project_pid,:contract_id
   # attr_accessible :title, :body
 
   # Added chaining of deletion to schedules

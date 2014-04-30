@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140317115515) do
+ActiveRecord::Schema.define(:version => 20140430094939) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.string   "resource_id",   :null => false
@@ -60,6 +60,10 @@ ActiveRecord::Schema.define(:version => 20140317115515) do
     t.boolean  "monitoring_enabled",                 :default => false
     t.string   "monitoring_emails"
     t.integer  "monitoring_treshhold"
+    t.string   "salesforce_id",        :limit => 50
+    t.string   "contract_type",        :limit => 50, :default => "N/A"
+    t.string   "token"
+    t.string   "documentation_url"
   end
 
   create_table "contract_history", :force => true do |t|
@@ -324,9 +328,64 @@ ActiveRecord::Schema.define(:version => 20140317115515) do
     t.integer "id",                                                      :null => false
     t.string  "sla_description_type", :limit => 50,  :default => "None"
     t.string  "sla_description_text", :limit => 200
-    t.string  "sla_type",             :limit => 100
+    t.string  "sla_type",             :limit => 100,                     :null => false
     t.string  "sla_value",            :limit => 100
     t.integer "duration",             :limit => 8
+    t.string  "contract_id",          :limit => 10
+  end
+
+  create_table "sla_description_contract", :id => false, :force => true do |t|
+    t.integer "id",                                    :null => false
+    t.string  "sla_description_type",   :limit => 100
+    t.string  "sla_description_text",   :limit => 100
+    t.string  "sla_type",               :limit => 100
+    t.string  "sla_value",              :limit => 10
+    t.integer "duration"
+    t.string  "sla_percentage",         :limit => 10
+    t.string  "sla_achieved",           :limit => 10
+    t.string  "contract_id",            :limit => 10
+    t.string  "generated_date",         :limit => 50
+    t.integer "number_failed_projects"
+    t.integer "projects_per_contract"
+  end
+
+  create_table "taggings", :force => true do |t|
+    t.integer  "tag_id"
+    t.integer  "taggable_id"
+    t.string   "taggable_type"
+    t.integer  "tagger_id"
+    t.string   "tagger_type"
+    t.string   "context",       :limit => 128
+    t.datetime "created_at"
+  end
+
+  add_index "taggings", ["tag_id", "taggable_id", "taggable_type", "context", "tagger_id", "tagger_type"], :name => "taggings_idx", :unique => true
+
+  create_table "tags", :force => true do |t|
+    t.string  "name"
+    t.integer "taggings_count", :default => 0
+  end
+
+  add_index "tags", ["name"], :name => "index_tags_on_name", :unique => true
+
+  create_table "temp_contract_history", :id => false, :force => true do |t|
+    t.string  "contract_id"
+    t.date    "valid_from"
+    t.date    "valid_to"
+    t.string  "key",         :limit => 100
+    t.string  "value"
+    t.integer "h_order"
+  end
+
+  create_table "temp_contract_history_denorm", :id => false, :force => true do |t|
+    t.string  "contract_id"
+    t.boolean "sla_enabled"
+    t.string  "sla_type",       :limit => 100
+    t.string  "sla_value",      :limit => 100
+    t.string  "sla_percentage", :limit => 100
+    t.string  "salesforce_id",  :limit => 100
+    t.string  "contract_type",  :limit => 100
+    t.date    "generated_date"
   end
 
   create_table "temp_project_history", :id => false, :force => true do |t|
@@ -344,6 +403,7 @@ ActiveRecord::Schema.define(:version => 20140317115515) do
     t.boolean "sla_enabled"
     t.string  "sla_type",       :limit => 100
     t.string  "sla_value",      :limit => 100
+    t.integer "contract_id"
     t.date    "generated_date"
   end
 

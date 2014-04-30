@@ -3,6 +3,7 @@ ActiveAdmin.register Contract do
   #filter :project_pid
   #filter :sla_enabled, :as => :check_boxes, :collection => [true,false]
   #filter :sla_type, :as => :select, :collection => proc {Project.select("DISTINCT sla_type as name").where("sla_type != '' ")}
+  #filter :taggings_tag_name, :as => :check_boxes, :collection => proc { Contract.all_tags.map{|g| g.name} }
 
 
   index do
@@ -46,6 +47,17 @@ ActiveAdmin.register Contract do
       f.input :monitoring_emails
       f.input :monitoring_treshhold
       f.input :customer_id,:as => :hidden
+      f.input :token
+      f.input :documentation_url
+      f.input :tag_list,
+              label: "Tags",
+              input_html: {
+                  data: {
+                      placeholder: "Enter tags",
+                      saved: f.object.tags.map{|t| {id: t.name, name: t.name}}.to_json,
+                      url: autocomplete_tags_path },
+                  class: 'tagselect'
+        }
       # etc
     end
     f.inputs "SLA" do
@@ -72,6 +84,9 @@ ActiveAdmin.register Contract do
         row :updated_at
         row :created_at
         row :is_deleted
+        row :tag_list
+        row :token
+        row :documentation_url
       end
     end
     panel ("Monitoring") do
@@ -109,6 +124,8 @@ ActiveAdmin.register Contract do
       contract = Contract.where("id = ?",params[:id]).first
       public_attributes = Contract.get_public_attributes
 
+      pp params
+
       ActiveRecord::Base.transaction do
         public_attributes.each do |attr|
           if (!same?(params[:contract][attr],contract[attr]))
@@ -116,6 +133,7 @@ ActiveAdmin.register Contract do
             contract[attr] = params[:contract][attr]
           end
         end
+        contract.tag_list = params["contract"]["tag_list"]
         contract.save
       end
 
@@ -160,6 +178,14 @@ ActiveAdmin.register Contract do
       end
       redirect_to admin_contracts_path,:notice => "Contract was deleted!"
     end
+
+    def autocomplete_tags
+      @tags = ActsAsTaggableOn::Tag.where("name LIKE ?", "#{params[:q]}%").order(:name)
+      respond_to do |format|
+        format.json { render json: @tags , :only => [:id, :name] }
+      end
+    end
+
 
 
   end
