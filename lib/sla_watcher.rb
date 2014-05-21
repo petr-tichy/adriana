@@ -1,20 +1,22 @@
-$: << File.expand_path(File.dirname(__FILE__) + "/")
+$: << File.expand_path(File.dirname(__FILE__) + "../")
 
 require 'parse-cron'
-require "lib/data/connection.rb"
+require_relative "data/connection.rb"
 require 'logger'
-require 'lib/migration.rb'
+require_relative 'migration.rb'
 require 'composite_primary_keys'
 require 'google_drive'
+require "passwordmanager"
 
-%w(crontab_parser log helper change_watcher).each {|a| require "lib/helpers/#{a}"}
-%w(project task).each {|a| require "lib/data/stage/#{a}"}
-%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server).each {|a| require "lib/data/log/#{a}"}
-%w(base timeline projects statistics).each {|a| require "lib/objects/#{a}"}
-%w(events severity key event test livetest startedtest finishedtest slatest contract_error_test).each {|a| require "lib/tests/#{a}"}
-%w(splunk_downloader).each {|a| require "lib/splunk/#{a}"}
-%w(google_downloader).each {|a| require "lib/google/#{a}"}
-%w(testcases).each {|a| require "lib/testcases/#{a}"}
+%w(crontab_parser log helper change_watcher).each {|a| require_relative "helpers/#{a}"}
+%w(project task).each {|a| require_relative "data/stage/#{a}"}
+%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server).each {|a| require_relative "data/log/#{a}"}
+%w(base timeline projects statistics).each {|a| require_relative "objects/#{a}"}
+%w(events severity key event test livetest startedtest finishedtest slatest contract_error_test).each {|a| require_relative "tests/#{a}"}
+%w(splunk_downloader).each {|a| require_relative "splunk/#{a}"}
+%w(synchronize execution).each {|a| require_relative "snifer/#{a}"}
+%w(google_downloader).each {|a| require_relative "google/#{a}"}
+%w(testcases).each {|a| require_relative "testcases/#{a}"}
 
 
 
@@ -182,6 +184,15 @@ module SLAWatcher
 
     def connect_to_google(login,password,document)
       @google =  SLAWatcher::GoogleDownloader.new(login,password,document,0)
+    end
+
+
+    def snifer
+      synchronize = SLAWatcher::Synchronize.new
+      synchronize.load_data
+      synchronize.work
+
+
     end
 
 

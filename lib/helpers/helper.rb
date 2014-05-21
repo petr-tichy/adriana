@@ -64,6 +64,21 @@ module SLAWatcher
 
     end
 
+    def self.retryable
+      begin
+        tries ||= 3
+        yield
+      rescue => e
+        if (tries -= 1) > 0
+          @@log.warn "There was error during operation: #{e.message}. Retrying"
+          retry
+        else
+          @@log.error e.message
+          fail e.message
+        end
+      end
+    end
+
     def self.interval_to_minutes(interval)
       days = 0
       if (interval =~ /day/ )

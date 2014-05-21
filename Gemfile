@@ -1,14 +1,15 @@
 source 'https://rubygems.org'
 
-gem "splunk-client"
 gem "parse-cron"
-gem "gli","=1.6.0"
-gem "activerecord","=3.2.13"
-gem "composite_primary_keys"
+gem "gli"
+gem "activerecord"
+gem "composite_primary_keys", :git => "https://github.com/adriantoman/composite_primary_keys.git", :branch => "ar_4.1.x"
 gem "activerecord-postgresql-adapter"
 gem "pony"
-gem "nokogiri","=1.5.5"
+gem "nokogiri"
 gem "splunk-client"
 gem "google_drive","=0.3.6"
 gem "json"
-gem "activerecord-import","=0.3.1"
+gem "activerecord-import"
+gem "gooddata"
+gem 'passwordmanager', :git => 'https://github.com/adriantoman/PasswordManagerAPI.git'
