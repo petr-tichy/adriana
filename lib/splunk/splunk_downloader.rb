@@ -6,8 +6,10 @@ module SLAWatcher
   class SplunkDownloader
 
 
-    def initialize(username, password,hostname)
-      @splunk = SplunkClient.new(username ,password, hostname)
+    def initialize(username, hostname)
+
+      password = PasswordManagerApi::Password.get_password_by_name(username.split("|").first,username.split("|").last)
+      @splunk = SplunkClient.new(username.split("|").last,password, hostname)
 
       @last_runs_query = 'eventtype=MSF mode (component="workers.clover-executor" OR component="workers.clover-status") starttime=%START_TIME% endtime=%END_TIME%  action=process_run (status=STARTED OR status=FINISHED OR status=ERROR) ( %PIDS% )
                         | fields project_id, request_id,transformation_id, mode, status, _time | rex field=_raw "clover_graph=(?<clover_graph>[^=]+) [^=]+="

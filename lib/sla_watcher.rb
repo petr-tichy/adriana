@@ -1,20 +1,20 @@
 $: << File.expand_path(File.dirname(__FILE__) + "/")
 
 require 'parse-cron'
-require "lib/data/connection.rb"
+require_relative "../lib/data/connection.rb"
 require 'logger'
-require 'lib/migration.rb'
+require_relative '../lib/migration.rb'
 require 'composite_primary_keys'
 require 'google_drive'
 
-%w(crontab_parser log helper change_watcher).each {|a| require "lib/helpers/#{a}"}
-%w(project task).each {|a| require "lib/data/stage/#{a}"}
-%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server).each {|a| require "lib/data/log/#{a}"}
-%w(base timeline projects statistics).each {|a| require "lib/objects/#{a}"}
-%w(events severity key event test livetest startedtest finishedtest slatest contract_error_test).each {|a| require "lib/tests/#{a}"}
-%w(splunk_downloader).each {|a| require "lib/splunk/#{a}"}
-%w(google_downloader).each {|a| require "lib/google/#{a}"}
-%w(testcases).each {|a| require "lib/testcases/#{a}"}
+%w(crontab_parser log helper change_watcher).each {|a| require_relative "../lib/helpers/#{a}"}
+%w(project task).each {|a| require_relative "../lib/data/stage/#{a}"}
+%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server).each {|a| require_relative "../lib/data/log/#{a}"}
+%w(base timeline projects statistics).each {|a| require_relative "../lib/objects/#{a}"}
+%w(events severity key event test livetest startedtest finishedtest slatest contract_error_test).each {|a| require_relative "../lib/tests/#{a}"}
+%w(splunk_downloader).each {|a| require_relative "../lib/splunk/#{a}"}
+%w(google_downloader).each {|a| require_relative "../lib/google/#{a}"}
+%w(testcases).each {|a| require_relative "../lib/testcases/#{a}"}
 
 
 
@@ -29,8 +29,8 @@ module SLAWatcher
       SLAWatcher::Connection.connect(hostname,port,username,password,database)
     end
 
-    def splunk(username,password,hostname)
-      SLAWatcher::SplunkDownloader.new(username,password,hostname)
+    def splunk(username,hostname)
+      SLAWatcher::SplunkDownloader.new(username,hostname)
     end
 
 

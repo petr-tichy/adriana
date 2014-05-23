@@ -7,7 +7,8 @@ require 'bundler/setup'
 require 'active_record'
 require 'gli'
 require 'pp'
-require "lib/sla_watcher.rb"
+require "passwordmanager"
+require_relative "../lib/sla_watcher.rb"
 require 'pony'
 require 'activerecord-import'
 
@@ -24,7 +25,8 @@ command :splunk_synchronization do |c|
     $type = "splunk_synchronization"
 
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
-    splunk = SLAWatcher.splunk(@splunk_username,@splunk_password,@splunk_hostname)
+    PasswordManagerApi::PasswordManager.connect(@passman_adress,@passman_port,@passman_key)
+    splunk = SLAWatcher.splunk(@splunk_username,@splunk_hostname)
 
 
     # Load the last time when the synchronization was executed
@@ -221,6 +223,9 @@ pre do |global,command,options,args|
     @postgres_database = json["postgres_database"]
     @google_username = json["google_username"]
     @google_password = json["google_password"]
+    @passman_adress = json["passman_adress"]
+    @passman_port = json["passman_port"]
+    @passman_key = json["passman_key"]
   end
 
 
