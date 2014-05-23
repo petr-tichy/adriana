@@ -123,6 +123,9 @@ module SLAWatcher
 
       puts "yeah I have started"
       settings_server = @servers.find{|s| s.id == resource["server_id"]}
+      pp resource["username"]
+      pp resource["password"]
+      pp settings_server.server_url
       GoodData.connect(resource["username"],resource["password"],{:server => settings_server.server_url})
       #GoodData.logger = @@log
       #GoodData.logger.level = Logger::DEBUG
