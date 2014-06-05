@@ -1,6 +1,7 @@
 ActiveAdminTest::Application.routes.draw do
-  devise_for :admin_users, ActiveAdmin::Devise.config
+  root :to => 'admin/dashboard#index'
 
+  devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
   match '/admin/jobs/create_contract_sychnronization' => 'admin/jobs#create'
   match '/admin/jobs/update_contract_sychnronization' => 'admin/jobs#update'

@@ -182,7 +182,7 @@ ActiveAdmin.register Contract do
     def autocomplete_tags
       @tags = ActsAsTaggableOn::Tag.where("name LIKE ?", "#{params[:q]}%").order(:name)
       respond_to do |format|
-        format.json { render json: @tags , :only => [:id, :name] }
+        format.json { render json: @tags , :only => [:id,:name] }
       end
     end
 
