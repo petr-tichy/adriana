@@ -160,7 +160,7 @@ ActiveAdmin.register Schedule do
         column :event_start
         column :event_end
         column("Duration") do |e|
-          if (!e.event_end.nil? or !e.event_start.nil? )
+          if (!e.event_end.nil? and !e.event_start.nil? )
             distance_of_time_in_words(e.event_end, e.event_start)
           else
             ""
