@@ -21,6 +21,7 @@ module SLAWatcher
       @resources = []
       @servers.each do |s|
         @resources.push({
+                            "uniq" => s.name,
                             "name" => s.default_account,
                             "type" => "global",
                             "server_id" => s.id
@@ -31,12 +32,13 @@ module SLAWatcher
 
       @schedules.each do |s|
         @resources.push({
+                            "uniq" => s["contract_id"],
                             "name" => s["contract_resource"],
                             "type" => "contract",
                             "contract_id" => s["contract_id"]
                         })
       end
-      @resources.uniq!{|s| s["name"]}
+      @resources.uniq!{|s| s["uniq"]}
       #@resources.delete_if{|s| s["name"].nil? or s["name"] == "" or !(s["name"] == "ManageServices-Gooddata|l2-cloudconn@gooddata.com")}
       @resources.delete_if{|s| s["name"].nil? or s["name"] == ""}
       #Load password from passman
@@ -73,12 +75,12 @@ module SLAWatcher
           @thread_resources << [elements,resource] if elements.count > 0
         end
         i = 1
+
         puts "Starting threads!!!!"
         threads = @thread_resources.map do |e|
           Thread.new do
             do_stuff(e)
           end
-
         end
 
         threads.each {|t| t.join}
@@ -100,18 +102,6 @@ module SLAWatcher
           #Save the last run date
           Settings.save_last_splunk_synchronization(@now)
         end
-
-
-
-
-
-
-
-
-
-
-
-
     end
 
 
