@@ -7,8 +7,7 @@ module SLAWatcher
   class FinishedTest < BaseTest
 
 
-    def initialize(events)
-      super(events)
+    def initialize()
       @EVENT_TYPE       =   "FINISHED_TEST"
       @SEVERITY         =   Severity.MEDIUM
       @STATISTICS_INTERVAL    =   2 #How many months back we are creating statistics

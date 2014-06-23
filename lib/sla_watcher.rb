@@ -12,7 +12,7 @@ require "passwordmanager"
 %w(project task).each {|a| require_relative "data/stage/#{a}"}
 %w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server notification_log).each {|a| require_relative "data/log/#{a}"}
 %w(base timeline projects statistics).each {|a| require_relative "objects/#{a}"}
-%w(events severity key event test livetest startedtest finishedtest slatest contract_error_test error_test).each {|a| require_relative "tests/#{a}"}
+%w(events severity key event test livetest startedtest finishedtest slatest error_test).each {|a| require_relative "tests/#{a}"}
 %w(splunk_downloader).each {|a| require_relative "splunk/#{a}"}
 %w(synchronize execution).each {|a| require_relative "snifer/#{a}"}
 %w(google_downloader).each {|a| require_relative "google/#{a}"}
@@ -104,8 +104,8 @@ module SLAWatcher
       errorTest = SLAWatcher::ErrorTest.new()
       @events = @events + errorTest.start
 
-      livetest = SLAWatcher::LiveTest.new()
-      @events = @events + livetest.start
+      #livetest = SLAWatcher::LiveTest.new()
+      #@events = @events + livetest.start
 
       #startedTest = SLAWatcher::StartedTest.new()
       #@events = @events + startedTest.start
@@ -122,17 +122,23 @@ module SLAWatcher
 
       @events = []
 
-      errorTest = SLAWatcher::ErrorTest.new()
-      @events = @events + errorTest.start
+      finishedTest = SLAWatcher::FinishedTest.new()
+      @events = @events + finishedTest.start
 
-      livetest = SLAWatcher::LiveTest.new()
-      @events = @events + livetest.start
+      pp @events
+
+
+      #errorTest = SLAWatcher::ErrorTest.new()
+      #@events = @events + errorTest.start
+
+      #livetest = SLAWatcher::LiveTest.new()
+      #@events = @events + livetest.start
 
       #startedTest = SLAWatcher::StartedTest.new()
       #@events = @events + startedTest.start
 
-      events_wrapper = Events.new(@events,@pd_service,@pd_entity)
-      events_wrapper.save
+      #events_wrapper = Events.new(@events,@pd_service,@pd_entity)
+      #events_wrapper.save
 
     end
 
