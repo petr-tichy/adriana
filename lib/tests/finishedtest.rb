@@ -27,25 +27,29 @@ module SLAWatcher
           run_statistical_time =  Helper.interval_to_minutes(statistical_value.avg_run)
           run_actual_time = (@now - execution.event_start)/60
           difference = run_actual_time - run_statistical_time
-
           if (difference > 2*@WARNING_INTERVAL)
             if (notification_log.nil?)
+              puts "Something is wrong"
               @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),@SEVERITY+1,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",@now,nil,execution.r_schedule)
             else
+              puts "Something is wrong"
               @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),@SEVERITY+1,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",@now,nil,execution.r_schedule,notification_log.id)
             end
           elsif (difference > @WARNING_INTERVAL)
             if (notification_log.nil?)
+              puts "Something is wrong"
               @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),@SEVERITY,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",@now,nil,execution.r_schedule)
             end
           end
         else
           # We don't have enough statistical data to monitor this schedules ... lets create LOW SEVERITY event to let us know
           if (notification_log.nil?)
+            puts "Something is wrong"
             @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),Severity.LOW,"Not enough statistical data - FINISHED test not applied",@now,nil,execution.r_schedule)
           end
         end
       end
+      @new_events
     end
 
     def load_data()

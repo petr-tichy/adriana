@@ -104,6 +104,9 @@ module SLAWatcher
       errorTest = SLAWatcher::ErrorTest.new()
       @events = @events + errorTest.start
 
+      finishedTest = SLAWatcher::FinishedTest.new()
+      @events = @events + finishedTest.start
+
       #livetest = SLAWatcher::LiveTest.new()
       #@events = @events + livetest.start
 
@@ -127,7 +130,6 @@ module SLAWatcher
 
       pp @events
 
-
       #errorTest = SLAWatcher::ErrorTest.new()
       #@events = @events + errorTest.start
 
@@ -137,8 +139,8 @@ module SLAWatcher
       #startedTest = SLAWatcher::StartedTest.new()
       #@events = @events + startedTest.start
 
-      #events_wrapper = Events.new(@events,@pd_service,@pd_entity)
-      #events_wrapper.save
+      events_wrapper = Events.new(@events,@pd_service,@pd_entity)
+      events_wrapper.save
 
     end
 
