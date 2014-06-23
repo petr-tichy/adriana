@@ -23,7 +23,6 @@ module SLAWatcher
       @events.each do |e|
         subject = ""
         message = ""
-        pp e
         s = @schedules.find{|s| s.id == e.schedule_id}
         if (!s.nil?)
           subject << "#{e.key.type} - #{s.project.name} - #{s.graph_name}"
