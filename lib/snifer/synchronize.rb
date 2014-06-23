@@ -18,6 +18,7 @@ module SLAWatcher
       @contracts = Contract.where("resource IS NOT NULL")
       # Here we will contact the password manager and download the passwords
       @schedules = Schedule.joins(:settings_server).joins(:contract).where("server_type = 'cloudconnect' and schedule.is_deleted = 'f'")
+
       @resources = []
       @servers.each do |s|
         @resources.push({
@@ -55,6 +56,7 @@ module SLAWatcher
         @execution_start = []
         @execution_end = []
         @thread_resources = []
+
 
 
 

@@ -3,6 +3,9 @@ module SLAWatcher
 
     attr_accessor :type
 
+
+    # Value should be execution_id in most cases
+    # In case of start_test it will be id of the schedule
     def initialize(value,type)
       @value = value
       @type = type

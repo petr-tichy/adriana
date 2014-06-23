@@ -13,3 +13,4 @@ gem "json"
 gem "activerecord-import"
 gem "gooddata"
 gem 'passwordmanager', :git => 'https://github.com/adriantoman/PasswordManagerAPI.git'
+gem "pagerduty-full", :git => 'https://github.com/adriantoman/pagerduty-full.git'

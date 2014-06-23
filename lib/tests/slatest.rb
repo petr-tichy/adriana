@@ -7,9 +7,9 @@ module SLAWatcher
   class SlaTest < BaseTest
 
 
-    def initialize(events)
-      super(events)
-      @EVENT_TYPE       =   "SLA_TEST"
+    def initialize()
+      super()
+      @EVENT_TYPE       =   "SLA_TEST_DIRECT"
       @SEVERITY         =   Severity.MEDIUM
       @TIME_INTERVAL    =   12 #How many hours back are we checking
       @WARNING_INTERVAL =   30 #Minutes
@@ -22,19 +22,18 @@ module SLAWatcher
         put_execution(e)
       end
       sort_execution
-
-
-
-
       # Lets test only project when we should minitor SLA
+
+      pp @executions
+      fail "kokos"
+
      @executions.each do |e|
        schedule = @schedules.find{|s| s.project_pid == e[:project_pid]}
-       if (!schedule.nil? and schedule.sla_enabled == 't')
+       if (!schedule.nil? and schedule.contract.sla_enabled == 't')
          start_time = e[:executions].first[:event_start]
          if (schedule.sla_type == "Fixed Duration")
            duration = Helper.interval_to_minutes(schedule.sla_value)
            current_duration = ((Time.now - start_time)/60).round
-
            if (current_duration >= duration)
              event = CustomEvent.new(Key.new(schedule.id,"SCHEDULE"),@SEVERITY,@EVENT_TYPE,"We are over SLA by: #{(current_duration - duration)} minutes",DateTime.now,false)
              @events.push_event(event)
@@ -58,7 +57,7 @@ module SLAWatcher
     end
 
     def load_data()
-      @schedules = Schedule.load_schedules_of_live_projects_main
+      @schedules = Schedule.joins(:project).joins(:contract).where(project:{status: 'Live'},schedule:{is_deleted: false,main: true},contract: {contract_type: 'direct'})
       @execution_log = ExecutionLog.get_running_projects_for_sla
     end
 
