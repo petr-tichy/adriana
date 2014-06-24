@@ -97,6 +97,8 @@ command :test do |c|
     $type = "test"
 
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
+    SLAWatcher.pd_entity = PagerDuty::Full.new(apikey = @pd_api_key, subdomain = @pd_subdomain)
+    SLAWatcher.pd_service = @pd_service
     SLAWatcher.test
 
   end

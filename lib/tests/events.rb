@@ -20,21 +20,84 @@ module SLAWatcher
 
 
     def save
-      @events.each do |e|
-        subject = ""
-        message = ""
+      contract_grouping = {}
+      @events.find_all{|e| !e.schedule_id.nil? }.each do |e|
         s = @schedules.find{|s| s.id == e.schedule_id}
-        if (!s.nil?)
-          subject << "#{e.key.type} - #{s.project.name} - #{s.graph_name}"
-          message = { "project_name" => s.project.name,
-                      "schedule_graph" =>  s.graph_name,
-                      "schedule_mode" =>  s.mode}
-          message.merge!({"console_link" => "#{s.settings_server.server_url}/admin/disc/#/projects/#{s.r_project}/processes/#{s.gooddata_process}/schedules/#{s.gooddata_schedule}"}) if s.settings_server.server_type == "cloudconnect"
-          message.merge!({"text" => e.text})
+        schedules_list = []
+        if (!contract_grouping.key?(s.contract.id))
+          contract_grouping[s.contract.id] = schedules_list
         else
-          subject << "#{e.key.type} - #{e.key.value}"
-          message = {"text" => e.text}
+          schedules_list = contract_grouping[s.contract.id]
         end
+        schedules_list << {:schedule => s,:event => e}
+      end
+
+      pp contract_grouping
+      fail "kokos"
+
+
+      contract_grouping.each_value do |events|
+        messages = []
+        subject = ""
+        events.find_all{|e| e[:event].key.type == "ERROR_TEST"}.each do |value|
+          subject << "#{value[:schedule].contract.name} - ERROR_TEST"
+          message = { "event_type" => value[:event].key.type,
+                      "project_name" => value[:schedule].project.name,
+                      "schedule_graph" =>  value[:schedule].graph_name,
+                      "schedule_mode" =>  value[:schedule].mode}
+          message.merge!({"console_link" => "#{value[:schedule].settings_server.server_url}/admin/disc/#/projects/#{value[:schedule].r_project}/processes/#{value[:schedule].gooddata_process}/schedules/#{value[:schedule].gooddata_schedule}"}) if value[:schedule].settings_server.server_type == "cloudconnect"
+          message.merge!({"text" => value[:event].text})
+          value[:message] = message
+          value[:pd_event] = false
+
+          if (value[:event].notification_id.nil?)
+            if value[:event].severity > Severity.MEDIUM
+              messages << message
+              value[:pd_event] = true
+            end
+          else
+            notification_log = NotificationLog.find_by_id(value[:event].notification_id)
+            value[:old_event] = notification_log
+            if (notification_log.severity > value[:event].severity and e.severity > Severity.MEDIUM)
+              messages << message
+              value[:pd_event] = true
+            end
+          end
+        end
+
+        pd_event_id = nil
+        if (messages.count > 0)
+          pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,messages.join(","))
+          pd_event_id = pd_event["incident_key"]
+        end
+
+        events.find_all{|e| e[:event].key.type == "ERROR_TEST"}.each do |value|
+          if (value[:event].notification_id.nil?)
+            if (value[:pd_event])
+              value[:event].pd_event_id = pd_event_id
+            end
+            NotificationLog.create!(value[:event].to_db_entity(subject,value[:message]))
+          else
+            value[:old_event].update(value[:event].to_db_entity(subject,event[:message].to_s))
+          end
+        end
+        events.find_all{|e| e[:event].key.type != "ERROR_TEST"}.each do |value|
+          # CONTINUE HERE AND MAKE SOME DOC
+        end
+
+
+
+
+
+      end
+
+
+
+
+      @events.find_all{|e| e.schedule_id.nil? }.each do |e|
+        subject << "#{e.key.type} - #{e.key.value}"
+        message = {"text" => e.text}
+
         if (e.notification_id.nil?)
           if (e.severity > Severity.MEDIUM)
             pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,message)
@@ -90,7 +153,7 @@ module SLAWatcher
     def load_data_from_database
       project_category_id = SLAWatcher::Settings.load_project_category_id.first.value
       task_category_id = SLAWatcher::Settings.load_schedule_category_id.first.value
-      @schedules = SLAWatcher::Schedule.joins(:project).joins(:settings_server)
+      @schedules = SLAWatcher::Schedule.joins(:project).joins(:contract).joins(:settings_server)
 
     end
 
