@@ -94,11 +94,11 @@ module SLAWatcher
         ActiveRecord::Base.transaction do
           # Save the events to the database
           starts.each do |event|
-            ExecutionLog.log_execution_api(event["schedule_id"],event["status"],"From Splunk synchronizer",event["time"],event["execution_id"])
+            ExecutionLog.log_execution_api(event["schedule_id"],event["status"],"From Splunk synchronizer",event["event_time"],event["execution_id"])
           end
 
           errors_finished.each do |event|
-            ExecutionLog.log_execution_api(event["schedule_id"],event["status"],"From Splunk synchronizer",event["time"],event["execution_id"])
+            ExecutionLog.log_execution_api(event["schedule_id"],event["status"],"From Splunk synchronizer",event["event_time"],event["execution_id"])
           end
 
           #Save the last run date
@@ -126,6 +126,8 @@ module SLAWatcher
           end
           response["executions"]["items"].each do |e|
             execution = Execution.new(e)
+            pp execution
+            fail "kooks"
             if (execution.status == "RUNNING")
               if (execution.startTime > @last_execution - 24.hours)
                 execution_start << {"execution_id" => execution.id, "event_time" => execution.startTime,"status" => "STARTED","schedule_id" => s.gooddata_schedule, "project_pid" => s.r_project }
