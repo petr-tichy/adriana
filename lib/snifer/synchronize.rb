@@ -126,8 +126,6 @@ module SLAWatcher
           end
           response["executions"]["items"].each do |e|
             execution = Execution.new(e)
-            pp execution
-            fail "kooks"
             if (execution.status == "RUNNING")
               if (execution.startTime > @last_execution - 24.hours)
                 execution_start << {"execution_id" => execution.id, "event_time" => execution.startTime,"status" => "STARTED","schedule_id" => s.gooddata_schedule, "project_pid" => s.r_project }
