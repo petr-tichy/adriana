@@ -188,6 +188,9 @@ end
 
 pre do |global,command,options,args|
   next true if command.nil?
+  @running = false
+  @not_delete = false
+  @command = command.name
   @@log = Logger.new("log/sla_#{command.name}.log",'daily') if ENV["USERNAME"] != "adrian.toman"
   #@@log = Logger.new("log/sla_watcher.log",'daily')
   @@log = Logger.new(STDOUT) if ENV["USERNAME"] == "adrian.toman"
@@ -212,8 +215,12 @@ pre do |global,command,options,args|
     @pd_service = json["pd_service"]
   end
 
-
-
+  if File.exists?("running_#{command.name}.pid")
+    @running = true
+    @not_delete = true
+    exit_now! "Another process for this command is running"
+  end
+  FileUtils.touch("running_#{command.name}.pid")
   # Pre logic here
   # Return true to proceed; false to abourt and not call the
   # chosen command
@@ -223,11 +230,12 @@ pre do |global,command,options,args|
 end
 
 post do |global,command,options,args|
+  FileUtils.rm_f("running_#{command.name}.pid") if !@running
   #Pony.mail(:to => "adrian.toman@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Some work was done in #{command.name}", :body => "File in attachements", :attachments => {"sla_#{command.name}.log" => File.read("log/sla_#{command.name}.log")})
 end
 
 on_error do |exception|
-
+  FileUtils.rm_f("running_#{@command}.pid") if !@not_delete
   #Pony.mail(:to => "adrian.toman@gooddata.com,petr.tichy+sla@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Error - #{$type}", :body => "Error: #{exception.backtrace}" )
   pp exception.backtrace
   if exception.is_a?(SystemExit) && exception.status == 0

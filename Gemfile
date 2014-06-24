@@ -3,7 +3,6 @@ source 'https://rubygems.org'
 gem "parse-cron"
 gem "gli"
 gem "activerecord"
-gem "composite_primary_keys", :git => "https://github.com/adriantoman/composite_primary_keys.git", :branch => "ar_4.1.x"
 gem "activerecord-postgresql-adapter"
 gem "pony"
 gem "nokogiri"

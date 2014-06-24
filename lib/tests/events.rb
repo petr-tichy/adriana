@@ -20,6 +20,14 @@ module SLAWatcher
 
 
     def save
+      # In this section of code we are saving the data about notifications to DB and creating PD event
+      # There are several sections of code here
+      # Section 1 is for events with schedule_id (error_test,finished_test)
+      # We are distigusining here if the event is from ERROR_TEST or from somewhere else
+      # For ERROR_TEST we are doing grouping of events by contract. Error will be grouped by CONTRACT.
+      # The ERROR will be save to DB normally, byt only one PD event is created in Pagerduty
+      # The section 2 is for events without schedule_id.
+      # The Errors for this section are created normally.
       contract_grouping = {}
       @events.find_all{|e| !e.schedule_id.nil? }.each do |e|
         s = @schedules.find{|s| s.id == e.schedule_id}
@@ -32,15 +40,11 @@ module SLAWatcher
         schedules_list << {:schedule => s,:event => e}
       end
 
-      pp contract_grouping
-      fail "kokos"
-
-
       contract_grouping.each_value do |events|
         messages = []
         subject = ""
-        events.find_all{|e| e[:event].key.type == "ERROR_TEST"}.each do |value|
-          subject << "#{value[:schedule].contract.name} - ERROR_TEST"
+        events.each do |value|
+          subject = "#{value[:schedule].contract.name} - ERROR_TEST"
           message = { "event_type" => value[:event].key.type,
                       "project_name" => value[:schedule].project.name,
                       "schedule_graph" =>  value[:schedule].graph_name,
@@ -52,22 +56,25 @@ module SLAWatcher
 
           if (value[:event].notification_id.nil?)
             if value[:event].severity > Severity.MEDIUM
-              messages << message
+              if (value[:event].key.type == "ERROR_TEST")
+                messages << message
+              end
               value[:pd_event] = true
             end
           else
             notification_log = NotificationLog.find_by_id(value[:event].notification_id)
             value[:old_event] = notification_log
             if (notification_log.severity > value[:event].severity and e.severity > Severity.MEDIUM)
-              messages << message
+              if (value[:event].key.type == "ERROR_TEST")
+                messages << message
+              end
               value[:pd_event] = true
             end
           end
         end
-
         pd_event_id = nil
         if (messages.count > 0)
-          pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,messages.join(","))
+          pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,messages)
           pd_event_id = pd_event["incident_key"]
         end
 
@@ -76,28 +83,31 @@ module SLAWatcher
             if (value[:pd_event])
               value[:event].pd_event_id = pd_event_id
             end
-            NotificationLog.create!(value[:event].to_db_entity(subject,value[:message]))
+            NotificationLog.create!(value[:event].to_db_entity(subject,value[:message].to_s))
           else
-            value[:old_event].update(value[:event].to_db_entity(subject,event[:message].to_s))
+            value[:old_event].update(value[:event].to_db_entity(subject,value[:message].to_s))
           end
         end
+
         events.find_all{|e| e[:event].key.type != "ERROR_TEST"}.each do |value|
-          # CONTINUE HERE AND MAKE SOME DOC
+          message = value[:message]
+          subject = "#{value[:schedule].contract.name} - #{value[:event].key.type}"
+          if (value[:event].notification_id.nil?)
+            if (value[:pd_event])
+              pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,message)
+              value[:event].pd_event_id = pd_event["incident_key"]
+            end
+            NotificationLog.create!(value[:event].to_db_entity(subject,message.to_s))
+          else
+            value[:old_event].update(value[:event].to_db_entity(subject,message.to_s))
+          end
+
         end
-
-
-
-
-
       end
 
-
-
-
       @events.find_all{|e| e.schedule_id.nil? }.each do |e|
-        subject << "#{e.key.type} - #{e.key.value}"
+        subject << "#{e.key.value} - #{e.key.type}"
         message = {"text" => e.text}
-
         if (e.notification_id.nil?)
           if (e.severity > Severity.MEDIUM)
             pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,message)
@@ -110,7 +120,6 @@ module SLAWatcher
             pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,message)
             e.pd_event_id = pd_event["incident_key"]
           end
-          #NotificationLog.update_all(e.to_db_entity(subject,message))
           notification_log.update(e.to_db_entity(subject,message.to_s))
         end
       end
@@ -153,7 +162,8 @@ module SLAWatcher
     def load_data_from_database
       project_category_id = SLAWatcher::Settings.load_project_category_id.first.value
       task_category_id = SLAWatcher::Settings.load_schedule_category_id.first.value
-      @schedules = SLAWatcher::Schedule.joins(:project).joins(:contract).joins(:settings_server)
+      @schedules = SLAWatcher::Schedule.includes(:project).includes(:settings_server).includes(:contract).includes(:customer => :contract)
+      #@schedules = SLAWatcher::Schedule.includes(:project,:contract,:settings_server).joins(:contract).includes(:settings_server)
 
     end
 

@@ -4,13 +4,13 @@ require 'parse-cron'
 require_relative "data/connection.rb"
 require 'logger'
 require_relative 'migration.rb'
-require 'composite_primary_keys'
+#require 'composite_primary_keys'
 require 'google_drive'
 require "passwordmanager"
 
 %w(crontab_parser log helper change_watcher).each {|a| require_relative "helpers/#{a}"}
 %w(project task).each {|a| require_relative "data/stage/#{a}"}
-%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server notification_log).each {|a| require_relative "data/log/#{a}"}
+%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server notification_log customer).each {|a| require_relative "data/log/#{a}"}
 %w(base timeline projects statistics).each {|a| require_relative "objects/#{a}"}
 %w(events severity key event test livetest startedtest finishedtest slatest error_test).each {|a| require_relative "tests/#{a}"}
 %w(splunk_downloader).each {|a| require_relative "splunk/#{a}"}

@@ -4,9 +4,10 @@ module SLAWatcher
     self.primary_key = 'id'
 
     belongs_to :project, :primary_key => "project_pid", :foreign_key => "r_project"
-    has_one :running_executions
     belongs_to :settings_server
+    has_one :running_executions
     has_one :contract, :through => :project
+    has_one :customer, :through => :contract
     #belongs_to :contract, :through => :project
 
     def self.load_schedules_of_live_projects
@@ -14,9 +15,7 @@ module SLAWatcher
     end
 
     def self.load_schedules_of_live_projects_main
-      select("*").joins(:project).where("p.status = ? and schedule.is_deleted = ? and schedule.main = ? and p.contract_id IS NULL","Live",false,true)
-
-      @schedules = Schedule.joins(:project).joins(:contract).where(contract: {contract_type: 'direct'},project:{is_deleted: false,status: 'Live'},schedule: {is_deleted: false})
+      Schedule.joins(:project).joins(:contract).where(contract: {contract_type: 'direct'},project:{is_deleted: false,status: 'Live'},schedule: {is_deleted: false})
     end
 
   end

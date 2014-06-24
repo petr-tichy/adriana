@@ -29,22 +29,18 @@ module SLAWatcher
           difference = run_actual_time - run_statistical_time
           if (difference > 2*@WARNING_INTERVAL)
             if (notification_log.nil?)
-              puts "Something is wrong"
               @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),@SEVERITY+1,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",@now,nil,execution.r_schedule)
             else
-              puts "Something is wrong"
               @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),@SEVERITY+1,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",@now,nil,execution.r_schedule,notification_log.id)
             end
           elsif (difference > @WARNING_INTERVAL)
             if (notification_log.nil?)
-              puts "Something is wrong"
               @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),@SEVERITY,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",@now,nil,execution.r_schedule)
             end
           end
         else
           # We don't have enough statistical data to monitor this schedules ... lets create LOW SEVERITY event to let us know
           if (notification_log.nil?)
-            puts "Something is wrong"
             @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),Severity.LOW,"Not enough statistical data - FINISHED test not applied",@now,nil,execution.r_schedule)
           end
         end
@@ -57,7 +53,8 @@ module SLAWatcher
       start_of_statistics = @now - @STATISTICS_INTERVAL.months
       two_days_back = @now - 2.days
       @statistics_data  = ExecutionLog.get_run_statistics(day_of_week,start_of_statistics)
-      @running_projects = ExecutionLog.get_running_projects(two_days_back)
+      #@running_projects = ExecutionLog.get_running_projects(two_days_back)
+      @running_projects = ExecutionLog.includes(:schedule).includes(:project).where(execution_log: {status: 'RUNNING', event_start: (two_days_back..@now)})
       @notification_logs = NotificationLog.where(notification_type: @EVENT_TYPE,created_at: (@now - 3.day)..@now)
     end
 

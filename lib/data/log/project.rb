@@ -1,7 +1,8 @@
 module SLAWatcher
   class Project < ActiveRecord::Base
+    set_primary_key = :project_pid
     self.table_name = 'log3.project'
-    self.primary_keys = :project_pid
+
 
     has_many :running_executions, :through => :schedule
     has_one :project_detail, :primary_key => "project_pid", :foreign_key => "project_pid"

@@ -3,6 +3,9 @@ module SLAWatcher
   class ExecutionLog < ActiveRecord::Base
     self.table_name = 'log3.execution_log'
 
+    belongs_to :schedule, :primary_key => "id", :foreign_key => "r_schedule"
+    has_one :project, :through => :schedule
+
     def self.log_execution(pid,graph_name,mode,status,detailed_status,time = nil)
       find_by_sql ["SELECT log3.log_execution(?,?,?,?,?,?)", pid, graph_name,mode,status,detailed_status,time]
     end
@@ -30,6 +33,7 @@ module SLAWatcher
 
 
     def self.get_running_projects(two_days_back)
+
       select("*").joins("INNER JOIN log3.schedule s ON s.id = execution_log.r_schedule").joins("INNER JOIN log3.project p ON p.project_pid = s.r_project").where("execution_log.status = 'RUNNING' and event_start > ?",two_days_back)
     end
 
