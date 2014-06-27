@@ -1,7 +1,7 @@
 
 module SLAWatcher
   class EventLog < ActiveRecord::Base
-    self.table_name = 'log3.event_log'
+    self.table_name = 'event_log'
     self.primary_key = 'id'
      #def self.log_execution(pid,graph_name,mode,status,detailed_status,time = nil)
     #  #time = 'NULL' if time.nil?

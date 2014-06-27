@@ -18,7 +18,7 @@ module SLAWatcher
       @now = Time.now
       @new_events = []
       load_data
-
+      @@log.info "Starting the #{@EVENT_TYPE} test"
       # Test if project is running more then normaly
       @running_projects.each do |execution|
         statistical_value = @statistics_data.find{|s| s.r_schedule == execution.r_schedule }
@@ -45,6 +45,7 @@ module SLAWatcher
           end
         end
       end
+      @@log.info "The test #{@EVENT_TYPE} has finished. Created #{@new_events.count} events"
       @new_events
     end
 
@@ -54,7 +55,7 @@ module SLAWatcher
       two_days_back = @now - 2.days
       @statistics_data  = ExecutionLog.get_run_statistics(day_of_week,start_of_statistics)
       #@running_projects = ExecutionLog.get_running_projects(two_days_back)
-      @running_projects = ExecutionLog.includes(:schedule).includes(:project).where(execution_log: {status: 'RUNNING', event_start: (two_days_back..@now)})
+      @running_projects = ExecutionLog.includes(:schedule).includes(:project).where(execution_log: {status: 'RUNNING', event_start: (two_days_back..@now)},schedule: {is_deleted: false},project: {status: 'Live',is_deleted: false})
       @notification_logs = NotificationLog.where(notification_type: @EVENT_TYPE,created_at: (@now - 3.day)..@now)
     end
 

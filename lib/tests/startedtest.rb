@@ -12,6 +12,7 @@ module SLAWatcher
     end
 
     def start()
+      @@log.info "Starting the #{@EVENT_TYPE} test"
       load_data
       #Lets check if all live schedules were started event once
       #Severity - MEDIUM
@@ -74,6 +75,7 @@ module SLAWatcher
           end
 
       end
+      @@log.info "The test #{@EVENT_TYPE} has finished. Created #{@new_events.count} events"
       @new_events
     end
 

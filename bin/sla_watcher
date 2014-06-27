@@ -11,6 +11,7 @@ require_relative "../lib/sla_watcher.rb"
 require 'pony'
 require 'activerecord-import'
 require 'pagerduty/full'
+require 'yaml'
 
 
 include GLI::App
@@ -182,6 +183,22 @@ command :sync_google do |c|
     end
   end
 end
+
+
+desc 'Run remove notification job'
+command :remove_notification do |c|
+#  c.desc 'Execute only for one entity.'
+#  c.default_value false
+#  c.flag [:o, :only]
+  c.action do |global_options,options,args|
+    SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
+    PasswordManagerApi::PasswordManager.connect(@passman_adress,@passman_port,@passman_key)
+    $type = "remove_notification"
+    SLAWatcher.run_notification_removal_task
+  end
+end
+
+
 
 
 

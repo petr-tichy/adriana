@@ -1,4 +1,4 @@
 class Contract < ActiveRecord::Base
-  self.table_name = 'log3.contract'
+  self.table_name = 'contract'
   belongs_to :customer
 end

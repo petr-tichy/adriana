@@ -17,7 +17,7 @@ require "passwordmanager"
 %w(synchronize execution).each {|a| require_relative "snifer/#{a}"}
 %w(google_downloader).each {|a| require_relative "google/#{a}"}
 %w(testcases).each {|a| require_relative "testcases/#{a}"}
-
+%w(notification_removal_task).each {|a| require_relative "custom/#{a}"}
 
 
 module SLAWatcher
@@ -173,8 +173,11 @@ module SLAWatcher
       synchronize = SLAWatcher::Synchronize.new
       synchronize.load_data
       synchronize.work
+    end
 
-
+    def run_notification_removal_task
+      removal_task = SLAWatcher::NotificationRemovalTask.new
+      removal_task.start
     end
 
 

@@ -8,7 +8,7 @@ module SLAWatcher
 
     def load_data()
 
-
+      @@log.info "Starting the API snifer"
       @schedules_on_thread = 200
       @last_execution = Helper.value_to_datetime(Settings.load_last_splunk_synchronization.first.value)
       @now = DateTime.now
@@ -17,7 +17,7 @@ module SLAWatcher
       # Lets load the Contract specific resources
       @contracts = Contract.where("resource IS NOT NULL")
       # Here we will contact the password manager and download the passwords
-      @schedules = Schedule.joins(:settings_server).joins(:contract).where("server_type = 'cloudconnect' and schedule.is_deleted = 'f'")
+      @schedules = Schedule.joins(:settings_server).joins(:project).joins(:contract).where("server_type = 'cloudconnect' and schedule.is_deleted = 'f' and project.is_deleted = 'f'")
 
       @resources = []
       @servers.each do |s|
@@ -104,6 +104,7 @@ module SLAWatcher
           #Save the last run date
           Settings.save_last_splunk_synchronization(@now)
         end
+        @@log.info "The API snifer has finished"
     end
 
 
@@ -113,7 +114,7 @@ module SLAWatcher
       execution_start = []
       execution_end = []
 
-      puts "yeah I have started"
+      #puts "yeah I have started"
       settings_server = @servers.find{|s| s.id == resource["server_id"]}
       GoodData.connect(resource["username"],resource["password"],{:server => settings_server.server_url})
       #GoodData.logger = @@log

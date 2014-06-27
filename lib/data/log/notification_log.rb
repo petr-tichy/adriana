@@ -1,6 +1,6 @@
 module SLAWatcher
   class NotificationLog < ActiveRecord::Base
-    self.table_name = 'log3.notification_log'
+    self.table_name = 'notification_log'
 
   end
 end

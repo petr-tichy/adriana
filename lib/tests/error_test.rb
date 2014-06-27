@@ -14,6 +14,7 @@ module SLAWatcher
     end
 
     def start()
+      @@log.info "Starting the #{@EVENT_TYPE} test"
       load_data
       #find_all{|s| s.id == 974}
       @schedules.find_all.each do |s|
@@ -41,6 +42,7 @@ module SLAWatcher
           end
         end
       end
+      @@log.info "The test #{@EVENT_TYPE} has finished. Created #{@new_events.count} events"
       @new_events
     end
 
