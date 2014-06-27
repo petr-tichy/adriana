@@ -162,7 +162,7 @@ module SLAWatcher
     def load_data_from_database
       project_category_id = SLAWatcher::Settings.load_project_category_id.first.value
       task_category_id = SLAWatcher::Settings.load_schedule_category_id.first.value
-      @schedules = SLAWatcher::Schedule.includes(:project).includes(:settings_server).includes(:contract).includes(:customer => :contract)
+      @schedules = SLAWatcher::Schedule.joins(:project).joins(:settings_server).joins(:contract).joins(:customer => :contract)
       #@schedules = SLAWatcher::Schedule.includes(:project,:contract,:settings_server).joins(:contract).includes(:settings_server)
 
     end

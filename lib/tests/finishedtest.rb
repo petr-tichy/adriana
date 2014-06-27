@@ -55,7 +55,7 @@ module SLAWatcher
       two_days_back = @now - 2.days
       @statistics_data  = ExecutionLog.get_run_statistics(day_of_week,start_of_statistics)
       #@running_projects = ExecutionLog.get_running_projects(two_days_back)
-      @running_projects = ExecutionLog.includes(:schedule).includes(:project).where(execution_log: {status: 'RUNNING', event_start: (two_days_back..@now)},schedule: {is_deleted: false},project: {status: 'Live',is_deleted: false})
+      @running_projects = ExecutionLog.joins(:schedule).joins(:project).where(execution_log: {status: 'RUNNING', event_start: (two_days_back..@now)},schedule: {is_deleted: false},project: {status: 'Live',is_deleted: false})
       @notification_logs = NotificationLog.where(notification_type: @EVENT_TYPE,created_at: (@now - 3.day)..@now)
     end
 
