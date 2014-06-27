@@ -10,9 +10,6 @@ ActiveAdmin.register Schedule do
 
 
   scope :all, :default => true
-  scope :direct  do |schedule|
-    schedule.where("contract_id IS NULL")
-  end
 
   scope :cloudconnect do |schedule|
     schedule.where("settings_server.server_type = ?","cloudconnect")

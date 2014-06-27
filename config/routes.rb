@@ -5,10 +5,20 @@ ActiveAdminTest::Application.routes.draw do
   ActiveAdmin.routes(self)
   match '/admin/jobs/create_contract_sychnronization' => 'admin/jobs#create'
   match '/admin/jobs/update_contract_sychnronization' => 'admin/jobs#update'
+  match '/admin/jobs/create_direct_sychnronization' => 'admin/jobs#create'
+  match '/admin/jobs/update_direct_sychnronization' => 'admin/jobs#update'
+
   match '/admin/contracts/create' => 'admin/contracts#create'
+  match '/admin/contracts/error_show/:id' => 'admin/contracts#error_show'
+  match '/admin/contract/error_modification' => 'admin/contracts#error_modification'
+  match '/admin/contracts/error_modification/:id' => 'admin/contracts#error_modification'
   match '/admin/attask_print/create_job' => 'admin/attask_print#create'
-  match '/api' => 'api#index' ,:via => :post
+  match '/api' => 'api#index'
   get '/admin/autocomplete_tags',to: 'admin/contracts#autocomplete_tags', as: 'autocomplete_tags'
+
+  resources :notification
+  match '/feed' => 'notification#feed',:as => :feed,:defaults => { :format => 'atom' }
+
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

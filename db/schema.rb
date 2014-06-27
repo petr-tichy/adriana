@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140430094939) do
+ActiveRecord::Schema.define(:version => 20140606124806) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.string   "resource_id",   :null => false
@@ -47,23 +47,25 @@ ActiveRecord::Schema.define(:version => 20140430094939) do
   add_index "admin_users", ["reset_password_token"], :name => "index_admin_users_on_reset_password_token", :unique => true
 
   create_table "contract", :force => true do |t|
-    t.string   "name",                 :limit => 50, :default => "Empty contract", :null => false
-    t.datetime "created_at",                                                       :null => false
-    t.datetime "updated_at",                                                       :null => false
-    t.boolean  "is_deleted",                         :default => false
+    t.string   "name",                         :limit => 50, :default => "Empty contract", :null => false
+    t.datetime "created_at",                                                               :null => false
+    t.datetime "updated_at",                                                               :null => false
+    t.boolean  "is_deleted",                                 :default => false
     t.integer  "customer_id"
     t.string   "updated_by"
-    t.boolean  "sla_enabled",                        :default => false
+    t.boolean  "sla_enabled",                                :default => false
     t.string   "sla_type"
     t.string   "sla_value"
     t.integer  "sla_percentage"
-    t.boolean  "monitoring_enabled",                 :default => false
+    t.boolean  "monitoring_enabled",                         :default => false
     t.string   "monitoring_emails"
     t.integer  "monitoring_treshhold"
-    t.string   "salesforce_id",        :limit => 50
-    t.string   "contract_type",        :limit => 50, :default => "N/A"
+    t.string   "salesforce_id",                :limit => 50
+    t.string   "contract_type",                :limit => 50, :default => "N/A"
     t.string   "token"
     t.string   "documentation_url"
+    t.string   "resource"
+    t.integer  "default_max_number_of_errors",               :default => 0
   end
 
   create_table "contract_history", :force => true do |t|
@@ -101,11 +103,12 @@ ActiveRecord::Schema.define(:version => 20140430094939) do
     t.text     "text"
     t.string   "updated_by",  :limit => 100
     t.datetime "updated_at"
+    t.string   "schedule_id"
   end
 
   add_index "dump_log", ["id"], :name => "IX__dump_log_id"
 
-  create_table "event_log", :id => false, :force => true do |t|
+  create_table "event_log", :force => true do |t|
     t.string   "project_pid",  :limit => 100
     t.string   "graph_name",   :limit => 100
     t.string   "mode"
@@ -116,9 +119,9 @@ ActiveRecord::Schema.define(:version => 20140430094939) do
     t.boolean  "persistent"
     t.boolean  "notified"
     t.datetime "updated_date"
-    t.integer  "id",                          :null => false
     t.string   "key"
     t.string   "event_entity", :limit => 100
+    t.string   "pd_event_id"
   end
 
   create_table "execution_log", :force => true do |t|
@@ -131,6 +134,7 @@ ActiveRecord::Schema.define(:version => 20140430094939) do
     t.datetime "event_end"
     t.integer  "sla_event_start"
     t.string   "request_id",      :limit => 100
+    t.string   "pd_event_id"
   end
 
   add_index "execution_log", ["event_start"], :name => "idx_execution_log5"
@@ -195,6 +199,20 @@ ActiveRecord::Schema.define(:version => 20140430094939) do
     t.datetime "created_at",               :null => false
     t.datetime "updated_at",               :null => false
     t.string   "key"
+  end
+
+  create_table "notification_log", :force => true do |t|
+    t.string   "key",                              :null => false
+    t.string   "notification_type", :limit => 50,  :null => false
+    t.string   "pd_event_id",       :limit => 100
+    t.integer  "severity",                         :null => false
+    t.string   "subject"
+    t.text     "message"
+    t.text     "note"
+    t.string   "resolved_by"
+    t.datetime "resolved_at"
+    t.datetime "created_at",                       :null => false
+    t.datetime "updated_at",                       :null => false
   end
 
   create_table "project", :id => false, :force => true do |t|
@@ -268,8 +286,9 @@ ActiveRecord::Schema.define(:version => 20140430094939) do
     t.string   "status"
     t.string   "detailed_status"
     t.string   "request_id"
-    t.datetime "event_start",     :null => false
+    t.datetime "event_start",                                :null => false
     t.datetime "event_end"
+    t.integer  "number_of_consequent_errors", :default => 0
   end
 
   create_table "schedule", :force => true do |t|
@@ -278,14 +297,15 @@ ActiveRecord::Schema.define(:version => 20140430094939) do
     t.string   "server"
     t.string   "cron"
     t.string   "r_project"
-    t.string   "updated_by",         :limit => nil
+    t.string   "updated_by",           :limit => nil
     t.datetime "updated_at"
-    t.boolean  "is_deleted",                        :default => false, :null => false
-    t.boolean  "main"
+    t.boolean  "is_deleted",                          :default => false, :null => false
+    t.boolean  "main",                                :default => false
     t.datetime "created_at"
     t.integer  "settings_server_id"
     t.string   "gooddata_schedule"
     t.string   "gooddata_process"
+    t.integer  "max_number_of_errors",                :default => 0
   end
 
   create_table "schedule_history", :force => true do |t|

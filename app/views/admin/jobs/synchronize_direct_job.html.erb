@@ -1,0 +1,27 @@
+<%= semantic_form_for @job,:url => @edit ? admin_jobs_update_direct_sychnronization_path("job_id" => @job.id) : admin_jobs_create_direct_sychnronization_path,:validate => true do |a| %>
+
+
+    <%= a.inputs "Job Synchronize Contract" do %>
+        <%= a.input :job_type, :input_html => { :disabled => true , :value => "Synchronize Direct" } %>
+        <%= a.input :settings_server_id,  :as => :select, :collection => SettingsServer.all %>
+        <%= a.input :key,  :as => :hidden, :input_html => { :value => @edit ? @type : params["type"] } %>
+    <% end %>
+
+    <%= a.inputs "Schedule" do %>
+        <%= a.input :recurrent,  :as => :radio, :collection => ["true", "false"] %>
+        <%= a.input :scheduled_at, :as => :just_datetime_picker, :input_html => { :value => {:combined_value => @job.scheduled_at,:date => @job.scheduled_at.to_date}} %>
+        <%= a.input :cron %>
+    <% end %>
+    <%= a.actions do %>
+        <%= a.action :submit %>
+    <% end %>
+
+<% end %>
+
+
+
+
+
+
+
+

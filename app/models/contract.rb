@@ -7,9 +7,10 @@ class Contract < ActiveRecord::Base
   belongs_to :customer
 
   attr_accessible :name
+  attr_accessor :max_number_of_errors
 
   def self.get_public_attributes
-    ["name","sla_enabled","sla_type","sla_value","sla_percentage","monitoring_enabled","monitoring_emails","monitoring_treshhold","token","documentation_url"]
+    ["name","sla_enabled","sla_type","sla_value","sla_percentage","monitoring_enabled","monitoring_emails","monitoring_treshhold","token","documentation_url","default_max_number_of_errors"]
   end
 
   def self.contract_by_job_id(job_id)

@@ -49,6 +49,7 @@ ActiveAdmin.register Contract do
       f.input :customer_id,:as => :hidden
       f.input :token
       f.input :documentation_url
+      f.input :default_max_number_of_errors,:default => 0
       f.input :tag_list,
               label: "Tags",
               input_html: {
@@ -87,6 +88,7 @@ ActiveAdmin.register Contract do
         row :tag_list
         row :token
         row :documentation_url
+        row :default_max_number_of_errors
       end
     end
     panel ("Monitoring") do
@@ -105,14 +107,41 @@ ActiveAdmin.register Contract do
         row :sla_percentage
       end
     end
-
-
   end
+
+
+
+  action_item :only => [:show,:edit] do
+    link_to "Update Max Error Count", :controller => "contracts", :action => "error_show"
+  end
+
+
+
+  #page_action :ex, :method => :post do
+  #  # do stuff here
+  #  redirect_to admin_my_page_path, :notice => "You did stuff!"
+  #end
 
 
   controller do
     #layout 'active_admin',  :only => [:new]
     include ApplicationHelper
+
+    def error_show
+      @contract = Contract.find_by_id(params["id"])
+      pp @contract
+      render "admin/contracts/update_error_contract"
+    end
+
+    def error_modification
+      schedules = Schedule.joins(:project).joins(:contract).where(contract: {id: params["contract"]["id"]})
+      ActiveRecord::Base.transaction do
+        schedules.update_all(max_number_of_errors: params["contract"]["max_number_of_errors"])
+        ScheduleHistory.mass_add_change(schedules,"max_number_of_errors",params["contract"]["max_number_of_errors"],current_active_admin_user)
+      end
+      redirect_to admin_contract_path(params["contract"]["id"]),:notice => "Success!!!"
+    end
+
 
     before_filter :only => [:index] do
       if params['commit'].blank?
@@ -123,9 +152,6 @@ ActiveAdmin.register Contract do
     def update
       contract = Contract.where("id = ?",params[:id]).first
       public_attributes = Contract.get_public_attributes
-
-      pp params
-
       ActiveRecord::Base.transaction do
         public_attributes.each do |attr|
           if (!same?(params[:contract][attr],contract[attr]))
@@ -185,6 +211,8 @@ ActiveAdmin.register Contract do
         format.json { render json: @tags , :only => [:id,:name] }
       end
     end
+
+
 
 
 
