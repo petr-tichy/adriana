@@ -2,10 +2,7 @@ module SLAWatcher
 
   class BaseTest
 
-    attr_accessor :events
-
-    def initialize(events)
-      @events = events
+    def initialize()
     end
 
     def start

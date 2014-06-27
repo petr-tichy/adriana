@@ -7,8 +7,7 @@ module SLAWatcher
   class LiveTest < BaseTest
 
 
-    def initialize(events)
-      super(events)
+    def initialize()
       @PROJECT_PID      =   "test"
       @GRAPH_NAME       =   "app"
       @MODES            =   ["prod2"]
@@ -22,26 +21,30 @@ module SLAWatcher
       load_data
       #If Some of the executions is totally missing in response from database, we will anounce problem
       if (@execution_log.length != @MODES.length) then
-        @MODES.each do |mode|
+        @MODES.each_with_index do |mode,i|
           log = @execution_log.find{|f| f.mode == mode}
-          if (log.nil?) then
-            event = CustomEvent.new(Key.new(log.r_schedule,"SCHEDULE"),@SEVERITY,@EVENT_TYPE,"The LiveCheck project on server #{mode} is not working",DateTime.now,false)
-            @events.push_event(event)
+          notification_log = @notification_logs.find{|l| l.key == mode}
+          if (log.nil? and notification_log.nil?) then
+            @new_events << CustomEvent.new(Key.new(mode,@EVENT_TYPE),@SEVERITY,"The LiveCheck project on server #{mode} is not working",@now,nil,nil)
           end
         end
       end
 
       @execution_log.each do |log|
         number_of_minutes_from_last_finish = (Time.now - log.updated_at)/1.minute
-        if (number_of_minutes_from_last_finish > @WARNING_INTERVAL)
-          event = CustomEvent.new(Key.new(log.r_schedule,"SCHEDULE"),@SEVERITY,@EVENT_TYPE,"LiveCheck (#{log.mode}) has not logged in #{@WARNING_INTERVAL} m",DateTime.now,false)
-          @events.push_event(event)
+        notification_log = @notification_logs.find{|l| l.key == log.mode}
+        if (number_of_minutes_from_last_finish > @WARNING_INTERVAL and notification_log.nil?)
+          @new_events << CustomEvent.new(Key.new(log.mode,@EVENT_TYPE),@SEVERITY,"LiveCheck (#{log.mode}) has not logged in #{@WARNING_INTERVAL} m",@now,nil,nil)
         end
       end
+      @new_events
     end
 
     def load_data()
       @execution_log = ExecutionLog.get_last_events_in_interval(@PROJECT_PID,@MODES,@GRAPH_NAME,DateTime.now - @TIME_INTERVAL.hour)
+      @new_events = []
+      @now = DateTime.now
+      @notification_logs = NotificationLog.where(notification_type: @EVENT_TYPE,created_at: (@now - 1.day)..@now)
     end
 
 

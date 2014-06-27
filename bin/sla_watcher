@@ -7,13 +7,14 @@ require 'bundler/setup'
 require 'active_record'
 require 'gli'
 require 'pp'
-require "passwordmanager"
 require_relative "../lib/sla_watcher.rb"
 require 'pony'
 require 'activerecord-import'
+require 'pagerduty/full'
+require 'yaml'
 
 
-include GLI
+include GLI::App
 
 program_desc 'Program for SLA checking'
 
@@ -25,8 +26,7 @@ command :splunk_synchronization do |c|
     $type = "splunk_synchronization"
 
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
-    PasswordManagerApi::PasswordManager.connect(@passman_adress,@passman_port,@passman_key)
-    splunk = SLAWatcher.splunk(@splunk_username,@splunk_hostname)
+    splunk = SLAWatcher.splunk(@splunk_username,@splunk_password,@splunk_hostname)
 
 
     # Load the last time when the synchronization was executed
@@ -66,6 +66,21 @@ command :splunk_synchronization do |c|
 end
 
 desc 'Synchronize with Splunk'
+command :api_synchronization do |c|
+  c.action do |global_options,options,args|
+
+    $type = "api_synchronization"
+
+    SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
+    PasswordManagerApi::PasswordManager.connect(@passman_adress,@passman_port,@passman_key)
+    SLAWatcher.snifer
+
+  end
+end
+
+
+
+desc 'Synchronize with Splunk'
 command :migration do |c|
   c.action do |global_options,options,args|
     $type = "migration"
@@ -83,6 +98,8 @@ command :test do |c|
     $type = "test"
 
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
+    SLAWatcher.pd_entity = PagerDuty::Full.new(apikey = @pd_api_key, subdomain = @pd_subdomain)
+    SLAWatcher.pd_service = @pd_service
     SLAWatcher.test
 
   end
@@ -93,9 +110,10 @@ desc 'Development'
 command :development do |c|
   c.action do |global_options,options,args|
 
-
-
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
+    #PasswordManagerApi::PasswordManager.connect(@passman_adress,@passman_port,@passman_key)
+    SLAWatcher.pd_entity = PagerDuty::Full.new(apikey = @pd_api_key, subdomain = @pd_subdomain)
+    SLAWatcher.pd_service = @pd_service
     SLAWatcher.development
 
   end
@@ -150,43 +168,8 @@ command :sync_google do |c|
 #  c.default_value false
 #  c.flag [:o, :only]
   c.action do |global_options,options,args|
-    SLAWatcher.connect_to_google(@google_username,@google_password,"0ApmhJLt4M00vdEVTcXhoSm11TE9FdllQT2poUVlnWGc")
     SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
-
     $type = "sync_google"
-
-    data_in_sheet = SLAWatcher.google.load_data
-    data = SLAWatcher.get_unchanged_sla_descriptions
-    data_in_sheet.each do |s|
-      sla = data.find { |d| d.id.to_s == s[:id].to_s}
-      if (!sla.nil?)
-        if (s[:sla_description_type] != sla.sla_description_type or s[:sla_description_text] != sla.sla_description_text)
-          sla.sla_description_type = s[:sla_description_type]
-          sla.sla_description_text = s[:sla_description_text]
-          sla.save
-        end
-      end
-    end
-    data_description = SLAWatcher.get_sla_descriptions
-    SLAWatcher.google.put_data_to_worksheet(data_description)
-
-    wrongly_logged = SLAWatcher.get_wrongly_logged_executions
-    wrongly_logged_in_sheet = SLAWatcher.google.load_error_worksheet
-    wrongly_logged_in_sheet.each do |w|
-      execution = wrongly_logged.find { |d| d.id.to_s == w[:id].to_s}
-      if (!execution.nil?)
-            if (!w[:event_end].nil? and !w[:event_end].empty? and (w[:status] == "FINISHED" or w[:status] == "ERROR"))
-              begin
-                event_end = DateTime.strptime(w[:event_end],"%Y-%m-%d %H:%M:%S")
-                execution.event_end = event_end
-                execution.status = w[:status]
-                execution.detailed_status = w[:detailed_status]
-                execution.save
-              rescue => e
-              end
-            end
-          end
-    end
     wrongly_logged = SLAWatcher.get_wrongly_logged_executions
     wrongly_logged.each do |execution|
       now = Time.now().utc
@@ -198,9 +181,24 @@ command :sync_google do |c|
         Pony.mail(:to => "adrian.toman+sla@gooddata.com,petr.tichy+sla@gooddata.com",:from => 'sla@gooddata.com', :subject => "The execution was automaticaly closed", :body => "The execution for #{execution.project_name} (#{execution.project_pid}) was automatically closed after 12h. If there are more errors for one project in line, it looks like something is wrong with this project." )
       end
     end
-    SLAWatcher.google.fill_error_worksheet(wrongly_logged)
   end
 end
+
+
+desc 'Run remove notification job'
+command :remove_notification do |c|
+#  c.desc 'Execute only for one entity.'
+#  c.default_value false
+#  c.flag [:o, :only]
+  c.action do |global_options,options,args|
+    SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
+    PasswordManagerApi::PasswordManager.connect(@passman_adress,@passman_port,@passman_key)
+    $type = "remove_notification"
+    SLAWatcher.run_notification_removal_task
+  end
+end
+
+
 
 
 
@@ -229,23 +227,33 @@ pre do |global,command,options,args|
     @passman_adress = json["passman_adress"]
     @passman_port = json["passman_port"]
     @passman_key = json["passman_key"]
+    @pd_api_key = json["pd_api_key"]
+    @pd_subdomain = json["pd_subdomain"]
+    @pd_service = json["pd_service"]
   end
+
   if File.exists?("running_#{command.name}.pid")
     @running = true
     @not_delete = true
     exit_now! "Another process for this command is running"
   end
   FileUtils.touch("running_#{command.name}.pid")
+  # Pre logic here
+  # Return true to proceed; false to abourt and not call the
+  # chosen command
+  # Use skips_pre before a command to skip this block
+  # on that command only
   true
 end
 
 post do |global,command,options,args|
   FileUtils.rm_f("running_#{command.name}.pid") if !@running
+  #Pony.mail(:to => "adrian.toman@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Some work was done in #{command.name}", :body => "File in attachements", :attachments => {"sla_#{command.name}.log" => File.read("log/sla_#{command.name}.log")})
 end
 
 on_error do |exception|
   FileUtils.rm_f("running_#{@command}.pid") if !@not_delete
-  Pony.mail(:to => "adrian.toman@gooddata.com,petr.tichy+sla@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Error - #{$type}", :body => "Error: #{exception.backtrace}" )
+  #Pony.mail(:to => "adrian.toman@gooddata.com,petr.tichy+sla@gooddata.com",:from => 'sla@gooddata.com', :subject => "SLA Synchronization - Error - #{$type}", :body => "Error: #{exception.backtrace}" )
   pp exception.backtrace
   if exception.is_a?(SystemExit) && exception.status == 0
     false
@@ -256,4 +264,4 @@ on_error do |exception|
 end
 
 
-exit GLI.run(ARGV)
+exit run(ARGV)

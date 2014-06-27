@@ -1,6 +1,6 @@
 module SLAWatcher
   class Settings < ActiveRecord::Base
-    self.table_name = 'log2.settings'
+    self.table_name = 'settings'
 
     def self.load_last_splunk_synchronization
       where("key = 'last_splunk_synchronization'")

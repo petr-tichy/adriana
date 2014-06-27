@@ -1,11 +1,8 @@
 
 module SLAWatcher
   class EventLog < ActiveRecord::Base
-    self.table_name = 'log2.event_log'
+    self.table_name = 'event_log'
     self.primary_key = 'id'
-
-    attr_accessible :event_entity,:severity, :key, :updated_date, :persistent, :event_type, :notified, :text, :created_date
-
      #def self.log_execution(pid,graph_name,mode,status,detailed_status,time = nil)
     #  #time = 'NULL' if time.nil?
     #  #mode = 'NULL' if mode.nil?
@@ -23,6 +20,13 @@ module SLAWatcher
     #def self.get_last_starts_of_live_projects
     #  select("MAX(event_start) as event_start,s.graph_name as graph_name,s.mode as mode,s.r_project as project_pid,execution_log.r_schedule as r_schedule").joins("INNER JOIN log2.schedule s ON s.id = execution_log.r_schedule").joins("INNER JOIN log2.project p ON p.project_pid = s.r_project").where("p.status = 'Live'").group("execution_log.r_schedule,s.graph_name,s.mode,s.r_project")
     #end
+
+    private
+
+    def person_params
+      params.permit(:event_entity,:severity, :key, :updated_date, :persistent, :event_type, :notified, :text, :created_date)
+    end
+
 
 
 
