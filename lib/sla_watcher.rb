@@ -107,11 +107,11 @@ module SLAWatcher
       finishedTest = SLAWatcher::FinishedTest.new()
       @events = @events + finishedTest.start
 
-      #livetest = SLAWatcher::LiveTest.new()
-      #@events = @events + livetest.start
+      livetest = SLAWatcher::LiveTest.new()
+      @events = @events + livetest.start
 
-      #startedTest = SLAWatcher::StartedTest.new()
-      #@events = @events + startedTest.start
+      startedTest = SLAWatcher::StartedTest.new()
+      @events = @events + startedTest.start
 
       events_wrapper = Events.new(@events,@pd_service,@pd_entity)
       events_wrapper.save

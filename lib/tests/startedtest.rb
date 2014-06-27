@@ -53,22 +53,22 @@ module SLAWatcher
                   end
                 end
               else
-                now_cet = Time.now
-                next_run = Helper.next_run(schedule.cron,execution.event_start,Time)
-                running_late_for = ((next_run - now_cet)/1.minute)*(-1)
+                now_utc = Time.now.utc
+                next_run = Helper.next_run(schedule.cron,execution.event_start.utc,SLAWatcher::UTCTime)
+                running_late_for = ((next_run - now_utc)/1.minute)*(-1)
                 # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
-                if (!running_execution.nil? and running_late_for > 25 and running_late_for < 300)
-                  if (notification_log.nil?)
-                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id)
-                  else
-                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id,notification_log.id)
-                  end
 
-                elsif (running_late_for > 25)
+                if (!running_execution.nil? and running_late_for > 25 and running_late_for < 300)
                   if (notification_log.nil?)
                     @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id)
                   else
                     @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id,notification_log.id)
+                  end
+                elsif (!running_execution.nil? and running_late_for > 25)
+                  if (notification_log.nil?)
+                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id)
+                  else
+                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id,notification_log.id)
                   end
                 end
               end
@@ -82,7 +82,7 @@ module SLAWatcher
     def load_data()
       @now = DateTime.now
       @execution_log = ExecutionLog.get_last_starts_of_live_projects
-      @running_projects = ExecutionLog.get_running_projects(DateTime.now - 12.hour)
+      @running_projects = ExecutionLog.get_running_projects(DateTime.now - 24.hour)
       @live_schedules = Schedule.load_schedules_of_live_projects
       @notification_logs = NotificationLog.where(notification_type: @EVENT_TYPE,created_at: (@now - 4.hour)..@now)
       @notification_logs_not_once = NotificationLog.where(notification_type: @EVENT_TYPE_NOT_ONCE,updated_at: (@now - 1.day)..@now)

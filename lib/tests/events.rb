@@ -64,7 +64,7 @@ module SLAWatcher
           else
             notification_log = NotificationLog.find_by_id(value[:event].notification_id)
             value[:old_event] = notification_log
-            if (notification_log.severity > value[:event].severity and e.severity > Severity.MEDIUM)
+            if (notification_log.severity > value[:event].severity and value[:event].severity > Severity.MEDIUM)
               if (value[:event].key.type == "ERROR_TEST")
                 messages << message
               end
