@@ -1,7 +1,7 @@
 module SLAWatcher
   class Schedule < ActiveRecord::Base
     self.table_name = 'schedule'
-    self.primary_key = 'id'
+    set_primary_key = :project_pid
 
     belongs_to :project, :primary_key => "project_pid", :foreign_key => "r_project"
     belongs_to :settings_server
