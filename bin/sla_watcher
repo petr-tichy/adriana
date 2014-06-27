@@ -7,6 +7,7 @@ require 'bundler/setup'
 require 'active_record'
 require 'gli'
 require 'pp'
+require 'passwordmanager'
 require_relative "../lib/sla_watcher.rb"
 require 'pony'
 require 'activerecord-import'
