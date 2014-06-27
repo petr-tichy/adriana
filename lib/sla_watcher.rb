@@ -32,7 +32,7 @@ module SLAWatcher
     end
 
     def splunk(username,password,hostname)
-      SLAWatcher::SplunkDownloader.new(username,password,hostname)
+      SLAWatcher::SplunkDownloader.new(username,hostname)
     end
 
 
