@@ -22,7 +22,7 @@ module SLAWatcher
         executions = @last_five_executions.find_all{|e| e.r_schedule == s.id}
         last_execution = executions.last
         # Lets look on last execution and see if there is some problem on the way
-        if (!last_execution.nil? and ((last_execution.status == "RUNNING" and executions[-2].status  == "ERROR") or last_execution.status == "ERROR"))
+        if (!last_execution.nil? and ((last_execution.status == "RUNNING" and !executions[-2].nil? and executions[-2].status  == "ERROR") or last_execution.status == "ERROR"))
           # Last execution is Running or ERROR ... we need to go deeper in history to check if there is some reccuring problem
           last_ok_status_index = 0
           executions.each_with_index do |execution,i|
