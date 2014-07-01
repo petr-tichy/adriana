@@ -33,7 +33,6 @@ module SLAWatcher
 
 
     def self.get_running_projects(two_days_back)
-
       select("*").joins("INNER JOIN schedule s ON s.id = execution_log.r_schedule").joins("INNER JOIN project p ON p.project_pid = s.r_project").where("execution_log.status = 'RUNNING' and event_start > ?",two_days_back)
     end
 

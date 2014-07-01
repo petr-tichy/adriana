@@ -37,19 +37,19 @@ module SLAWatcher
                 next_run = Helper.next_run(schedule.cron,execution.event_start.utc,SLAWatcher::UTCTime)
                 running_late_for = ((next_run - now_utc)/1.minute)*(-1)
                 # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
-                if (!running_execution.nil? and running_late_for > 25 and running_late_for < 300)
+                if (running_execution.nil? and running_late_for > 25 and running_late_for < 60)
                   @@log.info("Type: MEDIUM The UTC time is: #{now_utc}, schedule ID is: #{schedule.id}, running_late: #{running_late_for}, cron: #{schedule.cron} execution: #{execution.event_start} #{execution.event_start.utc}, next_run: #{next_run}")
-                  if (notification_log.nil?)
-                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id)
-                  else
-                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id,notification_log.id)
-                  end
-                elsif (running_late_for > 25)
-                  @@log.info("Type: HIGH The UTC time is: #{now_utc}, schedule ID is: #{schedule.id}, running_late: #{running_late_for}, cron: #{schedule.cron} execution: #{execution.event_start} #{execution.event_start.utc}, next_run: #{next_run}")
                   if (notification_log.nil?)
                     @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id)
                   else
                     @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id,notification_log.id)
+                  end
+                elsif (running_execution.nil? and running_late_for >= 60)
+                  @@log.info("Type: HIGH The UTC time is: #{now_utc}, schedule ID is: #{schedule.id}, running_late: #{running_late_for}, cron: #{schedule.cron} execution: #{execution.event_start} #{execution.event_start.utc}, next_run: #{next_run}")
+                  if (notification_log.nil?)
+                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id)
+                  else
+                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id,notification_log.id)
                   end
                 end
               else
@@ -57,20 +57,17 @@ module SLAWatcher
                 next_run = Helper.next_run(schedule.cron,execution.event_start.localtime,Time)
                 running_late_for = ((next_run - now_cet)/1.minute)*(-1)
                 # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
-
-                if (!running_execution.nil? and running_late_for > 25 and running_late_for < 300)
-                  if (notification_log.nil?)
-                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id)
-                  else
-                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id,notification_log.id)
-                  end
-                elsif (!running_execution.nil? and running_late_for > 25)
-
-
+                if (running_execution.nil? and running_late_for > 25 and running_late_for < 60)
                   if (notification_log.nil?)
                     @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id)
                   else
                     @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id,notification_log.id)
+                  end
+                elsif (running_late_for >= 60)
+                  if (notification_log.nil?)
+                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id)
+                  else
+                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run}",@now,nil,schedule.id,notification_log.id)
                   end
                 end
               end
