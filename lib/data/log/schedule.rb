@@ -11,7 +11,7 @@ module SLAWatcher
     #belongs_to :contract, :through => :project
 
     def self.load_schedules_of_live_projects
-      select("schedule.id as id,ss.server_type as server_type,schedule.cron as cron").joins("INNER JOIN log3.project p ON r_project = p.project_pid").joins("INNER JOIN log3.contract c ON c.id = p.contract_id").joins("INNER JOIN log3.settings_server ss ON ss.id = schedule.settings_server_id").where("p.status = ? and schedule.is_deleted = ? and c.contract_type = ? and p.is_deleted = ?","Live",false,"direct",false)
+      select("schedule.id as id,ss.server_type as server_type,schedule.cron as cron").joins("INNER JOIN project p ON r_project = p.project_pid").joins("INNER JOIN contract c ON c.id = p.contract_id").joins("INNER JOIN settings_server ss ON ss.id = schedule.settings_server_id").where("p.status = ? and schedule.is_deleted = ? and c.contract_type = ? and p.is_deleted = ?","Live",false,"direct",false)
     end
 
     def self.load_schedules_of_live_projects_main
