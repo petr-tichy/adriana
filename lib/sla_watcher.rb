@@ -113,8 +113,8 @@ module SLAWatcher
       startedTest = SLAWatcher::StartedTest.new()
       @events = @events + startedTest.start
 
-      #events_wrapper = Events.new(@events,@pd_service,@pd_entity)
-      #events_wrapper.save
+      events_wrapper = Events.new(@events,@pd_service,@pd_entity)
+      events_wrapper.save
     end
 
     def development()
