@@ -40,16 +40,16 @@ module SLAWatcher
                 if (running_execution.nil? and running_late_for > 25 and running_late_for < 60)
                   @@log.info("Type: MEDIUM The UTC time is: #{now_utc}, schedule ID is: #{schedule.id}, running_late: #{running_late_for}, cron: #{schedule.cron} execution: #{execution.event_start} #{execution.event_start.utc}, next_run: #{next_run}")
                   if (notification_log.nil?)
-                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id)
+                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id)
                   else
-                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id,notification_log.id)
+                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id,notification_log.id)
                   end
                 elsif (running_execution.nil? and running_late_for >= 60)
                   @@log.info("Type: HIGH The UTC time is: #{now_utc}, schedule ID is: #{schedule.id}, running_late: #{running_late_for}, cron: #{schedule.cron} execution: #{execution.event_start} #{execution.event_start.utc}, next_run: #{next_run}")
                   if (notification_log.nil?)
-                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id)
+                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id)
                   else
-                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.MEDIUM,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id,notification_log.id)
+                    @new_events << CustomEvent.new(Key.new(schedule.id,@EVENT_TYPE),Severity.HIGH,"Schedule not started - should start: #{next_run.in_time_zone("CET")}",@now,nil,schedule.id,notification_log.id)
                   end
                 end
               else
