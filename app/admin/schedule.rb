@@ -54,6 +54,7 @@ ActiveAdmin.register Schedule do
       f.input :main
       f.input :settings_server
       f.input :cron
+      f.input :max_number_of_errors
       if (params["project_pid"].nil?)
         f.input :r_project,:as => :hidden
       else
@@ -84,6 +85,7 @@ ActiveAdmin.register Schedule do
     end
     column :cron
     column :main
+    column :max_number_of_errors
     column :status do |schedule|
       if (!schedule.running_executions.nil? and !schedule.running_executions.status.nil?)
         if (schedule.running_executions.status == "RUNNING")
@@ -121,6 +123,7 @@ ActiveAdmin.register Schedule do
             row :mode
             row :main
             row :settings_server
+            row :max_number_of_errors
           end
 
         end
