@@ -77,6 +77,7 @@ ActiveAdmin.register Schedule do
     column "Project PID" do |schedule|
       link_to schedule.r_project, :controller => "projects", :action => "show",:id => schedule.r_project
     end
+    column :graph_name
     column :mode
     column :server do |schedule|
       schedule.settings_server.name

@@ -61,6 +61,9 @@ ActiveAdmin.register Contract do
         }
       # etc
     end
+    f.inputs "Customer" do
+      f.input :customer_id, :as => :select,:collection => Customer.all(:order => "name")
+    end
     f.inputs "SLA" do
       f.input :sla_enabled
       f.input :sla_type
