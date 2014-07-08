@@ -88,7 +88,7 @@ module SLAWatcher
                 res = GoodData.put(self_link,item)
                 @@log.info self_link
               else
-                @@log.info self_link "Other notification, leaving as it is #{s.r_project}"
+                @@log.info "Other notification, leaving as it is #{s.r_project}"
               end
             end
 
