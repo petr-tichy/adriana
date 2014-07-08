@@ -86,9 +86,9 @@ module SLAWatcher
                 item["notificationRule"].delete("links")
                 item["notificationRule"]["email"] = "ms+pagerduty@gooddata.com"
                 res = GoodData.put(self_link,item)
-                pp self_link
+                @@log.info self_link
               else
-                puts "Other notification, leaving as it is"
+                @@log.info self_link "Other notification, leaving as it is #{s.r_project}"
               end
             end
 
