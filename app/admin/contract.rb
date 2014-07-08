@@ -59,7 +59,9 @@ ActiveAdmin.register Contract do
                       url: autocomplete_tags_path },
                   class: 'tagselect'
         }
+      f.input :contract_type,:as => :select,:collection => ["direct","poweredby","N/A"]
       # etc
+
     end
     f.inputs "Customer" do
       f.input :customer_id, :as => :select,:collection => Customer.all(:order => "name")
@@ -92,6 +94,7 @@ ActiveAdmin.register Contract do
         row :token
         row :documentation_url
         row :default_max_number_of_errors
+        row :contract_type
       end
     end
     panel ("Monitoring") do

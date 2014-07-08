@@ -10,7 +10,7 @@ class Contract < ActiveRecord::Base
   attr_accessor :max_number_of_errors
 
   def self.get_public_attributes
-    ["name","sla_enabled","sla_type","sla_value","sla_percentage","monitoring_enabled","monitoring_emails","monitoring_treshhold","token","documentation_url","default_max_number_of_errors"]
+    ["name","sla_enabled","sla_type","sla_value","sla_percentage","monitoring_enabled","monitoring_emails","monitoring_treshhold","token","documentation_url","default_max_number_of_errors","contract_type"]
   end
 
   def self.contract_by_job_id(job_id)
