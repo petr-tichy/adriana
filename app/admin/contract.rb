@@ -193,6 +193,7 @@ ActiveAdmin.register Contract do
           contract.sla_percentage = params[:contract]["sla_percentage"]
           contract.monitoring_enabled = params[:contract]["monitoring_enabled"]
           contract.monitoring_treshhold = params[:contract]["monitoring_treshhold"]
+          contract.contract_type = params[:contract]["contract_type"]
           contract.save
 
           public_attributes.each do |attr|
