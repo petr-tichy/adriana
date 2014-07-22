@@ -8,6 +8,7 @@ class Contract < ActiveRecord::Base
 
   attr_accessible :name
   attr_accessor :max_number_of_errors
+  validates_presence_of :customer_id,:name
 
   def self.get_public_attributes
     ["name","sla_enabled","sla_type","sla_value","sla_percentage","monitoring_enabled","monitoring_emails","monitoring_treshhold","token","documentation_url","default_max_number_of_errors","contract_type"]
