@@ -50,6 +50,10 @@ module SLAWatcher
       find_by_sql("WITH ranked_executions AS ( SELECT id, r_schedule,status,event_start,event_end,pd_event_id,ROW_NUMBER() OVER (PARTITION BY r_schedule ORDER BY id DESC) AS rn FROM execution_log WHERE event_start > now() - interval '3 days') SELECT id,r_schedule,status,event_start,event_end,pd_event_id FROM ranked_executions WHERE rn <= 5 ORDER BY r_schedule,event_start")
     end
 
+    def self.get_last_five_executions_per_schedule_custom_date(custom_date)
+      find_by_sql("WITH ranked_executions AS ( SELECT id, r_schedule,status,event_start,event_end,pd_event_id,ROW_NUMBER() OVER (PARTITION BY r_schedule ORDER BY id DESC) AS rn FROM execution_log WHERE event_start < (to_timestamp('#{custom_date.strftime("%Y%m%d%H%M%S")}', 'YYYYMMDDHH24MISS'))) SELECT id,r_schedule,status,event_start,event_end,pd_event_id FROM ranked_executions WHERE rn <= 5 ORDER BY r_schedule,event_start")
+    end
+
     def self.check_request_id(values)
 
     end

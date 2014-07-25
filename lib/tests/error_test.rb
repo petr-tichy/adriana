@@ -17,7 +17,7 @@ module SLAWatcher
       @@log.info "Starting the #{@EVENT_TYPE} test"
       load_data
       #find_all{|s| s.id == 974}
-      @schedules.find_all.each do |s|
+      @schedules.each do |s|
         running_execution = @running_executions.find{|ex| ex.schedule_id == s.id}
         executions = @last_five_executions.find_all{|e| e.r_schedule == s.id}
         last_execution = executions.last

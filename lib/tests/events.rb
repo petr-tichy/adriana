@@ -106,7 +106,7 @@ module SLAWatcher
       end
 
       @events.find_all{|e| e.schedule_id.nil? }.each do |e|
-        subject << "#{e.key.value} - #{e.key.type}"
+        subject = "#{e.key.value} - #{e.key.type}"
         message = {"text" => e.text}
         if (e.notification_id.nil?)
           if (e.severity > Severity.MEDIUM)

@@ -19,6 +19,8 @@ module SLAWatcher
 
     def start()
       load_data
+
+
       #If Some of the executions is totally missing in response from database, we will anounce problem
       if (@execution_log.length != @MODES.length) then
         @MODES.each_with_index do |mode,i|

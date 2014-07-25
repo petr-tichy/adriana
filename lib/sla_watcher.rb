@@ -123,18 +123,18 @@ module SLAWatcher
       ##contractErrorTest = SLAWatcher::ContractErrorTest.new(events)
       ##contractErrorTest.start
       #
-      #@events = []
+      @events = []
       #
       #finishedTest = SLAWatcher::FinishedTest.new()
       #@events = @events + finishedTest.start
       #
       #pp @events
       #
-      ##errorTest = SLAWatcher::ErrorTest.new()
-      ##@events = @events + errorTest.start
+      #errorTest = SLAWatcher::ErrorTest.new()
+      #@events = @events + errorTest.start
       #
-      ##livetest = SLAWatcher::LiveTest.new()
-      ##@events = @events + livetest.start
+      livetest = SLAWatcher::LiveTest.new()
+      @events = @events + livetest.start
       #
       ##startedTest = SLAWatcher::StartedTest.new()
       ##@events = @events + startedTest.start
@@ -142,8 +142,11 @@ module SLAWatcher
       #events_wrapper = Events.new(@events,@pd_service,@pd_entity)
       #events_wrapper.save
 
-      task = NotificationRemovalTask.new()
-      task.start
+      events_wrapper = Events.new(@events,@pd_service,@pd_entity)
+      events_wrapper.save
+
+      #task = NotificationRemovalTask.new()
+      #task.start
 
 
     end
