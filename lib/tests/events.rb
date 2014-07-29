@@ -116,7 +116,7 @@ module SLAWatcher
           NotificationLog.create!(e.to_db_entity(subject,message.to_s))
         else
           notification_log = NotificationLog.find_by_id(e.notification_id)
-          if (notification_log.severity > e.severity and e.severity > Severity.MEDIUM )
+          if (e.severity > notification_log.severity and e.severity > Severity.MEDIUM )
             pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,message)
             e.pd_event_id = pd_event["incident_key"]
           end

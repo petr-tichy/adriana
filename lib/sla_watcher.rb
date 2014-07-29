@@ -133,17 +133,17 @@ module SLAWatcher
       #errorTest = SLAWatcher::ErrorTest.new()
       #@events = @events + errorTest.start
       #
-      livetest = SLAWatcher::LiveTest.new()
-      @events = @events + livetest.start
+      #livetest = SLAWatcher::LiveTest.new()
+      #@events = @events + livetest.start
       #
-      ##startedTest = SLAWatcher::StartedTest.new()
-      ##@events = @events + startedTest.start
+      startedTest = SLAWatcher::StartedTest.new()
+      @events = @events + startedTest.start
       #
       #events_wrapper = Events.new(@events,@pd_service,@pd_entity)
       #events_wrapper.save
 
-      events_wrapper = Events.new(@events,@pd_service,@pd_entity)
-      events_wrapper.save
+      #events_wrapper = Events.new(@events,@pd_service,@pd_entity)
+      #events_wrapper.save
 
       #task = NotificationRemovalTask.new()
       #task.start
