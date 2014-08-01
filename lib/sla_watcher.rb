@@ -136,11 +136,15 @@ module SLAWatcher
       #livetest = SLAWatcher::LiveTest.new()
       #@events = @events + livetest.start
       #
-      startedTest = SLAWatcher::StartedTest.new()
-      @events = @events + startedTest.start
+
+      @events << CustomEvent.new(Key.new(8174,"STARTED_TEST"),Severity.HIGH,"Testing schedule",DateTime.now,nil,8174,6073)
+
+
+      #startedTest = SLAWatcher::StartedTest.new()
+      #@events = @events + startedTest.start
       #
-      #events_wrapper = Events.new(@events,@pd_service,@pd_entity)
-      #events_wrapper.save
+      events_wrapper = Events.new(@events,@pd_service,@pd_entity)
+      events_wrapper.save
 
       #events_wrapper = Events.new(@events,@pd_service,@pd_entity)
       #events_wrapper.save

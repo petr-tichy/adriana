@@ -64,7 +64,7 @@ module SLAWatcher
           else
             notification_log = NotificationLog.find_by_id(value[:event].notification_id)
             value[:old_event] = notification_log
-            if (notification_log.severity > value[:event].severity and value[:event].severity > Severity.MEDIUM)
+            if (value[:event].severity > notification_log.severity and value[:event].severity > Severity.MEDIUM)
               if (value[:event].key.type == "ERROR_TEST")
                 messages << message
               end
@@ -92,11 +92,11 @@ module SLAWatcher
         events.find_all{|e| e[:event].key.type != "ERROR_TEST"}.each do |value|
           message = value[:message]
           subject = "#{value[:schedule].contract.name} - #{value[:event].key.type}"
+          if (value[:pd_event])
+            pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,message)
+            value[:event].pd_event_id = pd_event["incident_key"]
+          end
           if (value[:event].notification_id.nil?)
-            if (value[:pd_event])
-              pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,message)
-              value[:event].pd_event_id = pd_event["incident_key"]
-            end
             NotificationLog.create!(value[:event].to_db_entity(subject,message.to_s))
           else
             value[:old_event].update(value[:event].to_db_entity(subject,message.to_s))
