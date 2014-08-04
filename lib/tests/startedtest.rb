@@ -34,8 +34,10 @@ module SLAWatcher
               running_execution =  @running_projects.find {|e| e.r_schedule == schedule.id}
               if (schedule.server_type == "cloudconnect")
                 now_utc = Time.now.utc
-                next_run = Helper.next_run(schedule.cron,execution.event_start.utc,SLAWatcher::UTCTime)
-                running_late_for = ((next_run - now_utc)/1.minute)*(-1)
+                if (next_run < execution.event_end.utc)
+                  next_run = Helper.next_run(schedule.cron,execution.event_end.utc,SLAWatcher::UTCTime)
+                  running_late_for = ((next_run - now_utc)/1.minute)*(-1)
+                end
                 # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
                 if (running_execution.nil? and running_late_for > 25 and running_late_for < 60)
                   @@log.info("Type: MEDIUM The UTC time is: #{now_utc}, schedule ID is: #{schedule.id}, running_late: #{running_late_for}, cron: #{schedule.cron} execution: #{execution.event_start} #{execution.event_start.utc}, next_run: #{next_run}")
