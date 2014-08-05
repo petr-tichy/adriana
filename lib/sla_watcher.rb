@@ -137,7 +137,7 @@ module SLAWatcher
       #@events = @events + livetest.start
       #
 
-      @events << CustomEvent.new(Key.new(8174,"STARTED_TEST"),Severity.HIGH,"Testing schedule",DateTime.now,nil,8174,6073)
+      @events << CustomEvent.new(Key.new(6778,"STARTED_TEST"),Severity.HIGH,"Testing schedule",DateTime.now,nil,8174,6778)
 
 
       #startedTest = SLAWatcher::StartedTest.new()

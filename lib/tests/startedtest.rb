@@ -34,6 +34,9 @@ module SLAWatcher
               running_execution =  @running_projects.find {|e| e.r_schedule == schedule.id}
               if (schedule.server_type == "cloudconnect")
                 now_utc = Time.now.utc
+                next_run = Helper.next_run(schedule.cron,execution.event_start.utc,SLAWatcher::UTCTime)
+                running_late_for = ((next_run - now_utc)/1.minute)*(-1)
+
                 if (next_run < execution.event_end.utc)
                   next_run = Helper.next_run(schedule.cron,execution.event_end.utc,SLAWatcher::UTCTime)
                   running_late_for = ((next_run - now_utc)/1.minute)*(-1)
