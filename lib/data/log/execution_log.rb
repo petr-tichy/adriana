@@ -24,7 +24,7 @@ module SLAWatcher
     end
 
     def self.get_last_starts_of_live_projects
-      select("MAX(event_start) as event_start,s.graph_name as graph_name,s.mode as mode,s.r_project as project_pid,execution_log.r_schedule as r_schedule").joins("INNER JOIN schedule s ON s.id = execution_log.r_schedule").joins("INNER JOIN project p ON p.project_pid = s.r_project").joins("INNER JOIN contract c ON c.id = p.contract_id").where("p.status = 'Live' and p.is_deleted = 'false' and c.contract_type = 'direct' and s.is_deleted = 'false'").group("execution_log.r_schedule,s.graph_name,s.mode,s.r_project")
+      select("MAX(event_start) as event_start,MAX(event_end) as event_end,s.graph_name as graph_name,s.mode as mode,s.r_project as project_pid,execution_log.r_schedule as r_schedule").joins("INNER JOIN schedule s ON s.id = execution_log.r_schedule").joins("INNER JOIN project p ON p.project_pid = s.r_project").joins("INNER JOIN contract c ON c.id = p.contract_id").where("p.status = 'Live' and p.is_deleted = 'false' and c.contract_type = 'direct' and s.is_deleted = 'false'").group("execution_log.r_schedule,s.graph_name,s.mode,s.r_project")
     end
 
     def self.get_run_statistics(day_of_week,statistics_start)
