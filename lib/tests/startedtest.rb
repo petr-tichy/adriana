@@ -30,7 +30,7 @@ module SLAWatcher
           schedule = @live_schedules.find{|s| s.id  == execution.r_schedule}
           notification_log = @notification_logs.find{|l| l.key == schedule.id.to_s }
           #Taking only ones with live schedule
-          if (!schedule.nil?)
+          if (!schedule.nil? and schedule.cron != "")
               running_execution =  @running_projects.find {|e| e.r_schedule == schedule.id}
               if (schedule.server_type == "cloudconnect")
                 now_utc = Time.now.utc
