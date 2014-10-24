@@ -25,8 +25,9 @@ module SLAWatcher
     def execute_query(query)
       # Create the Search
       search = @splunk.search(query)
-      puts query
-      sleep(10)
+			@@log.info("splunk query: #{query}")
+      #puts query
+      sleep(1)
       search.wait # Blocks until the search returns
       search
     end
