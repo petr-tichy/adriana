@@ -1,5 +1,6 @@
 require 'splunk-client'
 require 'nokogiri'
+require "benchmark"
 
 module SLAWatcher
 
@@ -34,27 +35,37 @@ module SLAWatcher
     def load_runs(from,to,projects)
       project_strings = []
       temp_project_string = []
-      projects.each do |p|
-        temp_project_string.push("project_id=#{p.project_pid}")
-        if (temp_project_string.count == @ONE_QUERY_LIMIT)
-          project_strings << temp_project_string
-          temp_project_string = []
+
+
+      @@log.info "Query initialization" + Benchmark.measure {
+        projects.each do |p|
+          temp_project_string.push("project_id=#{p.project_pid}")
+          if (temp_project_string.count == @ONE_QUERY_LIMIT)
+            project_strings << temp_project_string
+            temp_project_string = []
+          end
         end
-      end
-      project_strings << temp_project_string
+        project_strings << temp_project_string
+      }.to_s
 
       values = []
       project_strings.each do |temp|
         query = @last_runs_query.sub("%PIDS%",temp.join(" OR "));
         query = query.sub("%START_TIME%",from.strftime("%m/%d/%Y:%H:%M:%S"));
         query = query.sub("%END_TIME%",to.strftime("%m/%d/%Y:%H:%M:%S"));
-        result = execute_query(query)
-
-        result.parsedResults.each do |p|
-          values.push({:project_pid => p.project_id,:request_id => p.request_id, :clover_graph => Helper.extract_graph_name(p.clover_graph), :mode => Helper.extract_mode(p.mode), :status => p.status,:time => DateTime.strptime(p._time,"%Y-%m-%dT%H:%M:%S.%L%z")})
-        end
+        result = nil
+        @@log.info "Query execution" + Benchmark.measure {
+          result = execute_query(query)
+        }.to_s
+        @@log.info "Query parsing" + Benchmark.measure{
+          result.parsedResults.each do |p|
+            values.push({:project_pid => p.project_id,:request_id => p.request_id, :clover_graph => Helper.extract_graph_name(p.clover_graph), :mode => Helper.extract_mode(p.mode), :status => p.status,:time => DateTime.strptime(p._time,"%Y-%m-%dT%H:%M:%S.%L%z")})
+          end
+        }.to_s
       end
-      values.sort{|a,b| a[:time] <=> b[:time]}
+      @@log.info "Query sorting" + Benchmark.measure{
+        values.sort{|a,b| a[:time] <=> b[:time]}
+      }.to_s
     end
 
 
