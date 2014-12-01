@@ -63,9 +63,11 @@ module SLAWatcher
           end
         }.to_s
       end
+      output =  nil
       @@log.info "Query sorting" + Benchmark.measure{
-        values.sort{|a,b| a[:time] <=> b[:time]}
+        output = values.sort{|a,b| a[:time] <=> b[:time]}
       }.to_s
+      output
     end
 
 
