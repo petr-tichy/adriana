@@ -39,7 +39,8 @@ command :splunk_synchronization do |c|
 
 
     # Returns all events for given set of project in given time frame
-    events = splunk.load_runs(last_run - 12.hours, now, projects)
+    #events = splunk.load_runs(last_run - 12.hours, now, projects)
+    events = splunk.load_runs(last_run - 4.hours, now, projects)
 
     starts = events.find_all{|e| e[:status] == 'STARTED'}
     errors_finished = events.find_all{|e| e[:status] != 'STARTED'}
