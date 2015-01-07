@@ -1,6 +1,5 @@
 $: << File.expand_path(File.dirname(__FILE__) + "../")
 
-require 'parse-cron'
 require_relative "data/connection.rb"
 require 'logger'
 require_relative 'migration.rb'

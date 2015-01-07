@@ -1,3 +1,5 @@
+require 'whedon'
+
 module SLAWatcher
 
   class Helper
@@ -36,8 +38,7 @@ module SLAWatcher
       list.each do |cron|
         begin
           source_length = cron.split(/\s+/).length
-          if (source_length >= 5 && source_length <= 6)
-            cron_parser = CronParser.new(cron)
+          if source_length >= 5 && source_length <= 6
             output.push({:value => cron,:valid => true})
           else
             output.push({:value => cron,:valid => false})
@@ -50,16 +51,17 @@ module SLAWatcher
     end
 
 
-    def self.next_run(cron_list,time,time_class)
+    def self.next_run(cron_list, start_time, time_zone = nil)
       list = cron_list.split("|")
       output = []
       list.each do |cron|
-        cron_parser = CronParser.new(cron,time_class)
-        next_run = cron_parser.next(time)
+        cron = [cron, time_zone].join(" ") if time_zone
+        cron_parser = Whedon::Schedule.new(cron)
+        next_run = cron_parser.next(start_time)
         output.push(next_run)
       end
       #We need to find nearest execution
-      output.sort{|a,b| a - time <=> b - time }
+      output.sort{|a,b| a - start_time <=> b - start_time }
       output.first
 
     end

@@ -1,6 +1,8 @@
 source 'https://rubygems.org'
 
-gem "parse-cron"
+#gem "parse-cron"
+gem 'whedon'
+gem 'tzinfo'
 gem "gli"
 gem "activerecord"
 gem "activerecord-postgresql-adapter"
