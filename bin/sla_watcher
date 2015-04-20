@@ -65,6 +65,7 @@ command :splunk_synchronization do |c|
       #Save the last run date
       SLAWatcher.save_last_run(now)
     end
+    SLAWatcher.flag_for_monit($type)
   end
 end
 
@@ -104,6 +105,7 @@ command :test do |c|
     SLAWatcher.pd_entity = PagerDuty::Full.new(apikey = @pd_api_key, subdomain = @pd_subdomain)
     SLAWatcher.pd_service = @pd_service
     SLAWatcher.test
+    SLAWatcher.flag_for_monit($type)
 
   end
 end

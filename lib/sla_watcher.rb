@@ -191,11 +191,9 @@ module SLAWatcher
     end
 
 
-
-
-
-
-
+    def flag_for_monit(command)
+      FileUtils.touch("monit/" + command.to_s + "_finished")
+    end
 
   end
 
