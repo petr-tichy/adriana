@@ -37,7 +37,7 @@ module SLAWatcher
             next_run = Helper.next_run(schedule.cron, execution.event_start.utc, 'UTC')
             running_late_for = ((next_run - now_utc)/1.minute)*(-1)
 
-            if (next_run < execution.event_end.utc)
+            if execution.event_end && next_run < execution.event_end.utc
               next_run = Helper.next_run(schedule.cron, execution.event_end.utc, 'UTC')
               running_late_for = ((next_run - now_utc)/1.minute)*(-1)
             end
