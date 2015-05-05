@@ -31,7 +31,7 @@ module SLAWatcher
             if (notification_log.nil?)
               @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),@SEVERITY+1,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",@now,nil,execution.r_schedule)
             else
-              @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),@SEVERITY+1,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",@now,nil,execution.r_schedule,notification_log.id)
+              @new_events << CustomEvent.new(Key.new(execution.id,@EVENT_TYPE),@SEVERITY+1,"Running for too long. Standard: #{(run_statistical_time.round)} minutes Current: #{(run_actual_time.round)} minutes",@now,notification_log.pd_event_id,execution.r_schedule,notification_log.id)
             end
           elsif (difference > @WARNING_INTERVAL)
             if (notification_log.nil?)
