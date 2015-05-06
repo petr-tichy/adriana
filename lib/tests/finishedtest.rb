@@ -21,6 +21,14 @@ module SLAWatcher
       @@log.info "Starting the #{@EVENT_TYPE} test"
       # Test if project is running more then normaly
       @running_projects.each do |execution|
+        schedule_object = @schedules.find{|s| s.id == execution.r_schedule }
+        # Special test for marketron
+        if (!schedule_object.nil? and schedule_object.contract.id == 7)
+          @WARNING_INTERVAL = 15
+        else
+          @WARNING_INTERVAL = 60
+        end
+
         statistical_value = @statistics_data.find{|s| s.r_schedule == execution.r_schedule }
         notification_log = @notification_logs.find{|n| n.key == execution.id.to_s}
         if (!statistical_value.nil? and !statistical_value.avg_run.nil? )
@@ -57,6 +65,7 @@ module SLAWatcher
       #@running_projects = ExecutionLog.get_running_projects(two_days_back)
       @running_projects = ExecutionLog.joins(:schedule).joins(:project).where(execution_log: {status: 'RUNNING', event_start: (two_days_back..@now)},schedule: {is_deleted: false},project: {status: 'Live',is_deleted: false})
       @notification_logs = NotificationLog.where(notification_type: @EVENT_TYPE,created_at: (@now - 3.day)..@now)
+      @schedules = Schedule.joins(:project).joins(:contract)
     end
 
 
