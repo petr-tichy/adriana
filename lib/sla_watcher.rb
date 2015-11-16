@@ -87,8 +87,8 @@ module SLAWatcher
       SLAWatcher::ExecutionLog.log_execution(pid,graph_name,mode,status,detailed_status,time)
     end
 
-    def log_execution_splunk(pid,graph_name,mode,status,detailed_status,time = nil,request_id = nil)
-      SLAWatcher::ExecutionLog.log_execution_splunk(pid,graph_name,mode,status,detailed_status,time,request_id)
+    def log_execution_splunk(pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time = nil)
+      SLAWatcher::ExecutionLog.log_execution_splunk(pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time)
     end
 
     def start_migration()

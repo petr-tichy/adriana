@@ -55,11 +55,11 @@ command :splunk_synchronization do |c|
     ActiveRecord::Base.transaction do
       # Save the events to the database
       starts.each do |event|
-        SLAWatcher.log_execution_splunk(event[:project_pid],event[:clover_graph],event[:mode],event[:status],"From Splunk synchronizer",event[:time],event[:request_id])
+        SLAWatcher.log_execution_splunk(event[:project_pid], event[:schedule_id], event[:request_id], event[:clover_graph], event[:mode], event[:status], "From Splunk synchronizer", event[:time])
       end
 
       errors_finished.each do |event|
-        SLAWatcher.log_execution_splunk(event[:project_pid],event[:clover_graph],event[:mode],event[:status],"From Splunk synchronizer",event[:time],event[:request_id])
+        SLAWatcher.log_execution_splunk(event[:project_pid], event[:schedule_id], event[:request_id], event[:clover_graph], event[:mode], event[:status], "From Splunk synchronizer", event[:time])
       end
 
       #Save the last run date
