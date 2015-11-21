@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-#gem "parse-cron"
 gem 'whedon'
 gem 'tzinfo'
 gem "gli"
@@ -16,3 +15,8 @@ gem "gooddata"
 gem 'passwordmanager', :git => 'https://github.com/adriantoman/PasswordManagerAPI.git'
 gem "pagerduty-full", :git => 'https://github.com/gphat/pagerduty-full.git'
 gem "pry"
+gem 'rest-client'
+
+group :devel do
+  gem "rails-erd"
+end

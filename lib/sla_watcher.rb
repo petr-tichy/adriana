@@ -6,6 +6,7 @@ require_relative 'migration.rb'
 #require 'composite_primary_keys'
 require 'google_drive'
 require "passwordmanager"
+require 'rest-client'
 
 %w(crontab_parser log helper change_watcher).each {|a| require_relative "helpers/#{a}"}
 %w(project task).each {|a| require_relative "data/stage/#{a}"}
@@ -97,20 +98,31 @@ module SLAWatcher
       migration.compare_stage_log_schedule
     end
 
+    def ping
+      begin
+        RestClient.get('https://secure.gooddata.com/gdc/ping')
+        true
+      rescue
+        false
+      end
+    end
+
     def test()
       @events = []
 
       errorTest = SLAWatcher::ErrorTest.new()
       @events = @events + errorTest.start
 
-      finishedTest = SLAWatcher::FinishedTest.new()
-      @events = @events + finishedTest.start
-
       livetest = SLAWatcher::LiveTest.new()
       @events = @events + livetest.start
 
-      startedTest = SLAWatcher::StartedTest.new()
-      @events = @events + startedTest.start
+      if ping
+        finishedTest = SLAWatcher::FinishedTest.new()
+        @events = @events + finishedTest.start
+
+        startedTest = SLAWatcher::StartedTest.new()
+        @events = @events + startedTest.start
+      end
 
       events_wrapper = Events.new(@events,@pd_service,@pd_entity)
       events_wrapper.save
