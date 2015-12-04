@@ -10,7 +10,7 @@ module SLAWatcher
     def initialize
       @PROJECT_PID = 'test'
       @GRAPH_NAME = 'app'
-      @MODES = %w(prod2 ms-clover-dev01)
+      @MODES = %w(prod2)
       @EVENT_TYPE = 'LIVE_TEST'
       @SEVERITY = Severity.HIGH
       @TIME_INTERVAL = 12 #How many hours back are we checking
