@@ -12,7 +12,7 @@ class Schedule < ActiveRecord::Base
   belongs_to :project, :primary_key => "project_pid", :foreign_key => "r_project"
   has_one :running_executions
   has_one :contract, :through => :project
-  validates_presence_of :graph_name,:cron,:settings_server_id
+  validates_presence_of :graph_name,:settings_server_id
 
   # attr_accessible :title, :body
 
