@@ -36,18 +36,10 @@ module SLAWatcher
 
     def load_runs(from, to, projects)
       project_strings = []
-      temp_project_string = []
-
-
       @@log.info 'Query initialization' + Benchmark.measure {
-        projects.each do |p|
-          temp_project_string.push("project_id=#{p.project_pid}")
-          if temp_project_string.count == @ONE_QUERY_LIMIT
-            project_strings << temp_project_string
-            temp_project_string = []
-          end
+        0.step(projects.length - 1, @ONE_QUERY_LIMIT) do |i|
+          project_strings.push projects[i, @ONE_QUERY_LIMIT].map {|p| "project_id=#{p.project_pid}"}
         end
-        project_strings << temp_project_string
       }.to_s
 
       values = []
