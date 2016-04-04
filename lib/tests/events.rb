@@ -29,15 +29,21 @@ module SLAWatcher
       # The section 2 is for events without schedule_id.
       # The Errors for this section are created normally.
       contract_grouping = {}
-      @events.find_all{|e| !e.schedule_id.nil? }.each do |e|
-        s = @schedules.find{|s| s.id == e.schedule_id}
+      @events.each do |e|
+        next if e.schedule_id.nil?
+        s = @schedules.find { |s| s.id == e.schedule_id }
         schedules_list = []
         if (!contract_grouping.key?(s.contract.id))
           contract_grouping[s.contract.id] = schedules_list
         else
           schedules_list = contract_grouping[s.contract.id]
         end
-        schedules_list << {:schedule => s,:event => e}
+        schedules_list << {:schedule => s, :event => e}
+      end
+
+      def pd_service(test)
+        now = Time.now
+        @pd_service[test && now.hour.between?(9, 16) && now.wday.between?(1, 5) ? :l2 : :ms]
       end
 
       contract_grouping.each_value do |events|
@@ -73,9 +79,10 @@ module SLAWatcher
           end
         end
         pd_event_id = nil
-        if (messages.count > 0)
-          pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,messages)
-          pd_event_id = pd_event["incident_key"]
+        if messages.count > 0
+          pd_service = pd_service messages.all? { |x| x.has_key?('console_link') }
+          pd_event = @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, messages)
+          pd_event_id = pd_event['incident_key']
         end
 
         events.find_all{|e| e[:event].key.type == "ERROR_TEST"}.each do |value|
@@ -92,9 +99,10 @@ module SLAWatcher
         events.find_all{|e| e[:event].key.type != "ERROR_TEST"}.each do |value|
           message = value[:message]
           subject = "#{value[:schedule].contract.name} - #{value[:event].key.type}"
-          if (value[:pd_event])
-            pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,message)
-            value[:event].pd_event_id = pd_event["incident_key"]
+          if value[:pd_event]
+            pd_service = pd_service value[:schedule].settings_server.server_type == 'cloudconnect'
+            pd_event = @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, message)
+            value[:event].pd_event_id = pd_event['incident_key']
           end
           if (value[:event].notification_id.nil?)
             NotificationLog.create!(value[:event].to_db_entity(subject,message.to_s))
@@ -107,18 +115,18 @@ module SLAWatcher
 
       @events.find_all{|e| e.schedule_id.nil? }.each do |e|
         subject = "#{e.key.value} - #{e.key.type}"
-        message = {"text" => e.text}
-        if (e.notification_id.nil?)
-          if (e.severity > Severity.MEDIUM)
-            pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,message)
-            e.pd_event_id = pd_event["incident_key"]
+        message = {'text' => e.text}
+        if e.notification_id.nil?
+          if e.severity > Severity.MEDIUM
+            pd_event = @pd_entity.Incident.create(pd_service(false), subject, nil, nil, nil, message)
+            e.pd_event_id = pd_event['incident_key']
           end
           NotificationLog.create!(e.to_db_entity(subject,message.to_s))
         else
           notification_log = NotificationLog.find_by_id(e.notification_id)
-          if (e.severity > notification_log.severity and e.severity > Severity.MEDIUM )
-            pd_event = @pd_entity.Incident.create(@pd_service,subject,nil,nil,nil,message)
-            e.pd_event_id = pd_event["incident_key"]
+          if e.severity > notification_log.severity and e.severity > Severity.MEDIUM
+            pd_event = @pd_entity.Incident.create(pd_service(false), subject, nil, nil, nil, message)
+            e.pd_event_id = pd_event['incident_key']
           end
           notification_log.update(e.to_db_entity(subject,message.to_s))
         end
@@ -166,8 +174,6 @@ module SLAWatcher
       #@schedules = SLAWatcher::Schedule.includes(:project,:contract,:settings_server).joins(:contract).includes(:settings_server)
 
     end
-
-
 
 
   end

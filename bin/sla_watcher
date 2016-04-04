@@ -234,7 +234,7 @@ pre do |global,command,options,args|
     @passman_key = json["passman_key"]
     @pd_api_key = json["pd_api_key"]
     @pd_subdomain = json["pd_subdomain"]
-    @pd_service = json["pd_service"]
+    @pd_service = {l2: json["l2_pd_service"], ms: json["ms_pd_service"]}
   end
 
   if File.exists?("running_#{command.name}.pid")
