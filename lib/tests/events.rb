@@ -78,10 +78,17 @@ module SLAWatcher
             end
           end
         end
-        pd_event_id = nil
+        pd_event = nil
         if messages.count > 0
-          pd_service = pd_service messages.all? { |x| x.has_key?('console_link') }
-          pd_event = @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, messages)
+          pd_service_id = pd_service messages.all? { |x| x.has_key?('console_link') }
+          3.times do
+            pd_event = @pd_entity.Incident.create(pd_service_id, subject, nil, nil, nil, messages)
+            break unless pd_event.nil?
+            sleep 3
+          end
+          if pd_event.nil?
+            pd_event = @pd_entity.Incident.create(pd_service(false), subject, nil, nil, nil, "ERROR TEST event not accepted by PagerDuty. First message: #{messages[0]}")
+          end
           pd_event_id = pd_event['incident_key']
         end
 
@@ -100,8 +107,8 @@ module SLAWatcher
           message = value[:message]
           subject = "#{value[:schedule].contract.name} - #{value[:event].key.type}"
           if value[:pd_event]
-            pd_service = pd_service value[:schedule].settings_server.server_type == 'cloudconnect'
-            pd_event = @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, message)
+            pd_service_id = pd_service value[:schedule].settings_server.server_type == 'cloudconnect'
+            pd_event = @pd_entity.Incident.create(pd_service_id, subject, nil, nil, nil, message)
             value[:event].pd_event_id = pd_event['incident_key']
           end
           if (value[:event].notification_id.nil?)
