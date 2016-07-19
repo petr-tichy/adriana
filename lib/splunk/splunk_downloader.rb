@@ -13,7 +13,8 @@ module SLAWatcher
       @splunk = SplunkClient.new(username.split('|').last, password, hostname)
 
       @last_runs_query = <<-EOS
-      source="/mnt/log/gdc-java" sourcetype=log4j eventtype=MSF earliest=%START_TIME% latest=%END_TIME% action=process_run (status=STARTED OR status=FINISHED OR status=ERROR) (%PIDS%)
+      source="/mnt/log/gdc-java" sourcetype=log4j eventtype=MSF earliest=%START_TIME% latest=%END_TIME% action=process_run (status=STARTED OR status=FINISHED OR status=ERROR) schedule_id="*"
+      (%PIDS%)
       | rex "clover_graph=(?<clover_graph>[^=]+) [^=]+=" | rex "executable=(?<executable>[^=]+) [^=]+=" | eval clover_graph=coalesce(executable, clover_graph)
       | table project_id schedule_id request_id clover_graph mode status _time
       EOS
