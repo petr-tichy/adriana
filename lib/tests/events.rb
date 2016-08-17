@@ -41,9 +41,8 @@ module SLAWatcher
         schedules_list << {:schedule => s, :event => e}
       end
 
-      def pd_service(test)
-        now = Time.now
-        @pd_service[test && now.hour.between?(9, 16) && now.wday.between?(1, 5) ? :l2 : :ms]
+      def pd_service(test=false)
+        @pd_service[test ? :l2 : :ms]
       end
 
       contract_grouping.each_value do |events|
@@ -87,7 +86,7 @@ module SLAWatcher
             sleep 3
           end
           if pd_event.nil?
-            pd_event = @pd_entity.Incident.create(pd_service(false), subject, nil, nil, nil, "ERROR TEST event not accepted by PagerDuty. First message: #{messages[0]}")
+            pd_event = @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, "ERROR TEST event not accepted by PagerDuty. First message: #{messages[0]}")
           end
           pd_event_id = pd_event['incident_key']
         end
@@ -125,14 +124,14 @@ module SLAWatcher
         message = {'text' => e.text}
         if e.notification_id.nil?
           if e.severity > Severity.MEDIUM
-            pd_event = @pd_entity.Incident.create(pd_service(false), subject, nil, nil, nil, message)
+            pd_event = @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, message)
             e.pd_event_id = pd_event['incident_key']
           end
           NotificationLog.create!(e.to_db_entity(subject,message.to_s))
         else
           notification_log = NotificationLog.find_by_id(e.notification_id)
           if e.severity > notification_log.severity and e.severity > Severity.MEDIUM
-            pd_event = @pd_entity.Incident.create(pd_service(false), subject, nil, nil, nil, message)
+            pd_event = @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, message)
             e.pd_event_id = pd_event['incident_key']
           end
           notification_log.update(e.to_db_entity(subject,message.to_s))
