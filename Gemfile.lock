@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/adriantoman/PasswordManagerAPI.git
-  revision: 2fece5c248121ca461098ab62f9864c4216754f9
+  revision: 0b746b6c789054e6f195eb4f186cbf319f55d8b6
   specs:
-    passwordmanager (0.0.3)
+    passwordmanager (0.0.4)
       httparty
 
 GIT
