@@ -24,7 +24,7 @@ module SLAWatcher
         # Lets look on last execution and see if there is some problem on the way
         if last_execution.status == 'ERROR' or (last_execution.status == 'RUNNING' and !executions[-2].nil? and executions[-2].status == 'ERROR')
           # Last execution is Running or ERROR ... we need to go deeper in history to check if there is some reccuring problem
-          last_ok_status_index = 0
+          last_ok_status_index = -1
           executions.each_with_index do |execution, i|
             last_ok_status_index = i if execution.status == 'FINISHED'
           end
