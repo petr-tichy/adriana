@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/adriantoman/PasswordManagerAPI.git
-  revision: 0b746b6c789054e6f195eb4f186cbf319f55d8b6
+  revision: 99d9d0d376b109d461660e4853c8bfb26c248395
   specs:
-    passwordmanager (0.0.4)
+    passwordmanager (0.0.5)
       httparty
 
 GIT
@@ -64,8 +64,7 @@ GEM
       oauth2 (>= 0.5.0)
     hashie (2.0.5)
     highline (1.6.21)
-    httparty (0.13.3)
-      json (~> 1.8)
+    httparty (0.14.0)
       multi_xml (>= 0.5.2)
     i18n (0.6.9)
     json (1.8.1)
