@@ -117,8 +117,9 @@ module SLAWatcher
       @events = @events + livetest.start
 
       if ping
-        finishedTest = SLAWatcher::FinishedTest.new()
-        @events = @events + finishedTest.start
+        # Off per https://gooddata.zendesk.com/agent/tickets/69563
+        #finishedTest = SLAWatcher::FinishedTest.new()
+        #@events = @events + finishedTest.start
 
         startedTest = SLAWatcher::StartedTest.new()
         @events = @events + startedTest.start
