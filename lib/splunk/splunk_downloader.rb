@@ -13,10 +13,14 @@ module SLAWatcher
       @splunk = SplunkClient.new(username.split('|').last, password, hostname)
 
       @last_runs_query = <<-EOS
-      source="/mnt/log/gdc-java" sourcetype=log4j eventtype=MSF earliest=%START_TIME% latest=%END_TIME% action=process_run (status=STARTED OR status=FINISHED OR status=ERROR) schedule_id="*"
+      earliest=%START_TIME% latest=%END_TIME% source=/mnt/log/gdc-java sourcetype=log4j eventtype=MSF
+      (component=workers.data-loader com.gooddata.msf.util.ScheduleExecutionUpdater) OR (action=process_run schedule_id="*")
       (%PIDS%)
-      | rex "clover_graph=(?<clover_graph>[^=]+) [^=]+=" | rex "executable=(?<executable>[^=]+) [^=]+=" | eval clover_graph=coalesce(executable, clover_graph)
-      | table project_id schedule_id request_id clover_graph mode status _time
+      | rex "(clover_graph|executable)=(?<clover_graph>[^=]+) [^=]+=" | eval clover_graph=if(component=="workers.data-loader", "DATALOAD", clover_graph)
+      | rex "Updated execution: /gdc/projects/[^/ ]+/schedules/(?<schedule_id>[^/ ]+)/executions/"
+      | rex field=request_id "^(?<request_id>[^ ]*)"
+      | eval status=coalesce(case(status=="RUNNING", "STARTED", status=="OK", "FINISHED"), status)
+      | table project_id schedule_id request_id clover_graph mode status _time type
       EOS
 
       @ONE_QUERY_LIMIT = 300
