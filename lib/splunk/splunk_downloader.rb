@@ -18,6 +18,7 @@ module SLAWatcher
       (%PIDS%)
       | rex "(clover_graph|executable)=(?<clover_graph>[^=]+) [^=]+=" | eval clover_graph=if(component=="workers.data-loader", "DATALOAD", clover_graph)
       | rex "Updated execution: /gdc/projects/[^/ ]+/schedules/(?<schedule_id>[^/ ]+)/executions/"
+      | search schedule_id="*"
       | rex field=request_id "^(?<request_id>[^ ]*)"
       | eval status=coalesce(case(status=="RUNNING", "STARTED", status=="OK", "FINISHED"), status)
       | table project_id schedule_id request_id clover_graph mode status _time type
