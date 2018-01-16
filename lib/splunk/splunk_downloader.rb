@@ -59,13 +59,40 @@ module SLAWatcher
         }.to_s
         @@log.info 'Query parsing' + Benchmark.measure {
           result.parsedResults.each do |p|
-            values.push({:project_pid => p.project_id,
-                         :schedule_id => p.schedule_id,
-                         :request_id => p.request_id,
-                         :clover_graph => p.respond_to?('clover_graph') ? Helper.extract_graph_name(p.clover_graph) : nil,
-                         :mode => p.respond_to?('mode') ? Helper.extract_mode(p.mode) : nil,
-                         :status => p.status,
-                         :time => DateTime.strptime(p._time, '%Y-%m-%dT%H:%M:%S.%L%z')})
+            longest_log_result = nil
+            if p.status == 'ERROR'
+              log_query = case p.type
+                            when 'RUBY'
+                              <<-EOS
+                  %request_id% "Error executing script!" "component=execmgr.executor-wrapper" "Error executing script!"
+                  | rex field=_raw "Error executing script! (?<log>(.*\n?)*)" 
+                  | eval log="Error executing script! ".log 
+                  | table log
+                              EOS
+                            when 'GRAPH'
+                              <<-EOS
+                  %request_id% "component=workers.clover-executor" "com.gooddata.clover.exception.CloverException" 
+                  | rex field=_raw "com.gooddata.clover.exception.CloverException: (?<log>(.*\n?)*)" 
+                  | eval log="com.gooddata.clover.exception.CloverException: ".log 
+                  | table log
+                              EOS
+                            else
+                              nil
+                          end
+              log_query = log_query.sub('%request_id%', p.request_id)
+              log_results = execute_query(log_query).parsedResults.map { |r| r.respond_to?('log') ? r.log : nil }.compact
+              longest_log_result = log_results.max_by(&:length)
+            end
+            values.push({
+              :project_pid => p.project_id,
+              :schedule_id => p.schedule_id,
+              :request_id => p.request_id,
+              :clover_graph => p.respond_to?('clover_graph') ? Helper.extract_graph_name(p.clover_graph) : nil,
+              :mode => p.respond_to?('mode') ? Helper.extract_mode(p.mode) : nil,
+              :status => p.status,
+              :time => DateTime.strptime(p._time, '%Y-%m-%dT%H:%M:%S.%L%z'),
+              :error_text => longest_log_result
+            })
           end
         }.to_s
       end
