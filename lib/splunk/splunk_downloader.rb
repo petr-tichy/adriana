@@ -64,20 +64,19 @@ module SLAWatcher
               log_query = case p.type
                             when 'RUBY'
                               <<-EOS
-                  %request_id% "Error executing script!" "component=execmgr.executor-wrapper"
+                  earliest=#{from.strftime('%m/%d/%Y:%H:%M:%S')} #{p.request_id} "Error executing script!" "component=execmgr.executor-wrapper"
                   | rex field=_raw "(?<log>Error executing script!(.*\\n?)*)"
                   | table log
                               EOS
                             when 'GRAPH'
                               <<-EOS
-                  %request_id% "component=workers.clover-executor" "com.gooddata.clover.exception.CloverException" 
+                  earliest=#{from.strftime('%m/%d/%Y:%H:%M:%S')} #{p.request_id} "component=workers.clover-executor" "com.gooddata.clover.exception.CloverException"
                   | rex field=_raw "(?<log>com.gooddata.clover.exception.CloverException:(.*\\n?)*)"
                   | table log
                               EOS
                             else
                               nil
                           end
-              log_query = log_query.sub('%request_id%', p.request_id)
               log_results = execute_query(log_query).parsedResults.map { |r| r.respond_to?('log') ? r.log : nil }.compact
               longest_log_result = log_results.max_by(&:length)
             end
