@@ -64,16 +64,14 @@ module SLAWatcher
               log_query = case p.type
                             when 'RUBY'
                               <<-EOS
-                  %request_id% "Error executing script!" "component=execmgr.executor-wrapper" "Error executing script!"
-                  | rex field=_raw "Error executing script! (?<log>(.*\n?)*)" 
-                  | eval log="Error executing script! ".log 
+                  %request_id% "Error executing script!" "component=execmgr.executor-wrapper"
+                  | rex field=_raw "(?<log>Error executing script!(.*\\n?)*)"
                   | table log
                               EOS
                             when 'GRAPH'
                               <<-EOS
                   %request_id% "component=workers.clover-executor" "com.gooddata.clover.exception.CloverException" 
-                  | rex field=_raw "com.gooddata.clover.exception.CloverException: (?<log>(.*\n?)*)" 
-                  | eval log="com.gooddata.clover.exception.CloverException: ".log 
+                  | rex field=_raw "(?<log>com.gooddata.clover.exception.CloverException:(.*\\n?)*)"
                   | table log
                               EOS
                             else
