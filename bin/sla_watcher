@@ -59,7 +59,7 @@ command :splunk_synchronization do |c|
       end
 
       errors_finished.each do |event|
-        SLAWatcher.log_execution_splunk(event[:project_pid], event[:schedule_id], event[:request_id], event[:clover_graph], event[:mode], event[:status], "From Splunk synchronizer", event[:time])
+        SLAWatcher.log_execution_splunk(event[:project_pid], event[:schedule_id], event[:request_id], event[:clover_graph], event[:mode], event[:status], "From Splunk synchronizer", event[:time], event[:error_text])
       end
 
       #Save the last run date
