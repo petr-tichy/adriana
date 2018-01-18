@@ -1,9 +1,6 @@
 require 'splunk-client'
 require 'nokogiri'
 require 'benchmark'
-require_relative '../extensions/splunk_job.rb'
-
-SplunkJob.include Extensions::SplunkJob
 
 module SLAWatcher
   class SplunkDownloader
