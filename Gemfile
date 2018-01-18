@@ -7,7 +7,7 @@ gem "activerecord"
 gem "activerecord-postgresql-adapter"
 gem "pony"
 gem "nokogiri"
-gem "splunk-client"
+gem "splunk-client", git: 'https://github.com/cbrito/splunk-client', ref: '9b7cb1b'
 gem "google_drive","=0.3.6"
 gem "json"
 gem "activerecord-import"

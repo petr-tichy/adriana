@@ -6,6 +6,14 @@ GIT
       httparty
 
 GIT
+  remote: https://github.com/cbrito/splunk-client
+  revision: 9b7cb1b40a19a5c1a930978be6a636ff7858c108
+  ref: 9b7cb1b
+  specs:
+    splunk-client (0.10.0)
+      nokogiri
+
+GIT
   remote: https://github.com/gphat/pagerduty-full.git
   revision: 1fdafec56382a070a77f83f90cc87409e2e5bde8
   specs:
@@ -114,8 +122,6 @@ GEM
     salesforce_bulk (1.0.3)
       xml-simple
     slop (3.5.0)
-    splunk-client (0.10.0)
-      nokogiri
     thread_safe (0.3.4)
     tzinfo (1.2.1)
       thread_safe (~> 0.1)
@@ -141,9 +147,9 @@ DEPENDENCIES
   pry
   rails-erd
   rest-client
-  splunk-client
+  splunk-client!
   tzinfo
   whedon
 
 BUNDLED WITH
-   1.10.5
+   1.16.1
