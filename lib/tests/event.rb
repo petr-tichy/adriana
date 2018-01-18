@@ -2,9 +2,9 @@ module SLAWatcher
 
     class CustomEvent
 
-    attr_accessor :key,:severity,:event_type,:text,:created_date,:pd_event_id,:notification_id,:schedule_id
+    attr_accessor :key,:severity,:event_type,:text,:created_date,:pd_event_id,:notification_id,:schedule_id,:log
 
-    def initialize(key,severity,text,date,pd_event_id,schedule_id,notification_id = nil)
+    def initialize(key,severity,text,date,pd_event_id,schedule_id,notification_id = nil, log = nil)
       @key = key
       @severity = severity
       @text = text
@@ -12,6 +12,7 @@ module SLAWatcher
       @pd_event_id = pd_event_id
       @notification_id = notification_id
       @schedule_id = schedule_id
+      @log = log
     end
 
     def to_s

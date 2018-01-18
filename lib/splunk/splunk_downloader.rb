@@ -3,9 +3,7 @@ require 'nokogiri'
 require 'benchmark'
 
 module SLAWatcher
-
   class SplunkDownloader
-
 
     def initialize(username, hostname)
 
@@ -25,9 +23,7 @@ module SLAWatcher
       EOS
 
       @ONE_QUERY_LIMIT = 300
-
     end
-
 
     def execute_query(query)
       # Create the Search
@@ -37,6 +33,25 @@ module SLAWatcher
       sleep(1)
       search.wait # Blocks until the search returns
       search
+    end
+
+    def find_error_log(parsed_event, from)
+      return nil unless parsed_event.respond_to?('type') && parsed_event.respond_to?('status') && parsed_event.status == 'ERROR'
+      log_query = case parsed_event.type
+                    when 'RUBY'
+                      error_query_ruby parsed_event, from
+                    when 'GRAPH'
+                      error_query_clover parsed_event, from
+                    else
+                      if parsed_event.respond_to?('clover_graph') && parsed_event.clover_graph == 'DATALOAD'
+                        error_query_dataload parsed_event, from
+                      else
+                        nil
+                      end
+                  end
+      return nil unless log_query
+      log_results = execute_query(log_query).parsedResults.map { |r| r.respond_to?('log') ? r.log : nil }.compact
+      log_results ? log_results.max_by(&:length) : nil
     end
 
 
@@ -51,35 +66,14 @@ module SLAWatcher
       values = []
       project_strings.each do |temp|
         query = @last_runs_query.sub('%PIDS%', temp.join(' OR '))
-        query = query.sub('%START_TIME%', from.strftime('%m/%d/%Y:%H:%M:%S'))
-        query = query.sub('%END_TIME%', to.strftime('%m/%d/%Y:%H:%M:%S'))
+        query = query.sub('%START_TIME%', from.strftime(time_format))
+        query = query.sub('%END_TIME%', to.strftime(time_format))
         result = nil
         @@log.info 'Query execution' + Benchmark.measure {
           result = execute_query(query)
         }.to_s
         @@log.info 'Query parsing' + Benchmark.measure {
           result.parsedResults.each do |p|
-            longest_log_result = nil
-            if p.status == 'ERROR'
-              log_query = case p.type
-                            when 'RUBY'
-                              <<-EOS
-                  earliest=#{from.strftime('%m/%d/%Y:%H:%M:%S')} #{p.request_id} "Error executing script!" "component=execmgr.executor-wrapper"
-                  | rex field=_raw "(?<log>Error executing script!(.*\\n?)*)"
-                  | table log
-                              EOS
-                            when 'GRAPH'
-                              <<-EOS
-                  earliest=#{from.strftime('%m/%d/%Y:%H:%M:%S')} #{p.request_id} "component=workers.clover-executor" "com.gooddata.clover.exception.CloverException"
-                  | rex field=_raw "(?<log>com.gooddata.clover.exception.CloverException:(.*\\n?)*)"
-                  | table log
-                              EOS
-                            else
-                              nil
-                          end
-              log_results = execute_query(log_query).parsedResults.map { |r| r.respond_to?('log') ? r.log : nil }.compact
-              longest_log_result = log_results.max_by(&:length)
-            end
             values.push({
               :project_pid => p.project_id,
               :schedule_id => p.schedule_id,
@@ -88,7 +82,7 @@ module SLAWatcher
               :mode => p.respond_to?('mode') ? Helper.extract_mode(p.mode) : nil,
               :status => p.status,
               :time => DateTime.strptime(p._time, '%Y-%m-%dT%H:%M:%S.%L%z'),
-              :error_text => longest_log_result
+              :error_text => find_error_log(p, from)
             })
           end
         }.to_s
@@ -100,8 +94,34 @@ module SLAWatcher
       output
     end
 
+    private
 
+    def time_format
+      '%m/%d/%Y:%H:%M:%S'
+    end
+
+    def error_query_ruby(parsed_event, from)
+      <<-EOS
+        earliest=#{from.strftime(time_format)} #{parsed_event.request_id} "Error executing script!" "component=execmgr.executor-wrapper"
+        | rex field=_raw "(?<log>Error executing script!(.*\\n?)*)"
+        | table log
+      EOS
+    end
+
+    def error_query_clover(parsed_event, from)
+      <<-EOS
+        earliest=#{from.strftime(time_format)} #{parsed_event.request_id} "component=workers.clover-executor" "com.gooddata.clover.exception.CloverException"
+        | rex field=_raw "(?<log>com.gooddata.clover.exception.CloverException:(.*\\n?)*)"
+        | table log
+      EOS
+    end
+
+    def error_query_dataload(parsed_event, from)
+      <<-EOS
+        earliest=#{from.strftime(time_format)} #{parsed_event.request_id} "component=workers.data-loader"
+        | eval log=_raw
+        | table log
+      EOS
+    end
   end
-
-
 end

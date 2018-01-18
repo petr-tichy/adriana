@@ -56,6 +56,7 @@ module SLAWatcher
                       "schedule_mode" =>  value[:schedule].mode}
           message.merge!({"console_link" => "#{value[:schedule].settings_server.server_url}/admin/disc/#/projects/#{value[:schedule].r_project}/processes/#{value[:schedule].gooddata_process}/schedules/#{value[:schedule].gooddata_schedule}"}) if value[:schedule].settings_server.server_type == "cloudconnect"
           message.merge!({"text" => value[:event].text})
+          message.merge!({"log" => value[:event].log}) unless value[:event].log.nil?
           value[:message] = message
           value[:pd_event] = false
 
