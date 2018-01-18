@@ -35,11 +35,17 @@ module SLAWatcher
               if index > last_ok_status_index and e.status == 'ERROR'
                 unless @notification_logs.has_key? e.id.to_s
                   base_text = "The execution for this schedule has failed. This is #{index - last_ok_status_index} error in row."
-                  error_text = e.error_text ? ("\n\n" + "Captured log: \n" + e.error_text) : ''
+                  error_text = e.error_text
                   @new_events << CustomEvent.new(
-                      Key.new(e.id, @EVENT_TYPE), @SEVERITY,
-                      base_text + error_text,
-                      @now, nil, s.id)
+                      Key.new(e.id, @EVENT_TYPE),
+                      @SEVERITY,
+                      base_text,
+                      @now,
+                      nil,
+                      s.id,
+                      nil,
+                      error_text
+                  )
                 end
               end
             end
