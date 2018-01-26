@@ -51,7 +51,12 @@ module SLAWatcher
                   end
       return nil unless log_query
       log_results = execute_query(log_query).parsedResults.map { |r| r.respond_to?('log') ? r.log : nil }.compact
-      log_results ? log_results.max_by(&:length) : nil
+      if log_results
+        longest = log_results.max_by(&:length)
+        longest.sub(/(Parsing error).*/mi, "\\1...")
+      else
+        nil
+      end
     end
 
 
