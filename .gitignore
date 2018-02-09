@@ -1,3 +1,4 @@
 log/
 public/assets/
 tmp/
+config/database.yml
