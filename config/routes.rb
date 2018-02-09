@@ -2,7 +2,13 @@ ActiveAdminTest::Application.routes.draw do
   root :to => 'admin/dashboard#index'
 
   devise_for :admin_users, ActiveAdmin::Devise.config
-  ActiveAdmin.routes(self)
+  begin
+    ActiveAdmin.routes(self)
+  rescue Exception => e
+    # Throws errors that stop migrations execution
+    # https://github.com/activeadmin/activeadmin/issues/783
+    puts e
+  end
   match '/admin/jobs/create_contract_sychnronization' => 'admin/jobs#create'
   match '/admin/jobs/update_contract_sychnronization' => 'admin/jobs#update'
   match '/admin/jobs/create_direct_sychnronization' => 'admin/jobs#create'
