@@ -1,4 +1,6 @@
 ActiveAdmin.register Schedule do
+  menu :priority => 8
+
   filter :r_project, :label => "Project PID"
   filter :project, :label => "Project Name", :as => :string
   filter :mode
@@ -97,6 +99,17 @@ ActiveAdmin.register Schedule do
         end
       end
     end
+    column :muted do |schedule|
+      elements = ''
+      if schedule.muted?
+        elements += image_tag('true_icon.png', :size => '28x20') + ' '
+        elements += link_to 'Mutes list', admin_mutes_path('mute_ids' => schedule.all_mutes.map(&:id), 'commit' => 'Filter')
+      else
+        elements += image_tag('false_icon.png', :size => '20x20') + ' '
+        elements += link_to 'Mute', new_admin_mute_path(:reference_id => schedule.send(Schedule.primary_key.to_sym), :reference_type => Schedule.name)
+      end
+      elements.html_safe
+    end
     column :execution_time do |schedule|
       if (!schedule.running_executions.nil? and !schedule.running_executions.status.nil?)
         if (schedule.running_executions.status == "RUNNING")
@@ -184,7 +197,7 @@ ActiveAdmin.register Schedule do
     include ApplicationHelper
 
     def scoped_collection
-      Schedule.default
+      Schedule.default.with_mutes
     end
 
     before_filter :only => [:index] do

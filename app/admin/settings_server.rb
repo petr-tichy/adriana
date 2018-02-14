@@ -1,4 +1,5 @@
 ActiveAdmin.register SettingsServer do
+    menu :priority => 10
     menu :label => "Servers"
     menu :parent => "Settings"
 

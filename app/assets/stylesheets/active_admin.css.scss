@@ -16,6 +16,9 @@
 
 body.active_admin {
   @import 'select2';
+  li.hidden {
+    display: none;
+  }
 }
 
 

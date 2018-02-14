@@ -4,11 +4,14 @@ class Contract < ActiveRecord::Base
 
   has_many :contract_history
   has_many :projects
+  has_many :mutes
   belongs_to :customer
 
   attr_accessible :name
   attr_accessor :max_number_of_errors
-  validates_presence_of :customer_id,:name
+  validates_presence_of :customer_id, :name
+
+  scope :with_mutes, -> { includes(:mutes) }
 
   def self.get_public_attributes
     ["name","sla_enabled","sla_type","sla_value","sla_percentage","monitoring_enabled","monitoring_emails","monitoring_treshhold","token","documentation_url","default_max_number_of_errors","contract_type"]
@@ -32,5 +35,11 @@ class Contract < ActiveRecord::Base
 
   end
 
+  def all_mutes
+    mutes
+  end
 
+  def muted?
+    all_mutes.select { |m| m.active? }.any?
+  end
 end

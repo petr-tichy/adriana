@@ -3,7 +3,10 @@ class Project < ActiveRecord::Base
   self.primary_key = 'project_pid'
 
   belongs_to :contract
+  has_many :mutes, :foreign_key => 'project_pid'
   validates_presence_of :status,:name,:project_pid,:contract_id
+
+  scope :with_mutes, -> { includes(:mutes).includes(:contract => :mutes) }
 
   #set_primary_key "project_pid"
 
@@ -37,5 +40,13 @@ class Project < ActiveRecord::Base
     Project.find(id)
   end
 
+  def all_mutes
+    all_mutes = mutes
+    contract.present? ? all_mutes + contract.mutes : all_mutes
+  end
+
+  def muted?
+    all_mutes.select { |m| m.active? }.any?
+  end
 
 end

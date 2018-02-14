@@ -35,4 +35,5 @@ ActiveAdminTest::Application.configure do
   # Expands the lines which load the assets
   config.assets.debug = true
 
+  config.reload_classes_only_on_change = false
 end

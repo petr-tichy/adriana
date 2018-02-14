@@ -1,4 +1,5 @@
 ActiveAdmin.register Project do
+  menu :priority => 8
 
   filter :project_pid
   filter :name
@@ -11,6 +12,17 @@ ActiveAdmin.register Project do
     column :name
     column :project_pid
     column :status
+    column :muted do |project|
+      elements = ''
+      if project.muted?
+        elements += image_tag('true_icon.png', :size => '28x20') + ' '
+        elements += link_to 'Mutes list', admin_mutes_path('mute_ids' => project.all_mutes.map(&:id), 'commit' => 'Filter')
+      else
+        elements += image_tag('false_icon.png', :size => '20x20') + ' '
+        elements += link_to 'Mute', new_admin_mute_path(:reference_id => project.send(Project.primary_key.to_sym), :reference_type => Project.name)
+      end
+      elements.html_safe
+    end
     column :detail do |project|
       link_to('Detail', admin_project_detail_path(project.project_pid))
     end
@@ -105,7 +117,9 @@ ActiveAdmin.register Project do
     #  new!
     #end
 
-
+    def scoped_collection
+      end_of_association_chain.with_mutes
+    end
 
     def update
       project = Project.where("project_pid = ?",params[:id]).first

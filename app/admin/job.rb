@@ -1,4 +1,6 @@
 ActiveAdmin.register Job do
+  menu :priority => 8
+
   form :partial => 'form'
 
   scope :synchronization,:default => true  do |jobs|

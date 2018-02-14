@@ -1,5 +1,5 @@
 ActiveAdmin.register_page "Attask Print" do
-
+  menu :priority => 7
   content do
     render :partial => "print_form"
   end

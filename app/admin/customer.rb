@@ -1,4 +1,5 @@
 ActiveAdmin.register Customer do
+  menu :priority => 8
 
   #filter :project_pid
   #filter :sla_enabled, :as => :check_boxes, :collection => [true,false]

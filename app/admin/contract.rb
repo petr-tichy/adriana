@@ -1,4 +1,5 @@
 ActiveAdmin.register Contract do
+  menu :priority => 8
 
   #filter :project_pid
   #filter :sla_enabled, :as => :check_boxes, :collection => [true,false]
@@ -25,6 +26,17 @@ ActiveAdmin.register Contract do
       else
         span(image_tag("false_icon.png",:size => "20x20"))
       end
+    end
+    column :muted do |contract|
+      elements = ''
+      if contract.muted?
+        elements += image_tag('true_icon.png', :size => '28x20') + ' '
+        elements += link_to 'Mutes list', admin_mutes_path('mute_ids' => contract.all_mutes.map(&:id), 'commit' => 'Filter')
+      else
+        elements += image_tag('false_icon.png', :size => '20x20') + ' '
+        elements += link_to 'Mute', new_admin_mute_path(:reference_id => contract.send(Contract.primary_key.to_sym), :reference_type => Contract.name)
+      end
+      elements.html_safe
     end
     column :actions do |contract|
       link_to "Synchronization", :controller => "jobs", :action => "new",:type => "synchronize_contract",:contract => contract.id
@@ -153,6 +165,10 @@ ActiveAdmin.register Contract do
       if params['commit'].blank?
         params['q'] = {:is_deleted_eq => '0'}
       end
+    end
+
+    def scoped_collection
+      end_of_association_chain.with_mutes
     end
 
     def update

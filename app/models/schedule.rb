@@ -12,7 +12,10 @@ class Schedule < ActiveRecord::Base
   belongs_to :project, :primary_key => "project_pid", :foreign_key => "r_project"
   has_one :running_executions
   has_one :contract, :through => :project
+  has_many :mutes, :dependent => :delete_all
   validates_presence_of :graph_name,:settings_server_id
+
+  scope :with_mutes, -> { includes(:mutes).includes(:project => :mutes).includes(:contract => :mutes) }
 
   # attr_accessible :title, :body
 
@@ -65,7 +68,18 @@ class Schedule < ActiveRecord::Base
     schedule.save
   end
 
+  def all_mutes
+    all_mutes = mutes
+    project.present? ? all_mutes + project.all_mutes : all_mutes
+  end
 
+  def muted?
+    all_mutes.select { |m| m.active? }.any?
+  end
 
+  # For activeadmin filtering
+  def name
+    "#{self.id} - #{self.graph_name}"
+  end
 
 end

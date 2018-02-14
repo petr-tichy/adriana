@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140703093344) do
+ActiveRecord::Schema.define(:version => 20180209124500) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.string   "resource_id",   :null => false
@@ -128,7 +128,7 @@ ActiveRecord::Schema.define(:version => 20140703093344) do
     t.datetime "event_start",                    :null => false
     t.string   "status",          :limit => 32
     t.string   "detailed_status", :limit => 256
-    t.string   "updated_by",      :limit => nil
+    t.string   "updated_by"
     t.datetime "updated_at"
     t.integer  "r_schedule"
     t.datetime "event_end"
@@ -201,6 +201,24 @@ ActiveRecord::Schema.define(:version => 20140703093344) do
     t.string   "key"
   end
 
+  create_table "mute", :force => true do |t|
+    t.text     "reason"
+    t.datetime "start"
+    t.datetime "end"
+    t.integer  "admin_user_id"
+    t.integer  "contract_id"
+    t.string   "project_pid"
+    t.integer  "schedule_id"
+    t.boolean  "disabled",      :default => false
+    t.datetime "created_at",                       :null => false
+    t.datetime "updated_at",                       :null => false
+  end
+
+  add_index "mute", ["admin_user_id"], :name => "index_mute_on_admin_user_id"
+  add_index "mute", ["contract_id"], :name => "index_mute_on_contract_id"
+  add_index "mute", ["project_pid"], :name => "index_mute_on_project_pid"
+  add_index "mute", ["schedule_id"], :name => "index_mute_on_schedule_id"
+
   create_table "notification_log", :force => true do |t|
     t.string   "key",                              :null => false
     t.string   "notification_type", :limit => 50,  :null => false
@@ -220,7 +238,7 @@ ActiveRecord::Schema.define(:version => 20140703093344) do
     t.text     "status"
     t.text     "name"
     t.text     "ms_person"
-    t.string   "updated_by",             :limit => nil
+    t.string   "updated_by"
     t.datetime "updated_at"
     t.boolean  "is_deleted",                            :default => false, :null => false
     t.boolean  "sla_enabled"
@@ -297,15 +315,15 @@ ActiveRecord::Schema.define(:version => 20140703093344) do
     t.string   "server"
     t.string   "cron"
     t.string   "r_project"
-    t.string   "updated_by",           :limit => nil
+    t.string   "updated_by"
     t.datetime "updated_at"
-    t.boolean  "is_deleted",                          :default => false, :null => false
-    t.boolean  "main",                                :default => false
+    t.boolean  "is_deleted",           :default => false, :null => false
+    t.boolean  "main",                 :default => false
     t.datetime "created_at"
     t.integer  "settings_server_id"
     t.string   "gooddata_schedule"
     t.string   "gooddata_process"
-    t.integer  "max_number_of_errors",                :default => 0
+    t.integer  "max_number_of_errors", :default => 0
   end
 
   create_table "schedule_history", :force => true do |t|
@@ -330,7 +348,7 @@ ActiveRecord::Schema.define(:version => 20140703093344) do
     t.text     "key"
     t.text     "value"
     t.text     "note"
-    t.string   "updated_by", :limit => nil
+    t.string   "updated_by"
     t.datetime "updated_at"
   end
 
