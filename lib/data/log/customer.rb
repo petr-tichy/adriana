@@ -1,4 +1,6 @@
-class Customer < ActiveRecord::Base
-  self.table_name = 'customer'
-  has_many :contract
+module SLAWatcher
+  class Customer < ActiveRecord::Base
+    self.table_name = 'customer'
+    has_many :contract
+  end
 end

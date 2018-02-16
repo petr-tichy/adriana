@@ -1,15 +1,15 @@
 module SLAWatcher
   class Project < ActiveRecord::Base
-    set_primary_key = :project_pid
+    self.primary_key = :project_pid
     self.table_name = 'project'
 
 
     has_many :running_executions, :through => :schedule
     has_one :project_detail, :primary_key => "project_pid", :foreign_key => "project_pid"
     belongs_to :contract
+    has_many :mutes, :foreign_key => 'project_pid'
 
-
-
+    scope :with_mutes, -> { includes(:mutes).includes(:contract => :mutes) }
 
     def self.load_(status)
       where("status = ?", status)
@@ -28,6 +28,14 @@ module SLAWatcher
       where("is_deleted = ? and p.contract_id IS NULL", "false")
     end
 
+    def all_mutes
+      all_mutes = mutes
+      contract.present? ? all_mutes + contract.mutes : all_mutes
+    end
+
+    def muted?
+      all_mutes.select { |m| m.active? }.any?
+    end
 
     private
     def person_params
