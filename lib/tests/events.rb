@@ -17,7 +17,9 @@ module SLAWatcher
       @events.find_all{|e| e.event_type == type}
     end
 
-
+    def pd_service(test=false)
+      @pd_service[test ? :l2 : :ms]
+    end
 
     def save
       # In this section of code we are saving the data about notifications to DB and creating PD event
@@ -28,12 +30,14 @@ module SLAWatcher
       # The ERROR will be save to DB normally, byt only one PD event is created in Pagerduty
       # The section 2 is for events without schedule_id.
       # The Errors for this section are created normally.
+
+      # Create contract grouping - per contract ID, add all corresponding schedules from events
       contract_grouping = {}
       @events.each do |e|
         next if e.schedule_id.nil?
         s = @schedules.find { |s| s.id == e.schedule_id }
         schedules_list = []
-        if (!contract_grouping.key?(s.contract.id))
+        if !contract_grouping.key?(s.contract.id)
           contract_grouping[s.contract.id] = schedules_list
         else
           schedules_list = contract_grouping[s.contract.id]
@@ -41,103 +45,100 @@ module SLAWatcher
         schedules_list << {:schedule => s, :event => e}
       end
 
-      def pd_service(test=false)
-        @pd_service[test ? :l2 : :ms]
-      end
-
+      # Handle events that have a schedule (with contract grouping)
       contract_grouping.each_value do |events|
         messages = []
-        subject = ""
+        subject = ''
         events.each do |value|
+          next if value[:schedule].muted?
+          # Compose message
           subject = "#{value[:schedule].contract.name} - ERROR_TEST"
-          message = { "event_type" => value[:event].key.type,
-                      "project_name" => value[:schedule].project.name,
-                      "schedule_graph" =>  value[:schedule].graph_name,
-                      "schedule_mode" =>  value[:schedule].mode}
-          message.merge!({"console_link" => "#{value[:schedule].settings_server.server_url}/admin/disc/#/projects/#{value[:schedule].r_project}/processes/#{value[:schedule].gooddata_process}/schedules/#{value[:schedule].gooddata_schedule}"}) if value[:schedule].settings_server.server_type == "cloudconnect"
-          message.merge!({"text" => value[:event].text})
-          message.merge!({"log" => value[:event].log}) unless value[:event].log.nil?
+          message = compose_message(value)
           value[:message] = message
           value[:pd_event] = false
 
-          if (value[:event].notification_id.nil?)
-            if value[:event].severity > Severity.MEDIUM
-              if (value[:event].key.type == "ERROR_TEST")
-                messages << message
-              end
-              value[:pd_event] = true
-            end
-          else
-            notification_log = NotificationLog.find_by_id(value[:event].notification_id)
-            value[:old_event] = notification_log
-            if (value[:event].severity > notification_log.severity and value[:event].severity > Severity.MEDIUM)
-              if (value[:event].key.type == "ERROR_TEST")
-                messages << message
-              end
-              value[:pd_event] = true
-            end
+          # Include message according to rules
+          event_notification_id = value[:event].notification_id
+          value[:old_event] = NotificationLog.find_by_id(event_notification_id) unless event_notification_id.nil?
+          if value[:event].severity > Severity.MEDIUM && (event_notification_id.nil? || (!event_notification_id.nil? && value[:event].severity > value[:old_event].severity))
+            messages << message if value[:event].key.type == 'ERROR_TEST'
+            value[:pd_event] = true
           end
         end
+
+        # Create PD event - one per contract
         pd_event = nil
-        if messages.count > 0
-          pd_service_id = pd_service messages.all? { |x| x.has_key?('console_link') }
+        if messages.any?
+          pd_service_id = pd_service(messages.all? { |x| x.has_key?('console_link') })
           3.times do
-            pd_event = @pd_entity.Incident.create(pd_service_id, subject, nil, nil, nil, messages)
+            pd_event = create_pd_event(pd_service_id, subject, messages)
             break unless pd_event.nil?
             sleep 3
           end
           if pd_event.nil?
-            pd_event = @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, "ERROR TEST event not accepted by PagerDuty. First message: #{messages[0]}")
+            pd_event = create_pd_event(pd_service, subject, "ERROR TEST event not accepted by PagerDuty. First message: #{messages[0]}")
           end
           pd_event_id = pd_event['incident_key']
         end
 
-        events.find_all{|e| e[:event].key.type == "ERROR_TEST"}.each do |value|
-          if (value[:event].notification_id.nil?)
-            if (value[:pd_event])
-              value[:event].pd_event_id = pd_event_id
-            end
-            NotificationLog.create!(value[:event].to_db_entity(subject,value[:message].to_s))
+        # Create notifications for ERROR_TEST events
+        error_test_events = events.find_all {|e| e[:event].key.type == 'ERROR_TEST'}
+        error_test_events.each do |value|
+          if value[:event].notification_id.nil?
+            value[:event].pd_event_id = pd_event_id if value[:pd_event]
+            NotificationLog.create!(value[:event].to_db_entity(subject, value[:message].to_s))
           else
-            value[:old_event].update(value[:event].to_db_entity(subject,value[:message].to_s))
+            value[:old_event].update(value[:event].to_db_entity(subject, value[:message].to_s))
           end
         end
 
-        events.find_all{|e| e[:event].key.type != "ERROR_TEST"}.each do |value|
+        # Create notifications and PD incident for events other than ERROR_TEST
+        non_error_test_events = events.find_all {|e| e[:event].key.type != 'ERROR_TEST'}
+        non_error_test_events.each do |value|
           message = value[:message]
           subject = "#{value[:schedule].contract.name} - #{value[:event].key.type}"
           if value[:pd_event]
-            pd_service_id = pd_service value[:schedule].settings_server.server_type == 'cloudconnect'
-            pd_event = @pd_entity.Incident.create(pd_service_id, subject, nil, nil, nil, message)
+            pd_service_id = pd_service(value[:schedule].settings_server.server_type == 'cloudconnect')
+            pd_event = create_pd_event(pd_service_id, subject, message)
             value[:event].pd_event_id = pd_event['incident_key']
           end
-          if (value[:event].notification_id.nil?)
-            NotificationLog.create!(value[:event].to_db_entity(subject,message.to_s))
-          else
-            value[:old_event].update(value[:event].to_db_entity(subject,message.to_s))
-          end
-
+          event_db_entity = value[:event].to_db_entity(subject,message.to_s)
+          value[:event].notification_id.nil? ? NotificationLog.create!(event_db_entity) : value[:old_event].update(event_db_entity)
         end
       end
 
-      @events.find_all{|e| e.schedule_id.nil? }.each do |e|
+      # Handle events that don't have a schedule
+      @events.find_all {|e| e.schedule_id.nil?}.each do |e|
         subject = "#{e.key.value} - #{e.key.type}"
         message = {'text' => e.text}
-        if e.notification_id.nil?
-          if e.severity > Severity.MEDIUM
-            pd_event = @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, message)
-            e.pd_event_id = pd_event['incident_key']
-          end
-          NotificationLog.create!(e.to_db_entity(subject,message.to_s))
-        else
-          notification_log = NotificationLog.find_by_id(e.notification_id)
-          if e.severity > notification_log.severity and e.severity > Severity.MEDIUM
-            pd_event = @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, message)
-            e.pd_event_id = pd_event['incident_key']
-          end
-          notification_log.update(e.to_db_entity(subject,message.to_s))
+
+        event_notification_id = e.notification_id
+        notification_log = NotificationLog.find_by_id(event_notification_id) unless event_notification_id.nil?
+        if e.severity > Severity.MEDIUM && (event_notification_id.nil? || (!event_notification_id.nil? && e.severity > notification_log.severity))
+          pd_event = create_pd_event(pd_service, subject, message)
+          e.pd_event_id = pd_event['incident_key']
         end
+        event_db_entity = e.to_db_entity(subject,message.to_s)
+        event_notification_id.nil? ? NotificationLog.create!(event_db_entity) : notification_log.update(event_db_entity)
       end
+    end
+
+    def compose_message(event_value)
+      value = event_value
+      message = {'event_type' => value[:event].key.type,
+                 'project_name' => value[:schedule].project.name,
+                 'schedule_graph' =>  value[:schedule].graph_name,
+                 'schedule_mode' =>  value[:schedule].mode}
+      if value[:schedule].settings_server.server_type == 'cloudconnect'
+        message.merge!({'console_link' => "#{value[:schedule].settings_server.server_url}/admin/disc/#/projects/#{value[:schedule].r_project}/processes/#{value[:schedule].gooddata_process}/schedules/#{value[:schedule].gooddata_schedule}"})
+      end
+      message.merge!({'text' => value[:event].text})
+      message.merge!({'log' => value[:event].log}) unless value[:event].log.nil?
+      message
+    end
+
+    def create_pd_event(pd_service, subject, message)
+      @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, message)
     end
 
     def mail_status
@@ -175,8 +176,8 @@ module SLAWatcher
     private
 
     def load_data_from_database
-      project_category_id = SLAWatcher::Settings.load_project_category_id.first.value
-      task_category_id = SLAWatcher::Settings.load_schedule_category_id.first.value
+      # project_category_id = SLAWatcher::Settings.load_project_category_id.first.value
+      # task_category_id = SLAWatcher::Settings.load_schedule_category_id.first.value
       @schedules = SLAWatcher::Schedule.joins(:project).joins(:settings_server).joins(:contract).joins(:customer => :contract)
       #@schedules = SLAWatcher::Schedule.includes(:project,:contract,:settings_server).joins(:contract).includes(:settings_server)
 
