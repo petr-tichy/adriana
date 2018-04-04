@@ -58,7 +58,7 @@ module SLAWatcher
 
     def load_data
       @now = DateTime.now
-      @schedules = Schedule.joins(:project).joins(:contract).where(project: {is_deleted: false, status: 'Live'}, schedule: {is_deleted: false})
+      @schedules = Schedule.joins(:contract).where(project: {is_deleted: false, status: 'Live'}, contract: {is_deleted: false}, schedule: {is_deleted: false})
       @notification_logs = NotificationLog.where(notification_type: @EVENT_TYPE, created_at: (@now - 9.day)..@now).group_by { |x| x.key }
       @last_five_executions = ExecutionLog.get_last_five_executions_per_schedule.group_by { |x| x.r_schedule }
     end
