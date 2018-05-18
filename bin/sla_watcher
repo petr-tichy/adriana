@@ -72,13 +72,11 @@ end
 desc 'Synchronize with Splunk'
 command :api_synchronization do |c|
   c.action do |global_options,options,args|
-
     $type = "api_synchronization"
 
-    SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
-    PasswordManagerApi::PasswordManager.connect(@passman_adress,@passman_port,@passman_key)
+    SLAWatcher.connect_to_db(@postgres_hostname, @postgres_port, @postgres_username, @postgres_password, @postgres_database)
+    PasswordManagerApi::PasswordManager.connect(@passman_adress, @passman_port, @passman_key)
     SLAWatcher.snifer
-
   end
 end
 

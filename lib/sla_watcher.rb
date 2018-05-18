@@ -195,7 +195,7 @@ module SLAWatcher
     def snifer
       synchronize = SLAWatcher::Synchronize.new
       synchronize.load_data
-      synchronize.work
+      synchronize.log_executions
     end
 
     def run_notification_removal_task
