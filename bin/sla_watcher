@@ -23,13 +23,13 @@ program_desc 'Program for SLA checking'
 desc 'Synchronize with Splunk'
 command :splunk_synchronization do |c|
   c.action do |global_options,options,args|
+    $type = 'splunk_synchronization'
 
-    $type = "splunk_synchronization"
+    SLAWatcher.connect_to_db(@postgres_hostname, @postgres_port, @postgres_username, @postgres_password, @postgres_database)
+    PasswordManagerApi::PasswordManager.connect(@passman_adress, @passman_port, @passman_key)
+    splunk = SLAWatcher.splunk_downloader(@splunk_username, @splunk_hostname)
 
-    SLAWatcher.connect_to_db(@postgres_hostname,@postgres_port,@postgres_username,@postgres_password,@postgres_database)
-    PasswordManagerApi::PasswordManager.connect(@passman_adress,@passman_port,@passman_key)
-    splunk = SLAWatcher.splunk(@splunk_username,@splunk_password,@splunk_hostname)
-
+    splunk.errors_to_match = ErrorFilter.active.map(&:message)
 
     # Load the last time when the synchronization was executed
     last_run = SLAWatcher.load_last_run
@@ -37,32 +37,27 @@ command :splunk_synchronization do |c|
     # Load all CC project which need to be monitored
     projects = SLAWatcher.get_projects
 
-
-    # Returns all events for given set of project in given time frame
-    #events = splunk.load_runs(last_run - 12.hours, now, projects)
+    # Returns all events for given set of projects in given time frame
     events = splunk.load_runs(last_run - 4.hours, now, projects)
 
-    starts = events.find_all{|e| e[:status] == 'STARTED'}
-    errors_finished = events.find_all{|e| e[:status] != 'STARTED'}
+    starts = events.find_all { |e| e[:status] == 'STARTED' }
+    errors_finished = events.find_all { |e| e[:status] != 'STARTED' }
 
+    starts = SLAWatcher.check_request_id(starts, 'STARTED')
+    errors_finished = SLAWatcher.check_request_id(errors_finished, 'FINISHED')
 
-    starts = SLAWatcher.check_request_id(starts,'STARTED')
-    errors_finished = SLAWatcher.check_request_id(errors_finished,'FINISHED')
-
-
-
+    # Save the events to the database
     # We need to use transaction, because of UPDATE on the end of the query
     ActiveRecord::Base.transaction do
-      # Save the events to the database
       starts.each do |event|
         SLAWatcher.log_execution_splunk(event[:project_pid], event[:schedule_id], event[:request_id], event[:clover_graph], event[:mode], event[:status], "From Splunk synchronizer", event[:time])
       end
 
       errors_finished.each do |event|
-        SLAWatcher.log_execution_splunk(event[:project_pid], event[:schedule_id], event[:request_id], event[:clover_graph], event[:mode], event[:status], "From Splunk synchronizer", event[:time], event[:error_text])
+        SLAWatcher.log_execution_splunk(event[:project_pid], event[:schedule_id], event[:request_id], event[:clover_graph], event[:mode], event[:status], "From Splunk synchronizer", event[:time], event[:error_text], event[:matches_filter_errors])
       end
 
-      #Save the last run date
+      # Save the last run date
       SLAWatcher.save_last_run(now)
     end
     SLAWatcher.flag_for_monit($type)
@@ -80,9 +75,7 @@ command :api_synchronization do |c|
   end
 end
 
-
-
-desc 'Synchronize with Splunk'
+desc 'Stage -> Log project and schedule migration'
 command :migration do |c|
   c.action do |global_options,options,args|
     $type = "migration"

@@ -10,8 +10,8 @@ module SLAWatcher
       find_by_sql ["SELECT log_execution(?,?,?,?,?,?)", pid, graph_name,mode,status,detailed_status,time]
     end
 
-    def self.log_execution_splunk(pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time = nil, error_text = nil)
-      find_by_sql ["SELECT log_execution_for_splunk(?,?,?,?,?,?,?,?,?)", pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time, error_text]
+    def self.log_execution_splunk(pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time = nil, error_text = nil, matches_error_filters = nil)
+      find_by_sql ["SELECT log_execution_for_splunk(?,?,?,?,?,?,?,?,?,?)", pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time, error_text, matches_error_filters]
     end
 
     def self.log_execution_api(schedule_id,status,detailed_status,time = nil,request_id = nil)

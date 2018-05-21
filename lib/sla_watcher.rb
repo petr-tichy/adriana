@@ -10,7 +10,7 @@ require 'rest-client'
 
 %w(crontab_parser log helper change_watcher).each {|a| require_relative "helpers/#{a}"}
 %w(project task).each {|a| require_relative "data/stage/#{a}"}
-%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server notification_log customer mute).each {|a| require_relative "data/log/#{a}"}
+%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server notification_log customer mute error_filter).each {|a| require_relative "data/log/#{a}"}
 %w(base timeline projects statistics).each {|a| require_relative "objects/#{a}"}
 %w(events severity key event test livetest startedtest finishedtest slatest error_test).each {|a| require_relative "tests/#{a}"}
 %w(splunk_downloader).each {|a| require_relative "splunk/#{a}"}
@@ -31,8 +31,8 @@ module SLAWatcher
       SLAWatcher::Connection.connect(hostname,port,username,password,database)
     end
 
-    def splunk(username,password,hostname)
-      SLAWatcher::SplunkDownloader.new(username,hostname)
+    def splunk_downloader(username, hostname)
+      SLAWatcher::SplunkDownloader.new(username, hostname)
     end
 
 
@@ -88,8 +88,8 @@ module SLAWatcher
       SLAWatcher::ExecutionLog.log_execution(pid,graph_name,mode,status,detailed_status,time)
     end
 
-    def log_execution_splunk(pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time = nil, error_text = nil)
-      SLAWatcher::ExecutionLog.log_execution_splunk(pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time, error_text)
+    def log_execution_splunk(pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time = nil, error_text = nil, matches_error_filters = nil)
+      SLAWatcher::ExecutionLog.log_execution_splunk(pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time, error_text, matches_error_filters)
     end
 
     def start_migration()
