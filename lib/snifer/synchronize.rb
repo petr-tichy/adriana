@@ -14,7 +14,7 @@ module SLAWatcher
       load_resources_from_sources
       load_passwords_for_resources
 
-      @@log.info 'Resource loaded successfully'
+      @@log.info 'Resources loaded successfully'
     end
 
     def load_sources
@@ -106,43 +106,44 @@ module SLAWatcher
       execution_end = []
 
       settings_server = @servers.find { |s| s.id == resource['server_id'] }
-      GoodData.connect(resource['username'], resource['password'], server: settings_server.server_url)
+      client = GoodData.connect(resource['username'], resource['password'], server: settings_server.server_url)
 
       schedules.each do |schedule|
-        executions = download_executions(schedule)
+        executions = download_executions(schedule, client)
         next unless executions
         execution_start += executions[0]
         execution_end += executions[1]
       end
 
-      GoodData.disconnect
+      client.disconnect
+
       @mutex.synchronize do
         @execution_start += execution_start
         @execution_end += execution_end
       end
     end
 
-    def download_executions(schedule)
-      execution_start = []
-      execution_end = []
+    def download_executions(schedule, client)
+      execution_start_list = []
+      execution_end_list = []
       gd_schedule = schedule.gooddata_schedule
       r_project = schedule.r_project
 
       # Ignoring pagination, because the default is good enough (last 100 executions)
       response = Helper.retryable do
-        GoodData.get("/gdc/projects/#{r_project}/schedules/#{gd_schedule}/executions")
+        client.get("/gdc/projects/#{r_project}/schedules/#{gd_schedule}/executions")
       end
       last_execution_offset = @last_execution - 24.hours
       response['executions']['items'].each do |e|
         execution = Execution.new(e)
-        if execution.running? && execution.startTime > last_execution_offset
-          execution_start << execution_log_hash(execution.id, execution.startTime, 'STARTED', gd_schedule, r_project)
-        elsif (execution.ok? || execution.error?) && (execution.startTime > last_execution_offset || execution.endTime > last_execution_offset)
-          execution_start << execution_log_hash(execution.id, execution.startTime, 'STARTED', gd_schedule, r_project)
-          execution_end << execution_log_hash(execution.id, execution.endTime, execution.status == 'OK' ? 'FINISHED' : 'ERROR', gd_schedule, r_project)
+        if execution.running? && execution.start_time > last_execution_offset
+          execution_start_list << execution_log_hash(execution.id, execution.start_time, 'STARTED', gd_schedule, r_project)
+        elsif (execution.ok? || execution.error?) && (execution.start_time > last_execution_offset || execution.end_time > last_execution_offset)
+          execution_start_list << execution_log_hash(execution.id, execution.start_time, 'STARTED', gd_schedule, r_project)
+          execution_end_list << execution_log_hash(execution.id, execution.end_time, execution.ok? ? 'FINISHED' : 'ERROR', gd_schedule, r_project)
         end
       end
-      [execution_start, execution_end]
+      [execution_start_list, execution_end_list]
     rescue => e
       @@log.warn "Problem in downloading schedule (#{gd_schedule}) for #{r_project} - #{e.message}"
     end

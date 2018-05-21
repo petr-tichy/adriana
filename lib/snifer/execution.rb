@@ -26,7 +26,11 @@ module SLAWatcher
       status == 'ERROR'
     end
 
-    def startTime
+    def log_uri
+      json['execution']['log']
+    end
+
+    def start_time
       if json['execution']['startTime'].nil? && !json['execution']['createdTime'].nil?
         DateTime.parse(json['execution']['createdTime'])
       elsif !json['execution']['startTime'].nil?
@@ -37,7 +41,9 @@ module SLAWatcher
       end
     end
 
-    def endTime
+    alias_method :startTime, :start_time
+
+    def end_time
       if !json['execution']['endTime'].nil?
         DateTime.parse(json['execution']['endTime'])
       else
@@ -45,6 +51,8 @@ module SLAWatcher
         DateTime.parse(json['execution']['createdTime'])
       end
     end
+
+    alias_method :endTime, :end_time
 
   end
 end

@@ -69,7 +69,7 @@ command :splunk_synchronization do |c|
   end
 end
 
-desc 'Synchronize with Splunk'
+desc 'Synchronize with GD API'
 command :api_synchronization do |c|
   c.action do |global_options,options,args|
     $type = "api_synchronization"
