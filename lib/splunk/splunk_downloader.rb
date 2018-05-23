@@ -8,9 +8,8 @@ module SLAWatcher
 
     attr_accessor :errors_to_match
 
-    def initialize(username, hostname)
-      password = PasswordManagerApi::Password.get_password_by_name(username.split('|').first, username.split('|').last)
-      @splunk = SplunkClient.new(username.split('|').last, password, hostname)
+    def initialize(username, password, hostname)
+      @splunk = SplunkClient.new(username, password, hostname)
     end
 
     def execute_query(query)
@@ -48,11 +47,12 @@ module SLAWatcher
 
     def load_runs(from, to, projects)
       project_strings = []
-      @@log.info 'Query initialization' + Benchmark.measure do
+      @@log.info 'Query initialization'
+      @@log.info Benchmark.measure {
         0.step(projects.length - 1, ONE_QUERY_LIMIT) do |i|
           project_strings.push(projects[i, ONE_QUERY_LIMIT].map { |p| "project_id=#{p.project_pid}"} )
         end
-      end.to_s
+      }
 
       values = []
       project_strings.each do |temp|
@@ -60,19 +60,24 @@ module SLAWatcher
         query = query.sub('%START_TIME%', from.strftime(time_format))
         query = query.sub('%END_TIME%', to.strftime(time_format))
         result = nil
-        @@log.info 'Query execution' + Benchmark.measure do
+        @@log.info 'Query execution'
+        @@log.info Benchmark.measure {
           result = execute_query(query)
-        end.to_s
-        @@log.info 'Query parsing' + Benchmark.measure do
+        }
+        @@log.info 'Related queries, query parsing'
+        @@log.info Benchmark.measure {
           result.parsedResults.each do |p|
-            values.push(execution_hash(p, from))
+            error_text = find_error_log(p, from)
+            matches_error_filters = matches_error_filters?(p, from)
+            values.push(execution_hash(p, from, error_text, matches_error_filters))
           end
-        end.to_s
+        }
       end
       output = nil
-      @@log.info 'Query sorting' + Benchmark.measure do
+      @@log.info 'Query sorting'
+      @@log.info Benchmark.measure {
         output = values.sort_by { |a| a[:time] }
-      end.to_s
+      }
       output
     end
 
@@ -83,11 +88,12 @@ module SLAWatcher
       return false if errors_to_match.nil? || errors_to_match.empty?
       query = error_filter_query(parsed_event, from, errors_to_match)
       results = execute_query(query).parsedResults
-      total = results.first.total if results.respond_to?(:first) && results.first.respond_to?(:total)
+      return false unless results.respond_to?(:first) && results.first.respond_to?(:total)
+      total = results.first.total
       Integer(total) > 0 rescue false
     end
 
-    def execution_hash(search_result, from)
+    def execution_hash(search_result, from, error_text = nil, matches_error_filters = nil)
       {
         :project_pid => search_result.project_id,
         :schedule_id => search_result.schedule_id,
@@ -96,8 +102,8 @@ module SLAWatcher
         :mode => search_result.respond_to?('mode') ? Helper.extract_mode(search_result.mode) : nil,
         :status => search_result.status,
         :time => DateTime.strptime(search_result._time, '%Y-%m-%dT%H:%M:%S.%L%z'),
-        :error_text => find_error_log(search_result, from),
-        :matches_filter_errors => matches_error_filters?(search_result, from)
+        :error_text => error_text,
+        :matches_error_filters => matches_error_filters
       }
     end
 
@@ -152,5 +158,11 @@ module SLAWatcher
       EOS
       str.sub('%ERRS%', "\"#{errors_to_match.join('" OR "')}\"")
     end
+  end
+end
+
+# Fix missing constant when timeout happens
+class SplunkJob
+  class SplunkWaitTimeout < Exception
   end
 end

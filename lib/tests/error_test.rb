@@ -16,19 +16,23 @@ module SLAWatcher
       @schedules.each do |s|
         executions = @last_five_executions[s.id]
         next if executions.nil?
-        last_execution = executions.last
+        last_execution = executions[-1]
+        second_last_execution = executions[-2]
         # Lets look on last execution and see if there is some problem on the way
-        next unless last_execution.status == 'ERROR' || (last_execution.status == 'RUNNING' && !executions[-2].nil? && executions[-2].status == 'ERROR')
+        next unless last_execution.status == 'ERROR' || (last_execution.status == 'RUNNING' && !second_last_execution.nil? && second_last_execution.status == 'ERROR')
         # Last execution is Running or ERROR ... we need to go deeper in history to check if there is some reccuring problem
         last_ok_status_index = -1
         executions.each_with_index do |execution, i|
           last_ok_status_index = i if execution.status == 'FINISHED'
         end
-        # Count the number of consequent errors
-        next unless executions.count - last_ok_status_index - 1 > s.max_number_of_errors
+
+        number_of_consequent_errors = executions.count - last_ok_status_index - 1
+        pd_alert_limit = s.max_number_of_errors #TODO + 3 if execution matches filters
+        next unless number_of_consequent_errors > pd_alert_limit
         # Create a PD error
         executions.each_with_index do |e, index|
-          next unless index > last_ok_status_index && e.status == 'ERROR' && !@notification_logs.has_key?(e.id.to_s)
+          notification_already_sent = @notification_logs.has_key?(e.id.to_s)
+          next unless index > last_ok_status_index && e.status == 'ERROR' && !notification_already_sent
           error_order = index - last_ok_status_index
           base_text = "The execution for this schedule has failed. This is #{error_order} error in row."
           error_text = e.error_text

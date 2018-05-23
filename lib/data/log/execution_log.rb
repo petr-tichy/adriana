@@ -1,4 +1,3 @@
-
 module SLAWatcher
   class ExecutionLog < ActiveRecord::Base
     self.table_name = 'execution_log'
@@ -47,22 +46,11 @@ module SLAWatcher
     end
 
     def self.get_last_five_executions_per_schedule
-      find_by_sql("WITH ranked_executions AS ( SELECT id, r_schedule,status,event_start,event_end,pd_event_id,error_text,ROW_NUMBER() OVER (PARTITION BY r_schedule ORDER BY id DESC) AS rn FROM execution_log WHERE event_start > now() - interval '7 days') SELECT id,r_schedule,status,event_start,event_end,pd_event_id,error_text FROM ranked_executions WHERE rn <= 5 ORDER BY r_schedule,event_start")
+      find_by_sql("WITH ranked_executions AS ( SELECT id, r_schedule,status,event_start,event_end,pd_event_id,error_text,matches_error_filters,ROW_NUMBER() OVER (PARTITION BY r_schedule ORDER BY id DESC) AS rn FROM execution_log WHERE event_start > now() - interval '7 days') SELECT id,r_schedule,status,event_start,event_end,pd_event_id,error_text,matches_error_filters FROM ranked_executions WHERE rn <= 5 ORDER BY r_schedule,event_start")
     end
 
     def self.get_last_five_executions_per_schedule_custom_date(custom_date)
-      find_by_sql("WITH ranked_executions AS ( SELECT id, r_schedule,status,event_start,event_end,pd_event_id,error_text,ROW_NUMBER() OVER (PARTITION BY r_schedule ORDER BY id DESC) AS rn FROM execution_log WHERE event_start < (to_timestamp('#{custom_date.strftime("%Y%m%d%H%M%S")}', 'YYYYMMDDHH24MISS'))) SELECT id,r_schedule,status,event_start,event_end,pd_event_id,error_text FROM ranked_executions WHERE rn <= 5 ORDER BY r_schedule,event_start")
+      find_by_sql("WITH ranked_executions AS ( SELECT id, r_schedule,status,event_start,event_end,pd_event_id,error_text,matches_error_filters,ROW_NUMBER() OVER (PARTITION BY r_schedule ORDER BY id DESC) AS rn FROM execution_log WHERE event_start < (to_timestamp('#{custom_date.strftime("%Y%m%d%H%M%S")}', 'YYYYMMDDHH24MISS'))) SELECT id,r_schedule,status,event_start,event_end,pd_event_id,error_text,matches_error_filters FROM ranked_executions WHERE rn <= 5 ORDER BY r_schedule,event_start")
     end
-
-    def self.check_request_id(values)
-
-    end
-
-
-
-
-
-
-
   end
 end

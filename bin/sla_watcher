@@ -27,9 +27,12 @@ command :splunk_synchronization do |c|
 
     SLAWatcher.connect_to_db(@postgres_hostname, @postgres_port, @postgres_username, @postgres_password, @postgres_database)
     PasswordManagerApi::PasswordManager.connect(@passman_adress, @passman_port, @passman_key)
-    splunk = SLAWatcher.splunk_downloader(@splunk_username, @splunk_hostname)
+    splunk_username = @splunk_username.split('|').last
+    splunk_password = PasswordManagerApi::Password.get_password_by_name(@splunk_username.split('|').first, splunk_username)
+    splunk_hostname = @splunk_hostname
+    splunk = SLAWatcher.splunk_downloader(splunk_username, splunk_password, splunk_hostname)
 
-    splunk.errors_to_match = ErrorFilter.active.map(&:message)
+    splunk.errors_to_match = SLAWatcher.get_error_filter_messages
 
     # Load the last time when the synchronization was executed
     last_run = SLAWatcher.load_last_run
@@ -49,12 +52,8 @@ command :splunk_synchronization do |c|
     # Save the events to the database
     # We need to use transaction, because of UPDATE on the end of the query
     ActiveRecord::Base.transaction do
-      starts.each do |event|
-        SLAWatcher.log_execution_splunk(event[:project_pid], event[:schedule_id], event[:request_id], event[:clover_graph], event[:mode], event[:status], "From Splunk synchronizer", event[:time])
-      end
-
-      errors_finished.each do |event|
-        SLAWatcher.log_execution_splunk(event[:project_pid], event[:schedule_id], event[:request_id], event[:clover_graph], event[:mode], event[:status], "From Splunk synchronizer", event[:time], event[:error_text], event[:matches_filter_errors])
+      (starts + errors_finished).each do |event|
+        SLAWatcher.log_execution_splunk(event)
       end
 
       # Save the last run date
