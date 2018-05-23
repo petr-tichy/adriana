@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20180209124500) do
+ActiveRecord::Schema.define(:version => 20180522110000) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.string   "resource_id",   :null => false
@@ -108,6 +108,16 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
 
   add_index "dump_log", ["id"], :name => "IX__dump_log_id"
 
+  create_table "error_filter", :force => true do |t|
+    t.string   "message"
+    t.integer  "admin_user_id"
+    t.boolean  "active",        :default => true
+    t.datetime "created_at",                      :null => false
+    t.datetime "updated_at",                      :null => false
+  end
+
+  add_index "error_filter", ["admin_user_id"], :name => "index_error_filter_on_admin_user_id"
+
   create_table "event_log", :force => true do |t|
     t.string   "project_pid",  :limit => 100
     t.string   "graph_name",   :limit => 100
@@ -125,16 +135,18 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
   end
 
   create_table "execution_log", :force => true do |t|
-    t.datetime "event_start",                    :null => false
-    t.string   "status",          :limit => 32
-    t.string   "detailed_status", :limit => 256
+    t.datetime "event_start",                                             :null => false
+    t.string   "status",                :limit => 32
+    t.string   "detailed_status",       :limit => 256
     t.string   "updated_by"
     t.datetime "updated_at"
     t.integer  "r_schedule"
     t.datetime "event_end"
     t.integer  "sla_event_start"
-    t.string   "request_id",      :limit => 100
+    t.string   "request_id",            :limit => 100
     t.string   "pd_event_id"
+    t.text     "error_text"
+    t.boolean  "matches_error_filters",                :default => false
   end
 
   add_index "execution_log", ["event_start"], :name => "idx_execution_log5"

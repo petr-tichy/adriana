@@ -31,14 +31,14 @@ ActiveAdmin.register Mute do
     }
     f.inputs "Mute" do
       f.input :reason
+      f.input :start, :as => :just_datetime_picker
+      f.input :end, :as => :just_datetime_picker
+      f.input :disabled, :as => :select, :label => 'Disable mute?', :include_blank => false
+      f.input :contract_id, :as => :hidden
+      f.input :project_pid, :as => :hidden
+      f.input :schedule_id, :as => :hidden
+      f.input :admin_user_id, :as => :hidden
     end
-    f.input :disabled, :as => :boolean
-    f.input :start, :as => :just_datetime_picker
-    f.input :end, :as => :just_datetime_picker
-    f.input :contract_id, :as => :hidden, :class => 'hidden'
-    f.input :project_pid, :as => :hidden
-    f.input :schedule_id, :as => :hidden
-    f.input :admin_user_id, :as => :hidden
     f.actions
   end
 
