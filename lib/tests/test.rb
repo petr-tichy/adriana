@@ -1,15 +1,10 @@
 module SLAWatcher
-
   class BaseTest
-
-    def initialize()
+    def initialize
     end
 
     def start
       fail "Not implemented start method"
     end
-
-
   end
-
 end

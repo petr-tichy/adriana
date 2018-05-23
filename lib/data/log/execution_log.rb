@@ -45,8 +45,8 @@ module SLAWatcher
       select("execution_log.id,p.name as project_name,p.project_pid as project_pid,s.graph_name as graph_name,s.mode as mode,execution_log.event_start as event_start,execution_log.event_end as event_end,execution_log.status as status, execution_log.detailed_status as detailed_status").joins("INNER JOIN schedule s ON s.id = execution_log.r_schedule").joins("INNER JOIN project p ON s.r_project = p.project_pid").where("execution_log.status = 'RUNNING'").order("execution_log.event_start")
     end
 
-    def self.get_last_five_executions_per_schedule
-      find_by_sql("WITH ranked_executions AS ( SELECT id, r_schedule,status,event_start,event_end,pd_event_id,error_text,matches_error_filters,ROW_NUMBER() OVER (PARTITION BY r_schedule ORDER BY id DESC) AS rn FROM execution_log WHERE event_start > now() - interval '7 days') SELECT id,r_schedule,status,event_start,event_end,pd_event_id,error_text,matches_error_filters FROM ranked_executions WHERE rn <= 5 ORDER BY r_schedule,event_start")
+    def self.get_last_n_executions_per_schedule(n = 10)
+      find_by_sql("WITH ranked_executions AS ( SELECT id, r_schedule,status,event_start,event_end,pd_event_id,error_text,matches_error_filters,ROW_NUMBER() OVER (PARTITION BY r_schedule ORDER BY id DESC) AS rn FROM execution_log WHERE event_start > now() - interval '7 days') SELECT id,r_schedule,status,event_start,event_end,pd_event_id,error_text,matches_error_filters FROM ranked_executions WHERE rn <= #{n} ORDER BY r_schedule,event_start")
     end
 
     def self.get_last_five_executions_per_schedule_custom_date(custom_date)
