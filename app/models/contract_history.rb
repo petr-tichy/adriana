@@ -1,6 +1,5 @@
 class ContractHistory < ActiveRecord::Base
   self.table_name = 'contract_history'
-  attr_accessible :contract_id,:key,:value,:valid_from,:valid_to,:updated_by
   belongs_to :contract
 
   def self.add_change(contract_id,key,value,user)
@@ -14,5 +13,4 @@ class ContractHistory < ActiveRecord::Base
       ContractHistory.create(:contract_id => contract_id,:key => key,:value => value,:valid_from => nil,:valid_to => nil, :updated_by => user.id )
     end
   end
-
 end

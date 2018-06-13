@@ -9,21 +9,24 @@ ActiveAdminTest::Application.routes.draw do
     # https://github.com/activeadmin/activeadmin/issues/783
     puts e
   end
-  match '/admin/jobs/create_contract_sychnronization' => 'admin/jobs#create'
-  match '/admin/jobs/update_contract_sychnronization' => 'admin/jobs#update'
-  match '/admin/jobs/create_direct_sychnronization' => 'admin/jobs#create'
-  match '/admin/jobs/update_direct_sychnronization' => 'admin/jobs#update'
 
-  match '/admin/contracts/create' => 'admin/contracts#create'
-  match '/admin/contracts/error_show/:id' => 'admin/contracts#error_show'
-  match '/admin/contract/error_modification' => 'admin/contracts#error_modification'
-  match '/admin/contracts/error_modification/:id' => 'admin/contracts#error_modification'
-  match '/admin/attask_print/create_job' => 'admin/attask_print#create'
-  match '/api' => 'api#index'
-  get '/admin/autocomplete_tags',to: 'admin/contracts#autocomplete_tags', as: 'autocomplete_tags'
+  #TODO modify to the new rails way
+
+  match '/admin/jobs/create_contract_sychnronization', to: 'admin/jobs#create', via: :post
+  match '/admin/jobs/update_contract_sychnronization', to: 'admin/jobs#update', via: :put
+  match '/admin/jobs/create_direct_sychnronization', to: 'admin/jobs#create', via: :post
+  match '/admin/jobs/update_direct_sychnronization', to: 'admin/jobs#update', via: :put
+
+  match '/admin/contracts/create', to: 'admin/contracts#create', via: :post
+  match '/admin/contracts/error_show/:id', to: 'admin/contracts#error_show', via: :get
+  match '/admin/contract/error_modification', to: 'admin/contracts#error_modification', via: :patch
+  match '/admin/contracts/error_modification/:id', to: 'admin/contracts#error_modification', via: :put
+  match '/admin/attask_print/create_job', to: 'admin/attask_print#create', via: :post
+  match '/api', to: 'api#index', via: :get
+  match '/admin/autocomplete_tags', to: 'admin/contracts#autocomplete_tags', as: 'autocomplete_tags', via: :get
 
   resources :notification
-  match '/feed' => 'notification#feed',:as => :feed,:defaults => { :format => 'atom' }
+  match '/feed' => 'notification#feed', as: :feed, defaults: { format: 'atom' }, via: :get
 
 
   # The priority is based upon order of creation:

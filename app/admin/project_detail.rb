@@ -1,6 +1,11 @@
 ActiveAdmin.register ProjectDetail do
-  actions :all, :except => [:new,:create,:destroy]
   menu false
+  permit_params :salesforce_type, :practice_group, :note, :solution_architect,
+                :solution_engineer, :confluence, :automatic_validation, :tier,
+                :working_hours, :time_zone, :restart, :tech_user, :uses_ftp,
+                :uses_es, :archiver, :sf_downloader_version, :directory_name,
+                :salesforce_id, :salesforce_name
+  actions :all, :except => [:new,:create,:destroy]
 
   form do |f|
     f.inputs "Overview" do
@@ -32,8 +37,6 @@ ActiveAdmin.register ProjectDetail do
     f.actions
 
   end
-
-
 
   show do |at|
     columns do
@@ -79,8 +82,4 @@ ActiveAdmin.register ProjectDetail do
   controller do
 
   end
-
-
-
-
 end

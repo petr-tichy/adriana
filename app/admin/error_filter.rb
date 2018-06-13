@@ -1,5 +1,6 @@
 ActiveAdmin.register ErrorFilter do
   menu :priority => 10
+  permit_params :message, :admin_user_id, :active
   config.sort_order = 'created_at_desc'
   actions :all
 
@@ -17,11 +18,7 @@ ActiveAdmin.register ErrorFilter do
     actions
   end
 
-
   form do |f|
-    f.form_buffers.last << Arbre::Context.new{
-      ul f.object.errors[:base], class: 'errors' if f.object.errors[:base].any?
-    }
     f.inputs "Error filter" do
       f.input :message
       f.input :active, :as => :select, :label => 'Is filter enabled?', :include_blank => false

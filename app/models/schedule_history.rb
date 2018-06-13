@@ -1,6 +1,5 @@
 class ScheduleHistory < ActiveRecord::Base
   self.table_name = 'schedule_history'
-  attr_accessible :schedule_id,:key,:value,:valid_from,:valid_to,:updated_by
 
   def self.add_change(schedule_id,key,value,user)
     date = DateTime.now

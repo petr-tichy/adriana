@@ -1,13 +1,12 @@
 ActiveAdmin.register_page "Attask Print" do
   menu :priority => 7
+
   content do
     render :partial => "print_form"
   end
 
-
   controller do
     include ApplicationHelper
-
 
     def create
       email = params["attask"]["email"]
@@ -28,15 +27,5 @@ ActiveAdmin.register_page "Attask Print" do
       end
       redirect_to admin_attask_print_path, :notice => "Print job created"
     end
-
-
   end
-
-
-
-
-
-
-
-
 end

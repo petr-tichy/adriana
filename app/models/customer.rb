@@ -3,10 +3,10 @@ class Customer < ActiveRecord::Base
   has_many :customer_history
   has_many :contracts
 
-  attr_accessible :name,:email,:contact_person
+  validates_presence_of :name
 
   def self.get_public_attributes
-    ["name","email","contact_person"]
+    %w( name email contact_person )
   end
 
   def self.mark_deleted(id,user)
@@ -21,6 +21,4 @@ class Customer < ActiveRecord::Base
       Contract.mark_deleted(c.id,user)
     end
   end
-
-
 end

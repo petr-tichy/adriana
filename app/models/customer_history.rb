@@ -1,6 +1,5 @@
 class CustomerHistory < ActiveRecord::Base
   self.table_name = 'customer_history'
-  attr_accessible :customer_id,:key,:value,:valid_from,:valid_to,:updated_by
   belongs_to :customer
 
   def self.add_change(customer_id,key,value,user)
@@ -13,7 +12,5 @@ class CustomerHistory < ActiveRecord::Base
     else
       CustomerHistory.create(:customer_id => customer_id,:key => key,:value => value,:valid_from => nil,:valid_to => nil, :updated_by => user.id )
     end
-
   end
-
 end

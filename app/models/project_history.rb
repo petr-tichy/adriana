@@ -1,6 +1,5 @@
 class ProjectHistory < ActiveRecord::Base
   self.table_name = 'project_history'
-  attr_accessible :project_pid,:key,:value,:valid_from,:valid_to,:updated_by
 
   def self.add_change(project_pid,key,value,user)
     date = DateTime.now

@@ -1,5 +1,8 @@
 ActiveAdmin.register Mute do
   menu :priority => 9
+  permit_params :reason, :contract_id, :project_pid, :schedule_id, :admin_user_id, :disabled,
+                :start_date, :start_time_hour, :start_time_minute,
+                :end_date, :end_time_hour, :end_time_minute
   config.sort_order = 'created_at_desc'
   config.clear_action_items!
   actions :all, :except => :destroy
@@ -26,9 +29,6 @@ ActiveAdmin.register Mute do
 
 
   form do |f|
-    f.form_buffers.last << Arbre::Context.new{
-      ul f.object.errors[:base], class: 'errors' if f.object.errors[:base].any?
-    }
     f.inputs "Mute" do
       f.input :reason
       f.input :start, :as => :just_datetime_picker

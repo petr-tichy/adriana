@@ -4,10 +4,4 @@ class NotificationLog < ActiveRecord::Base
   def url
     "nic"
   end
-
-
-
-
-
-
 end

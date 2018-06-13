@@ -1,68 +1,63 @@
 ActiveAdmin.register Schedule do
   menu :priority => 8
+  permit_params :id, :graph_name, :mode, :cron, :main, :settings_server_id, :gooddata_schedule,
+                :gooddata_process, :r_project, :is_deleted, :updated_by, :max_number_of_errors
 
-  filter :r_project, :label => "Project PID"
-  filter :project, :label => "Project Name", :as => :string
+  filter :contract_id, :label => 'Contract', :as => :select, :collection => Contract.all.order(:name)
+  filter :r_project, :label => 'Project PID'
+  filter :project_name, :label => 'Project Name', :as => :string
   filter :mode
   filter :main
-  filter :settings_server_name, :label => "Server", :as => :select, :collection => proc { (SettingsServer.all).map{|ss| [ss.name, ss.name]} }
+  filter :settings_server_name, :label => 'Server', :as => :select, :collection => proc { (SettingsServer.all.order(:name)).map { |ss| [ss.name, ss.name] } }
 
-  filter :contract, :label => "Contract",:as => :select, :collection => Contract.all
-  #filter :project_contract_id, :label => "Contract", :as => :select, :collection => proc { (Contract.all).map{|c| [c.id, c.id]} }
-
-
-  scope :all, :default => true
-
-  scope :cloudconnect do |schedule|
-    schedule.where("settings_server.server_type = ?","cloudconnect")
-  end
-  scope :infra do |schedule|
-    schedule.where("settings_server.server_type = ?","infra")
-  end
-  scope :legacy do |schedule|
-    schedule.where("settings_server.server_type = ?","bash")
-  end
-
-  scope :error do |schedule|
-    schedule.where("running_executions.status = 'ERROR'")
-  end
-
-  scope :running do |schedule|
-    schedule.where("running_executions.status = 'RUNNING'")
-  end
-
-  scope :finished do |schedule|
-    schedule.where("running_executions.status = 'FINISHED'")
-  end
-
-  batch_action :restart,:confirm => "Do you want to restart selected schedules?" do |selection|
-    redirect_to new_admin_job_path(:type => "restart",:selection => selection)
+  batch_action :restart, :confirm => "Do you want to restart selected schedules?" do |selection|
+    redirect_to new_admin_job_path(:type => "restart", :selection => selection)
   end
 
   batch_action :destroy, :confirm => "Do you want to delete following schedules?" do |selection|
     schedule = params["collection_selection"]
     schedule.each do |selection|
       ActiveRecord::Base.transaction do
-        Schedule.mark_deleted(selection,current_active_admin_user)
+        Schedule.mark_deleted(selection, current_active_admin_user)
       end
     end
-    redirect_to admin_schedules_path,:notice => "Schedules were deleted!"
+    redirect_to admin_schedules_path, :notice => "Schedules were deleted!"
   end
 
-  form  :validate => true do |f|
+  scope :all, :default => true
+  scope :cloudconnect do |schedule|
+    schedule.default.where("settings_server.server_type = ?","cloudconnect")
+  end
+  scope :infra do |schedule|
+    schedule.default.where("settings_server.server_type = ?","infra")
+  end
+  scope :legacy do |schedule|
+    schedule.default.where("settings_server.server_type = ?","bash")
+  end
+  scope :error do |schedule|
+    schedule.default.where("running_executions.status = 'ERROR'")
+  end
+  scope :running do |schedule|
+    schedule.default.where("running_executions.status = 'RUNNING'")
+  end
+  scope :finished do |schedule|
+    schedule.default.where("running_executions.status = 'FINISHED'")
+  end
+
+  form :validate => true do |f|
     f.inputs "Info" do
       f.input :graph_name
       f.input :mode
       f.input :main
-      f.input :settings_server
+      f.input :settings_server, :include_blank => false
       f.input :cron
       f.input :max_number_of_errors
       if (params["project_pid"].nil?)
-        f.input :r_project,:as => :hidden
+        f.input :r_project, :as => :hidden
       else
-        f.input :r_project,:as => :hidden, :input_html => { :value => params["project_pid"] }
+        f.input :r_project, :as => :hidden, :input_html => {:value => params["project_pid"]}
       end
-      f.input :is_deleted,:as => :hidden
+      f.input :is_deleted, :as => :hidden
     end
     f.inputs "Detail" do
       f.input :gooddata_schedule
@@ -71,14 +66,13 @@ ActiveAdmin.register Schedule do
     f.actions
   end
 
-
   index do
     selectable_column
     column "Project Name" do |schedule|
-      schedule.project.name
+      schedule.project&.name
     end
     column "Project PID" do |schedule|
-      link_to schedule.r_project, :controller => "projects", :action => "show",:id => schedule.r_project
+      link_to schedule.r_project, :controller => "projects", :action => "show", :id => schedule.r_project
     end
     column :graph_name
     column :mode
@@ -91,11 +85,11 @@ ActiveAdmin.register Schedule do
     column :status do |schedule|
       if (!schedule.running_executions.nil? and !schedule.running_executions.status.nil?)
         if (schedule.running_executions.status == "RUNNING")
-          status_tag "RUNNING",:warning
+          status_tag "RUNNING", :warning
         elsif (schedule.running_executions.status == "FINISHED")
-          status_tag "FINISHED",:ok
+          status_tag "FINISHED", :ok
         else
-          status_tag "ERROR",:error
+          status_tag "ERROR", :error
         end
       end
     end
@@ -103,7 +97,7 @@ ActiveAdmin.register Schedule do
       elements = ''
       if schedule.muted?
         elements += image_tag('true_icon.png', :size => '28x20') + ' '
-        elements += link_to 'Mutes list', admin_mutes_path('mute_ids' => schedule.all_mutes.map(&:id), 'commit' => 'Filter')
+        elements += link_to 'Mutes list', admin_mutes_path('q[schedule_id_eq]' => "#{schedule.id}".html_safe, 'commit' => 'Filter')
       else
         elements += image_tag('false_icon.png', :size => '20x20') + ' '
         elements += link_to 'Mute', new_admin_mute_path(:reference_id => schedule.send(Schedule.primary_key.to_sym), :reference_type => Schedule.name)
@@ -113,9 +107,9 @@ ActiveAdmin.register Schedule do
     column :execution_time do |schedule|
       if (!schedule.running_executions.nil? and !schedule.running_executions.status.nil?)
         if (schedule.running_executions.status == "RUNNING")
-          l(schedule.running_executions.event_start,:format => :short)
+          l(schedule.running_executions.event_start, :format => :short)
         else
-          l(schedule.running_executions.event_end,:format => :short)
+          l(schedule.running_executions.event_end, :format => :short)
         end
       end
     end
@@ -125,11 +119,11 @@ ActiveAdmin.register Schedule do
 
   show :title => "Schedule" do
     columns do
-      column  do
+      column do
         panel ("Info") do
           attributes_table_for schedule do
             row :project do |s|
-              Project.find(s.r_project).name
+              Project.find_by_project_pid(s.r_project)&.name
             end
             row :cron
             row :graph_name
@@ -148,7 +142,7 @@ ActiveAdmin.register Schedule do
             row :gooddata_schedule
             row :gooddata_process
             row :updated_by do |s|
-              AdminUser.find(s.updated_by).email
+              AdminUser.find_by_id(s.updated_by)&.email
             end
             row :created_at
             row :updated_at
@@ -158,15 +152,15 @@ ActiveAdmin.register Schedule do
     end
 
     panel ("Executions") do
-      table_for ExecutionLog.get_last_x_executions(10,params["id"]) do
+      table_for ExecutionLog.get_last_x_executions(10, params["id"]) do
         column :status do |e|
           if (!e["status"].nil?)
             if (e["status"] == "RUNNING")
-              status_tag "RUNNING",:warning
+              status_tag "RUNNING", :warning
             elsif (e["status"] == "FINISHED")
-              status_tag "FINISHED",:ok
+              status_tag "FINISHED", :ok
             else
-              status_tag "ERROR",:error
+              status_tag "ERROR", :error
             end
           end
         end
@@ -174,7 +168,7 @@ ActiveAdmin.register Schedule do
         column :event_start
         column :event_end
         column("Duration") do |e|
-          if (!e.event_end.nil? and !e.event_start.nil? )
+          if (!e.event_end.nil? and !e.event_start.nil?)
             distance_of_time_in_words(e.event_end, e.event_start)
           else
             ""
@@ -182,84 +176,75 @@ ActiveAdmin.register Schedule do
         end
       end
     end
-
   end
 
-
-
-
-
-
-
   controller do
-
-    #layout 'active_admin'
     include ApplicationHelper
 
     def scoped_collection
-      Schedule.default.with_mutes
+      end_of_association_chain.with_mutes
     end
 
-    before_filter :only => [:index] do
-      pp params
+    before_action :only => [:index] do
       if params['commit'].blank?
         params['q'] = {:is_deleted_eq => '0'}
       end
     end
 
     def update
-      schedule = Schedule.where("id = ?",params[:id]).first
+      @schedule = Schedule.where("id = ?", params[:id]).first
       public_attributes = Schedule.get_public_attributes
 
-      params[:schedule]["mode"].downcase! if !params[:schedule]["mode"].nil?
+      params[:schedule]["mode"].downcase! unless params[:schedule]["mode"].nil?
       params[:schedule]["graph_name"].downcase!
 
       ActiveRecord::Base.transaction do
         public_attributes.each do |attr|
-          if (!same?(params[:schedule][attr],schedule[attr]))
-            ScheduleHistory.add_change(schedule.id,attr,params[:schedule][attr].to_s,current_active_admin_user)
-            schedule[attr] = params[:schedule][attr]
+          if (!same?(params[:schedule][attr], @schedule[attr]))
+            ScheduleHistory.add_change(@schedule.id, attr, params[:schedule][attr].to_s, current_active_admin_user)
+            @schedule[attr] = params[:schedule][attr]
           end
         end
-        schedule.updated_by = current_active_admin_user.id
-        schedule.save
+        @schedule.updated_by = current_active_admin_user.id
+        if @schedule.save
+          redirect_to admin_schedule_path(params[:id]), :notice => 'Schedule was successfully updated.'
+        else
+          flash[:error] = 'Please review the errors below.'
+          render action: 'edit'
+        end
       end
-      redirect_to admin_schedule_path(params[:id])
     end
 
     def destroy
       ActiveRecord::Base.transaction do
-        Schedule.mark_deleted(params[:id],current_active_admin_user)
+        Schedule.mark_deleted(params[:id], current_active_admin_user)
       end
-      redirect_to admin_schedule_path,:notice => "Schedule was deleted!"
+      redirect_to admin_schedule_path, :notice => "Schedule was deleted!"
     end
-
 
     def create
       public_attributes = Schedule.get_public_attributes
-      schedule = nil
+      @schedule = nil
       ActiveRecord::Base.transaction do
-        schedule = Schedule.new()
-        schedule.updated_by = current_active_admin_user.id
-        schedule.settings_server_id = params[:schedule]["settings_server_id"]
-        schedule.r_project = params[:schedule]["r_project"]
+        @schedule = Schedule.new
+        @schedule.updated_by = current_active_admin_user.id
+        @schedule.settings_server_id = params[:schedule]["settings_server_id"]
+        @schedule.r_project = params[:schedule]["r_project"]
         params[:schedule]["mode"].downcase! if !params[:schedule]["mode"].nil?
         params[:schedule]["graph_name"].downcase!
         public_attributes.each do |attr|
-          schedule[attr] =  params[:schedule][attr]
+          @schedule[attr] = params[:schedule][attr]
         end
-        schedule.save
-        public_attributes.each do |attr|
-          ScheduleHistory.add_change(schedule.id,attr,params[:schedule][attr].to_s,current_active_admin_user)
+        if @schedule.save
+          public_attributes.each do |attr|
+            ScheduleHistory.add_change(@schedule.id, attr, params[:schedule][attr].to_s, current_active_admin_user)
+          end
+          redirect_to admin_schedule_path(@schedule.id), :notice => 'Schedule was successfully created.'
+        else
+          flash[:error] = 'Please review the errors below.'
+          render action: 'new'
         end
       end
-      redirect_to admin_schedule_path(schedule.id)
     end
-
-
   end
-
-
-
-
-end                                   
+end

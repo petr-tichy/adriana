@@ -1,4 +1,4 @@
-require 'client_side_validations/formtastic'
+#require 'client_side_validations/formtastic'
 
 #ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
 #  unless html_tag =~ /^<label/
