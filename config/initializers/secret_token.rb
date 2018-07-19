@@ -4,4 +4,15 @@
 # If you change this key, all old signed cookies will become invalid!
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-ActiveAdminTest::Application.config.secret_token = '6b64ff414e4a5b7abcb3328d027e1ae97aaba267b8e619fc2b3fad56775e2fe5362c39a4ff14d57d540aff94487a92766e8df6f374ac5c6c5d0abd402d273623'
+
+secret_token_path = Rails.root.join('config/secret_token')
+secret_token = (secret_token_path.exist? and secret_token_path.read.chomp) or (
+  warn "The file #{secret_token_path} does not exists or is empty."
+  warn "Generating a new secret token and writing to #{secret_token_path}; this will invalidate the previous Rails sessions."
+
+  require 'securerandom'
+  SecureRandom.hex(64).tap do |token|
+    secret_token_path.open('w') { |io| io.write token }
+  end
+)
+ActiveAdminTest::Application.config.secret_token = secret_token
