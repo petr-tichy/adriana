@@ -125,20 +125,21 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
   end
 
   create_table "execution_log", :force => true do |t|
-    t.datetime "event_start",                    :null => false
+    t.datetime "event_start",                     :null => false
     t.string   "status",          :limit => 32
-    t.string   "detailed_status", :limit => 256
-    t.string   "updated_by"
+    t.string   "detailed_status", :limit => 4096
+    t.string   "updated_by",      :limit => nil
     t.datetime "updated_at"
     t.integer  "r_schedule"
     t.datetime "event_end"
     t.integer  "sla_event_start"
     t.string   "request_id",      :limit => 100
     t.string   "pd_event_id"
+    t.text     "error_text"
   end
 
-  add_index "execution_log", ["event_start"], :name => "idx_execution_log5"
-  add_index "execution_log", ["id", "r_schedule"], :name => "idx_execution_r_schedule"
+  add_index "execution_log", ["event_start"], :name => "idx_execution_event_start"
+  add_index "execution_log", ["r_schedule", "event_end"], :name => "idx_execution_r_schedule"
   add_index "execution_log", ["request_id"], :name => "idx_request_id"
   add_index "execution_log", ["status"], :name => "idx_execution_log4"
 
@@ -187,6 +188,8 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
     t.datetime "updated_at",  :null => false
   end
 
+  add_index "job_history", ["job_id"], :name => "job_id desc", :order => {"job_id"=>:desc}
+
   create_table "job_parameter", :force => true do |t|
     t.integer "job_id"
     t.string  "key",    :null => false
@@ -234,11 +237,11 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
   end
 
   create_table "project", :id => false, :force => true do |t|
-    t.text     "project_pid",                                              :null => false
+    t.string   "project_pid",            :limit => 32,                     :null => false
     t.text     "status"
     t.text     "name"
     t.text     "ms_person"
-    t.string   "updated_by"
+    t.string   "updated_by",             :limit => nil
     t.datetime "updated_at"
     t.boolean  "is_deleted",                            :default => false, :null => false
     t.boolean  "sla_enabled"
@@ -251,11 +254,10 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
     t.integer  "contract_id"
   end
 
-  add_index "project", ["project_pid"], :name => "iidf"
   add_index "project", ["project_pid"], :name => "project_project_pid_key", :unique => true
 
   create_table "project_detail", :id => false, :force => true do |t|
-    t.string   "project_pid",           :null => false
+    t.string   "project_pid",           :limit => 32, :null => false
     t.string   "salesforce_type"
     t.string   "practice_group"
     t.text     "note"
@@ -275,8 +277,8 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
     t.string   "directory_name"
     t.string   "salesforce_id"
     t.string   "salesforce_name"
-    t.datetime "created_at",            :null => false
-    t.datetime "updated_at",            :null => false
+    t.datetime "created_at",                          :null => false
+    t.datetime "updated_at",                          :null => false
   end
 
   create_table "project_history", :force => true do |t|
@@ -288,25 +290,14 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
     t.text     "key"
   end
 
-  create_table "project_history_old", :force => true do |t|
-    t.text     "project_pid"
-    t.text     "old_value"
-    t.text     "new_value"
-    t.datetime "updated_at"
-    t.text     "updated_by"
-    t.text     "key"
-  end
-
-  add_index "project_history_old", ["project_pid", "key", "updated_at"], :name => "IX_project_pid_key_updated_at"
-
   create_table "running_executions", :force => true do |t|
     t.integer  "schedule_id"
     t.string   "status"
-    t.string   "detailed_status"
+    t.string   "detailed_status",             :limit => 4096
     t.string   "request_id"
-    t.datetime "event_start",                                :null => false
+    t.datetime "event_start",                                                :null => false
     t.datetime "event_end"
-    t.integer  "number_of_consequent_errors", :default => 0
+    t.integer  "number_of_consequent_errors",                 :default => 0
   end
 
   create_table "schedule", :force => true do |t|
@@ -315,15 +306,15 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
     t.string   "server"
     t.string   "cron"
     t.string   "r_project"
-    t.string   "updated_by"
+    t.string   "updated_by",           :limit => nil
     t.datetime "updated_at"
-    t.boolean  "is_deleted",           :default => false, :null => false
-    t.boolean  "main",                 :default => false
+    t.boolean  "is_deleted",                          :default => false, :null => false
+    t.boolean  "main",                                :default => false
     t.datetime "created_at"
     t.integer  "settings_server_id"
     t.string   "gooddata_schedule"
     t.string   "gooddata_process"
-    t.integer  "max_number_of_errors", :default => 0
+    t.integer  "max_number_of_errors",                :default => 0
   end
 
   create_table "schedule_history", :force => true do |t|
@@ -335,20 +326,11 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
     t.string   "updated_by"
   end
 
-  create_table "schedule_history_old", :force => true do |t|
-    t.text     "r_schedule"
-    t.text     "old_value"
-    t.text     "new_value"
-    t.datetime "updated_at"
-    t.text     "updated_by"
-    t.text     "key"
-  end
-
   create_table "settings", :force => true do |t|
     t.text     "key"
     t.text     "value"
     t.text     "note"
-    t.string   "updated_by"
+    t.string   "updated_by", :limit => nil
     t.datetime "updated_at"
   end
 
@@ -405,45 +387,6 @@ ActiveRecord::Schema.define(:version => 20180209124500) do
   end
 
   add_index "tags", ["name"], :name => "index_tags_on_name", :unique => true
-
-  create_table "temp_contract_history", :id => false, :force => true do |t|
-    t.string  "contract_id"
-    t.date    "valid_from"
-    t.date    "valid_to"
-    t.string  "key",         :limit => 100
-    t.string  "value"
-    t.integer "h_order"
-  end
-
-  create_table "temp_contract_history_denorm", :id => false, :force => true do |t|
-    t.string  "contract_id"
-    t.boolean "sla_enabled"
-    t.string  "sla_type",       :limit => 100
-    t.string  "sla_value",      :limit => 100
-    t.string  "sla_percentage", :limit => 100
-    t.string  "salesforce_id",  :limit => 100
-    t.string  "contract_type",  :limit => 100
-    t.date    "generated_date"
-  end
-
-  create_table "temp_project_history", :id => false, :force => true do |t|
-    t.string  "project_pid"
-    t.date    "valid_from"
-    t.date    "valid_to"
-    t.string  "key",         :limit => 100
-    t.string  "value"
-    t.integer "h_order"
-  end
-
-  create_table "temp_project_history_denorm", :id => false, :force => true do |t|
-    t.string  "project_pid"
-    t.string  "status",         :limit => 100
-    t.boolean "sla_enabled"
-    t.string  "sla_type",       :limit => 100
-    t.string  "sla_value",      :limit => 100
-    t.integer "contract_id"
-    t.date    "generated_date"
-  end
 
   create_table "temp_request", :id => false, :force => true do |t|
     t.string "request_id", :limit => 100
