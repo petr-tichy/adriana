@@ -2,7 +2,6 @@
 /vendor/bundle/
 /log/
 /tmp/
-/bin/
 /public/assets/
 /config/database.yml
 /config/secret_token

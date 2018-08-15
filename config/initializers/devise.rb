@@ -252,12 +252,11 @@ Devise.setup do |config|
   # so you need to do it manually. For the users scope, it would be:
   # config.omniauth_path_prefix = "/my_engine/users/auth"
 
-
-  # Generate secret_key if not already set
+  # Generate devise_secret_key if not already set
   secret_key_path = Rails.root.join('config/devise_secret_key')
   secret_key = (secret_key_path.exist? and secret_key_path.read.chomp) or (
     warn "The file #{secret_key_path} does not exists or is empty."
-    warn "Generating a new Devise secret key and writing to #{secret_key_path}; this will invalidate the previous Rails sessions."
+    warn "Generating a new Devise secret key and writing to #{secret_key_path}"
 
     require 'securerandom'
     SecureRandom.hex(128).tap do |token|
