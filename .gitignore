@@ -3,3 +3,4 @@ public/assets/
 tmp/
 config/database.yml
 config/secret_token
+config/devise_secret_key
