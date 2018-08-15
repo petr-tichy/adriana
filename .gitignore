@@ -1,6 +1,9 @@
-log/
-public/assets/
-tmp/
-config/database.yml
-config/secret_token
-config/devise_secret_key
+/.bundle/
+/vendor/bundle/
+/log/
+/tmp/
+/bin/
+/public/assets/
+/config/database.yml
+/config/secret_token
+/config/devise_secret_key
