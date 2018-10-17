@@ -1,16 +1,15 @@
 $: << File.expand_path(File.dirname(__FILE__) + "../")
 
-require_relative "data/connection.rb"
+require_relative 'data/connection.rb'
 require 'logger'
 require_relative 'migration.rb'
-#require 'composite_primary_keys'
 require 'google_drive'
-require "passwordmanager"
+require 'passwordmanager'
 require 'rest-client'
 
 %w(crontab_parser log helper change_watcher).each {|a| require_relative "helpers/#{a}"}
 %w(project task).each {|a| require_relative "data/stage/#{a}"}
-%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server notification_log customer mute).each {|a| require_relative "data/log/#{a}"}
+%w(execution_log project settings schedule project_history schedule_history event_log request sla_description running_executions contract project_detail settings_server notification_log customer mute error_filter).each {|a| require_relative "data/log/#{a}"}
 %w(base timeline projects statistics).each {|a| require_relative "objects/#{a}"}
 %w(events severity key event test livetest startedtest finishedtest slatest error_test).each {|a| require_relative "tests/#{a}"}
 %w(splunk_downloader).each {|a| require_relative "splunk/#{a}"}
@@ -19,35 +18,33 @@ require 'rest-client'
 %w(testcases).each {|a| require_relative "testcases/#{a}"}
 %w(notification_removal_task).each {|a| require_relative "custom/#{a}"}
 
-
 module SLAWatcher
-
   class << self
-
-
     attr_accessor :google,:pd_service,:pd_entity
 
     def connect_to_db(hostname,port,username,password,database)
       SLAWatcher::Connection.connect(hostname,port,username,password,database)
     end
 
-    def splunk(username,password,hostname)
-      SLAWatcher::SplunkDownloader.new(username,hostname)
+    def splunk_downloader(username, password, hostname)
+      SLAWatcher::SplunkDownloader.new(username, password, hostname)
     end
 
-
-    def client()
-      SLAWatcher::Base.new()
+    def client
+      SLAWatcher::Base.new
     end
-
 
     def get_projects
       SLAWatcher::Project.load_projects
     end
 
+    def get_error_filter_messages
+      ErrorFilter.active.map(&:message)
+    end
+
     def check_request_id(values,type)
-      #Fill temp_request table
-      SLAWatcher::Request.delete_all()
+      # Fill temp_request table
+      SLAWatcher::Request.delete_all
       batch_size = 500
       batch = []
       values.each do |value|
@@ -59,19 +56,15 @@ module SLAWatcher
       end
       SLAWatcher::Request.import batch
 
-      if (type == 'STARTED')
+      if type == 'STARTED'
         requests = SLAWatcher::Request.check_request_id_started
       else
         requests = SLAWatcher::Request.check_request_id_finished
       end
 
       values.delete_if do |element|
-        e = requests.find{|r| r.request_id == element[:request_id]}
-        if (e.nil?)
-          true
-        else
-          false
-        end
+        e = requests.find { |r| r.request_id == element[:request_id] }
+        e.nil?
       end
       values
     end
@@ -88,8 +81,19 @@ module SLAWatcher
       SLAWatcher::ExecutionLog.log_execution(pid,graph_name,mode,status,detailed_status,time)
     end
 
-    def log_execution_splunk(pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time = nil, error_text = nil)
-      SLAWatcher::ExecutionLog.log_execution_splunk(pid, schedule_id, request_id, graph_name, mode, status, detailed_status, time, error_text)
+    def log_execution_splunk(event)
+      SLAWatcher::ExecutionLog.log_execution_splunk(
+          event[:project_pid],
+          event[:schedule_id],
+          event[:request_id],
+          event[:clover_graph],
+          event[:mode],
+          event[:status],
+          "From Splunk synchronizer",
+          event[:time],
+          event[:error_text],
+          event[:matches_error_filters]
+      )
     end
 
     def start_migration()
@@ -195,7 +199,7 @@ module SLAWatcher
     def snifer
       synchronize = SLAWatcher::Synchronize.new
       synchronize.load_data
-      synchronize.work
+      synchronize.log_executions
     end
 
     def run_notification_removal_task
