@@ -14,7 +14,7 @@ ActiveAdmin.register Project do
   index row_class: ->(p) { 'row-highlight-muted' if p.muted? } do |project|
     selectable_column
     column :name do |project|
-      link_to project.name, admin_project_path(project)
+      link_to project.name, admin_project_path(project) || ''
     end
     column :project_pid
     column :status
@@ -34,12 +34,11 @@ ActiveAdmin.register Project do
     end
     column :schedules do |project|
       links = ''.html_safe
-      links += link_to 'List', :controller => 'schedules', :action => 'index', 'q[r_project_contains]' => project.project_pid.to_s.html_safe, 'commit' => 'Filter'
+      links += link_to fa_icon('list-ul lg'), {:controller => 'schedules', :action => 'index', 'q[r_project_contains]' => project.project_pid.to_s.html_safe, 'commit' => 'Filter'}, {:title => 'List schedules for project'}
       links += ' '
-      links += link_to 'New', :controller => 'schedules', :action => 'new', :project_pid => project.project_pid
+      links += link_to fa_icon('plus lg'), {:controller => 'schedules', :action => 'new', :project_pid => project.project_pid},{:title => 'Create new schedule under project'}
       links
     end
-    actions
   end
 
   form :validate => true do |f|

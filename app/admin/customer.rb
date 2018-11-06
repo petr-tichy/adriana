@@ -18,7 +18,6 @@ ActiveAdmin.register Customer do
     column :actions do |customer|
       link_to 'New contract', :controller => 'contracts', :action => 'new', :customer_id => customer.id, :customer_name => customer.name
     end
-    actions
   end
 
   show do

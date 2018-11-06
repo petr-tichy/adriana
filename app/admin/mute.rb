@@ -13,6 +13,9 @@ ActiveAdmin.register Mute do
   filter :active, :as => :select, :label => 'Active?', :collection => [['Active', :active], ['Inactive', :inactive]]
 
   index row_class: ->(m) { 'row-highlight-muted' if m.active? } do
+    column :detail do |mute|
+      link_to 'Detail', admin_mute_path(mute)
+    end
     column :active, &:active?
     column :reason
     column :start
@@ -29,9 +32,6 @@ ActiveAdmin.register Mute do
       status_tag mute.disabled
       mute.disabled? ? link_to('Enable', enable_admin_mute_path(mute.id)) : link_to('Disable', disable_admin_mute_path(mute.id))
     end
-    column :actions do |mute|
-    end
-    actions
   end
 
 

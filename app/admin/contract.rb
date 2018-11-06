@@ -16,7 +16,7 @@ ActiveAdmin.register Contract do
     column :name do |contract|
       link_to contract.name, admin_contract_path(contract)
     end
-    column :customer_name do |contract|
+    column :customer do |contract|
       link_to contract.customer.name, admin_customer_path(contract.customer)
     end
     column :sla_enabled
