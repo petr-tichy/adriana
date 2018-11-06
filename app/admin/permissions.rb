@@ -1,4 +1,5 @@
 ActiveAdmin.register ::ActiveAdmin::Permission, as: "Permission" do
+  menu :parent => 'Settings'
   actions :index
 
   filter :state, as: :select, collection: controller.resource_class.states

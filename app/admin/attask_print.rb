@@ -1,5 +1,5 @@
 ActiveAdmin.register_page "Attask Print" do
-  menu :priority => 7
+  menu :priority => 7, :parent => 'Custom actions'
 
   content do
     render :partial => "print_form"
@@ -12,14 +12,14 @@ ActiveAdmin.register_page "Attask Print" do
       email = params["attask"]["email"]
       job_type = JobType.find_by_key("attask_print_job")
       ActiveRecord::Base.transaction do
-        job = Job.new()
+        job = Job.new
         job.scheduled_by = current_active_admin_user.id
         job.job_type_id = job_type.id
         job.recurrent = false
         job.scheduled_at = DateTime.now.utc
         job.save
 
-        job_parameter = JobParameter.new()
+        job_parameter = JobParameter.new
         job_parameter.job_id = job.id
         job_parameter.key = "email"
         job_parameter.value = email

@@ -17,7 +17,12 @@ body.active_admin {
     }
 
   }
+}
 
+.row-highlight-muted td {
+  background-color: rgba(255, 0, 33, 0.37) !important;
+}
 
-
+.row-highlight-active {
+  background-color: rgba(255, 16, 23, 0.37);
 }

@@ -1,5 +1,8 @@
 <%= semantic_form_for @job,:url => @edit ? admin_jobs_update_contract_sychnronization_path("job_id" => @job.id) : admin_jobs_create_contract_sychnronization_path,:validate => true do |a| %>
 
+    <%= a.inputs "Contract" do %>
+      <li><%= link_to @contract_name, admin_contract_path(@contract) %></li>
+    <% end %>
 
     <%= a.inputs "Job Synchronize Contract" do %>
         <%= a.input :job_type, :input_html => { :disabled => true , :value => "Contract Synchronization" } %>

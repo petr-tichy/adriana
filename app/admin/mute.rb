@@ -1,5 +1,5 @@
 ActiveAdmin.register Mute do
-  menu :priority => 9
+  menu :priority => 9, :parent => 'Resources'
   permit_params :reason, :contract_id, :project_pid, :schedule_id, :admin_user_id, :disabled,
                 :start_date, :start_time_hour, :start_time_minute,
                 :end_date, :end_time_hour, :end_time_minute
@@ -7,13 +7,17 @@ ActiveAdmin.register Mute do
   config.clear_action_items!
   actions :all, :except => :destroy
 
-  index do
-    column :active do |mute|
-      mute.active? ? image_tag('true_icon.png', :size => '28x20') : image_tag('false_icon.png', :size => '20x20')
-    end
+  preserve_default_filters!
+  filter :admin_user, :as => :select, :collection => AdminUser.all.order(:email).map { |x| [x.email, x.id] }
+  filter :contract, :as => :select, :collection => Contract.all.order(:name)
+  filter :active, :as => :select, :label => 'Active?', :collection => [['Active', :active], ['Inactive', :inactive]]
+
+  index row_class: ->(m) { 'row-highlight-muted' if m.active? } do
+    column :active, &:active?
     column :reason
     column :start
     column :end
+    column :muted_object_type
     column :muted_object do |mute|
       obj = mute.contract || mute.project || mute.schedule
       link_to obj.name, polymorphic_path(['admin', obj])
@@ -21,19 +25,22 @@ ActiveAdmin.register Mute do
     column :created_by do |mute|
       mute.admin_user ? link_to(mute.admin_user.email, admin_admin_user_path(mute.admin_user)) : 'User missing'
     end
-    column :actions do |mute|
+    column :disabled do |mute|
+      status_tag mute.disabled
       mute.disabled? ? link_to('Enable', enable_admin_mute_path(mute.id)) : link_to('Disable', disable_admin_mute_path(mute.id))
+    end
+    column :actions do |mute|
     end
     actions
   end
 
 
   form do |f|
-    f.inputs "Mute" do
-      f.input :reason
+    f.inputs 'Mute' do
       f.input :start, :as => :just_datetime_picker
       f.input :end, :as => :just_datetime_picker
-      f.input :disabled, :as => :select, :label => 'Disable mute?', :include_blank => false
+      f.input :disabled, :as => :select, :label => 'Disable the mute for now?', :include_blank => false
+      f.input :reason, :label => 'Provide a reason for muting'
       f.input :contract_id, :as => :hidden
       f.input :project_pid, :as => :hidden
       f.input :schedule_id, :as => :hidden
@@ -43,7 +50,7 @@ ActiveAdmin.register Mute do
   end
 
   show do
-    panel ("General") do
+    panel('General') do
       attributes_table_for mute do
         row :reason
         row :disabled
@@ -57,13 +64,13 @@ ActiveAdmin.register Mute do
           link_to obj.name, polymorphic_path(['admin', obj])
         end
         row :active do |mute|
-          mute.active? ? image_tag('true_icon.png', :size => '28x20') : image_tag('false_icon.png', :size => '20x20')
+          status_tag mute.active?
         end
         row :created_at
         row :updated_at
       end
     end
-    panel ("Duration") do
+    panel('Duration') do
       attributes_table_for mute do
         row :start
         row :end
@@ -100,7 +107,7 @@ ActiveAdmin.register Mute do
       @mute = Mute.new
       class_name = params['reference_type']
       class_name_under = class_name.underscore
-      return nil unless %w(contract project schedule).include?(class_name_under)
+      return nil unless %w[contract project schedule].include?(class_name_under)
       @mute.send("#{class_name_under}=".to_sym, class_name.constantize.find(params['reference_id']))
       @mute.admin_user = current_active_admin_user
       @mute

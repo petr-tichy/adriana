@@ -11,35 +11,34 @@ class Schedule < ActiveRecord::Base
   validates_presence_of :graph_name, :settings_server_id
 
   def self.get_public_attributes
-    %w( graph_name mode cron is_deleted main settings_server_id gooddata_schedule gooddata_process max_number_of_errors )
+    %w[ graph_name mode cron is_deleted main settings_server_id gooddata_schedule gooddata_process max_number_of_errors ]
   end
 
-  scope :default, -> {
-    select('schedule.*,running_executions.status,running_executions.event_start,running_executions.event_end,settings_server.name').joins(:running_executions).joins(:settings_server).joins(:project).joins(:project => :contract).where('schedule.is_deleted = ?', false)
+  scope :default, lambda {
+    select('schedule.*,running_executions.status,running_executions.event_start,running_executions.event_end,settings_server.name')
+      .references(:running_executions).includes(:running_executions)
+      .includes(:settings_server)
+      .includes(:project)
+      .includes(:project => :contract)
+      .where('schedule.is_deleted = ?', false)
   }
-
-  scope :with_project, -> {
+  scope :with_project, lambda {
     select('schedule.*,p.name as project_name').joins('INNER JOIN project p ON p.project_pid = schedule.r_project').where('schedule.is_deleted = ?', false)
   }
-
-  scope :with_mutes, -> { includes(:mutes).includes(:project => :mutes).includes(:contract => :mutes) }
-
-  scope :contract_eq,
-        lambda { |contract_id|
-          unless contract_id.nil?
-            default.where('project.contract_id = ?', contract_id)
-          end
-        }
-
-  scope :project_contains,
-        lambda { |project_contains|
-          unless project_contains.nil?
-            default.where('project.name LIKE :name', {:name => "%#{project_contains}%"})
-          end
-        }
+  scope :contract_eq, lambda { |contract_id|
+    default.where('project.contract_id = ?', contract_id) unless contract_id.nil?
+  }
+  scope :project_contains, lambda { |project_contains|
+    default.where('project.name LIKE :name', :name => "%#{project_contains}%") unless project_contains.nil?
+  }
+  scope :muted, lambda {
+    #TODO change to union when Rails supports it properly
+    all.where(:id => (joins(:contract => :mutes).merge(Mute.active).pluck(:id) | joins(:project => :mutes).merge(Mute.active).pluck(:id) | joins(:mutes).merge(Mute.active).pluck(:id)).uniq)
+  }
+  scope :not_muted, -> { all.where.not(:id => muted.pluck(:id)) }
 
   def self.ransackable_scopes(auth_object = nil)
-    [:default, :with_project, :with_mutes, :contract_eq, :project_contains]
+    %i[default with_project contract_eq project_contains]
   end
 
   def self.get_last_executions
@@ -53,7 +52,7 @@ class Schedule < ActiveRecord::Base
   end
 
   def self.load_schedules_of_live_projects
-    select("schedule.id as id,ss.server_type as server_type,schedule.cron as cron").joins("INNER JOIN project p ON r_project = p.project_pid").joins("INNER JOIN contract c ON c.id = p.contract_id").joins("INNER JOIN settings_server ss ON ss.id = schedule.settings_server_id").where("p.status = ? and schedule.is_deleted = ? and c.contract_type = ? and p.is_deleted = ?","Live",false,"direct",false)
+    select('schedule.id as id,ss.server_type as server_type,schedule.cron as cron').joins('INNER JOIN project p ON r_project = p.project_pid').joins('INNER JOIN contract c ON c.id = p.contract_id').joins('INNER JOIN settings_server ss ON ss.id = schedule.settings_server_id').where('p.status = ? and schedule.is_deleted = ? and c.contract_type = ? and p.is_deleted = ?','Live',false,'direct',false)
   end
 
   def self.load_schedules_of_live_projects_main
@@ -74,11 +73,11 @@ class Schedule < ActiveRecord::Base
   end
 
   def muted?
-    all_mutes.select { |m| m.active? }.any?
+    all_mutes.select(&:active?).any?
   end
 
   # For activeadmin filtering
   def name
-    "#{self.id} - #{self.graph_name}"
+    "#{id} - #{graph_name}"
   end
 end

@@ -2,14 +2,20 @@ class Project < ActiveRecord::Base
   self.table_name = 'project'
   self.primary_key = 'project_pid'
 
-  has_many :running_executions, :through => :schedule
+  has_many :running_executions, :through => :schedules
   has_one :project_detail, :primary_key => 'project_pid', :foreign_key => 'project_pid'
   belongs_to :contract, :foreign_key => 'contract_id', :primary_key => 'id'
   has_many :schedules
   has_many :mutes, :foreign_key => 'project_pid'
   validates_presence_of :status, :name, :project_pid, :contract_id
 
-  scope :with_mutes, -> { includes(:mutes).includes(:contract => :mutes) }
+  scope :default, -> { includes(:mutes).includes(:contract => :mutes) }
+
+  scope :muted, lambda {
+    #TODO change to union when Rails supports it properly
+    where(:project_pid => (joins(:contract => :mutes).merge(Mute.active).pluck(:project_pid) | joins(:mutes).merge(Mute.active).pluck(:project_pid)).uniq)
+  }
+  scope :not_muted, -> { where.not(:project_pid => muted.pluck(:project_pid)) }
 
   def self.get_public_attributes
     %w( status name ms_person contract_id )

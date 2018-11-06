@@ -1,5 +1,5 @@
 ActiveAdmin.register Customer do
-  menu :priority => 8
+  menu :priority => 8, :parent => 'Resources'
   permit_params :name, :email, :contact_person
 
   filter :project_pid
@@ -7,19 +7,22 @@ ActiveAdmin.register Customer do
   filter :is_deleted, :as => :select, :collection => [['Yes', true], ['No', false]]
 
   index do
-    column :name
+    selectable_column
+    column :name do |c|
+      link_to c.name, admin_customer_path(c)
+    end
     column :email
     column :contact_person
     column :created_at
     column :updated_at
     column :actions do |customer|
-      link_to "New contract", :controller => "contracts", :action => "new", :customer_id => customer.id, :customer_name => customer.name
+      link_to 'New contract', :controller => 'contracts', :action => 'new', :customer_id => customer.id, :customer_name => customer.name
     end
     actions
   end
 
   show do
-    panel ("Customer") do
+    panel('Customer') do
       attributes_table_for customer do
         row :name
         row :email
@@ -29,21 +32,30 @@ ActiveAdmin.register Customer do
         row :is_deleted
       end
     end
-    panel ("Contracts") do
-      table_for Contract.where("customer_id = ?", params["id"]) do
+    panel('Contracts') do
+      table_for Contract.where('customer_id = ?', params['id']) do
         column(:name)
         column(:updated_at)
         column(:created_at)
       end
     end
+    panel('History') do
+      table_for CustomerHistory.where('customer_id = ?', params['id']) do
+        column(:key)
+        column(:value)
+        column(:updated_by) do |c|
+          AdminUser.find_by_id(c.updated_by)&.email || '-'
+        end
+      end
+    end
   end
 
   action_item :new_contract, :only => :show do
-    link_to "New contract", :controller => "contracts", :action => "new", :customer_id => customer.id, :customer_name => customer.name
+    link_to 'New contract', :controller => 'contracts', :action => 'new', :customer_id => customer.id, :customer_name => customer.name
   end
 
   form do |f|
-    f.inputs "Customer" do
+    f.inputs 'Customer' do
       f.input :name
       f.input :email
       f.input :contact_person
@@ -56,18 +68,16 @@ ActiveAdmin.register Customer do
     include ApplicationHelper
 
     before_action :only => [:index] do
-      if params['commit'].blank?
-        params['q'] = {:is_deleted_eq => '0'}
-      end
+      params['q'] = {:is_deleted_eq => '0'} if params['commit'].blank?
     end
 
     def update
-      @customer = Customer.where("id = ?", params[:id]).first
+      @customer = Customer.where('id = ?', params[:id]).first
       public_attributes = Customer.get_public_attributes
 
       ActiveRecord::Base.transaction do
         public_attributes.each do |attr|
-          if (!same?(params[:customer][attr], @customer[attr]))
+          unless same?(params[:customer][attr], @customer[attr])
             CustomerHistory.add_change(@customer.id, attr, params[:customer][attr].to_s, current_active_admin_user)
             @customer[attr] = params[:customer][attr]
           end
@@ -110,7 +120,7 @@ ActiveAdmin.register Customer do
       ActiveRecord::Base.transaction do
         Customer.mark_deleted(params[:id], current_active_admin_user)
       end
-      redirect_to admin_customers_path, :notice => "Customer was deleted!"
+      redirect_to admin_customers_path, :notice => 'Customer was deleted!'
     end
   end
 end

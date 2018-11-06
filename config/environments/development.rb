@@ -33,7 +33,7 @@ ActiveAdminTest::Application.configure do
   config.assets.compress = false
 
   # Expands the lines which load the assets
-  config.assets.debug = true
+  config.assets.debug = false
 
   config.reload_classes_only_on_change = false
 
