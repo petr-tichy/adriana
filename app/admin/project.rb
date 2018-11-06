@@ -55,6 +55,22 @@ ActiveAdmin.register Project do
   end
 
   show do |at|
+    if project.muted?
+      panel('Project is muted', class: 'panel-muted') do
+        span do
+          text_node 'This project is currently muted, no notifications will be sent to PagerDuty. Here are the relevant mutes:'
+        end
+        table_for project.all_mutes do
+          column :id do |mute|
+            link_to mute.id, admin_mute_path(mute)
+          end
+          column :reason
+          column :start
+          column :end
+          column :admin_user, :label => 'Muted by'
+        end
+      end
+    end
     columns do
       column :max_width => '350px' do
         panel('Info') do

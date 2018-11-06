@@ -83,6 +83,22 @@ ActiveAdmin.register Contract do
 
 
   show do
+    if contract.muted?
+      panel('Contract is muted', class: 'panel-muted') do
+        span do
+          text_node 'This contract is currently muted, no notifications will be sent to PagerDuty. Here are the relevant mutes:'
+        end
+        table_for contract.all_mutes do
+          column :id do |mute|
+            link_to mute.id, admin_mute_path(mute)
+          end
+          column :reason
+          column :start
+          column :end
+          column :admin_user, :label => 'Muted by'
+        end
+      end
+    end
     panel('General') do
       attributes_table_for contract do
         row :name
