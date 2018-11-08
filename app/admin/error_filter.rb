@@ -5,8 +5,11 @@ ActiveAdmin.register ErrorFilter do
   actions :all
 
   index do
+    column :detail do |error_filter|
+      link_to 'Detail', admin_error_filter_path(error_filter)
+    end
     column :active do |error_filter|
-      error_filter.active? ? image_tag('true_icon.png', :size => '28x20') : image_tag('false_icon.png', :size => '20x20')
+      status_tag error_filter.active?
     end
     column :message
     column :created_by do |error_filter|
@@ -15,11 +18,10 @@ ActiveAdmin.register ErrorFilter do
     column :actions do |error_filter|
       error_filter.active? ? link_to('Disable', disable_admin_error_filter_path(error_filter.id)) : link_to('Enable', enable_admin_error_filter_path(error_filter.id))
     end
-    actions
   end
 
   form do |f|
-    f.inputs "Error filter" do
+    f.inputs 'Error filter' do
       f.input :message
       f.input :active, :as => :select, :label => 'Is filter enabled?', :include_blank => false
     end
@@ -28,11 +30,11 @@ ActiveAdmin.register ErrorFilter do
   end
 
   show do
-    panel ("General") do
+    panel 'General' do
       attributes_table_for error_filter do
         row :message
         row :active do |error_filter|
-          error_filter.active? ? image_tag('true_icon.png', :size => '28x20') : image_tag('false_icon.png', :size => '20x20')
+          status_tag error_filter.active?
         end
         row :admin_user
         row :created_at
