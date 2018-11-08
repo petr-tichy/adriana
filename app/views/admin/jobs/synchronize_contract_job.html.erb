@@ -6,7 +6,7 @@
 
     <%= a.inputs "Job Synchronize Contract" do %>
         <%= a.input :job_type, :input_html => { :disabled => true , :value => "Contract Synchronization" } %>
-        <%= a.input :settings_server_id,  :as => :select, :collection => SettingsServer.all %>
+        <%= a.input :settings_server_id,  :as => :select2, :collection => SettingsServer.all %>
         <%= a.input :key,  :as => :hidden, :input_html => { :value => @edit ? @type : params["type"] } %>
         <%= a.input :contract, :as => :hidden, :input_html => { :value => @contract } %>
     <% end %>
