@@ -1,5 +1,6 @@
 class ProjectHistory < ActiveRecord::Base
   self.table_name = 'project_history'
+  belongs_to :project, foreign_key: 'project_pid'
 
   def self.add_change(project_pid,key,value,user)
     date = DateTime.now
@@ -11,5 +12,9 @@ class ProjectHistory < ActiveRecord::Base
     else
       ProjectHistory.create(:project_pid => project_pid,:key => key,:value => value,:valid_from => nil,:valid_to => nil, :updated_by => user.id )
     end
+  end
+
+  def related_record
+    project
   end
 end

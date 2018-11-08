@@ -103,6 +103,16 @@ ActiveAdmin.register Project do
         end
       end
     end
+    panel('History') do
+      table_for ProjectHistory.where('project_pid = ?', params['id']) do
+        column(:key)
+        column(:value)
+        column(:updated_by) do |c|
+          AdminUser.find_by_id(c.updated_by)&.email || '-'
+        end
+        column(:created_at)
+      end
+    end
   end
 
   action_item :schedules, :only => [:show] do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180613091010) do
+ActiveRecord::Schema.define(version: 20181107142734) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -90,6 +90,8 @@ ActiveRecord::Schema.define(version: 20180613091010) do
     t.datetime "valid_to"
     t.text     "updated_by"
     t.text     "key"
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
   end
 
   create_table "customer", force: :cascade do |t|
@@ -109,6 +111,8 @@ ActiveRecord::Schema.define(version: 20180613091010) do
     t.datetime "valid_to"
     t.text     "updated_by"
     t.text     "key"
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
   end
 
   create_table "dump_log", force: :cascade do |t|
@@ -307,6 +311,8 @@ ActiveRecord::Schema.define(version: 20180613091010) do
     t.datetime "valid_to"
     t.text     "updated_by"
     t.text     "key"
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
   end
 
   create_table "project_history_old", force: :cascade do |t|
@@ -353,6 +359,8 @@ ActiveRecord::Schema.define(version: 20180613091010) do
     t.datetime "valid_from"
     t.datetime "valid_to"
     t.string   "updated_by",  limit: 255
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
   end
 
   create_table "schedule_history_old", force: :cascade do |t|

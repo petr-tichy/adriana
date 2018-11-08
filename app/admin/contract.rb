@@ -99,37 +99,54 @@ ActiveAdmin.register Contract do
         end
       end
     end
-    panel('General') do
-      attributes_table_for contract do
-        row :name
-        row :customer do |contract|
-          customer = Customer.find_by_id(contract.customer_id)
-          link_to customer.name, :controller => 'customers', :action => 'show', :id => customer.id
+    columns do
+      column do
+        panel('General') do
+          attributes_table_for contract do
+            row :name
+            row :customer do |contract|
+              customer = Customer.find_by_id(contract.customer_id)
+              link_to customer.name, :controller => 'customers', :action => 'show', :id => customer.id
+            end
+            row :updated_at
+            row :created_at
+            row :is_deleted
+            row :tag_list
+            row :token
+            row :documentation_url
+            row :default_max_number_of_errors
+            row :contract_type
+          end
         end
-        row :updated_at
-        row :created_at
-        row :is_deleted
-        row :tag_list
-        row :token
-        row :documentation_url
-        row :default_max_number_of_errors
-        row :contract_type
       end
-    end
-    panel('Monitoring') do
-      attributes_table_for contract do
-        row :monitoring_enabled, :label => 'Monitoring Enabled'
-        row :monitoring_emails, :label => 'Monitoring Emails'
-        row :monitoring_treshhold, :label => 'Monitoring Treshhold'
 
+      column do
+        panel('Monitoring') do
+          attributes_table_for contract do
+            row :monitoring_enabled, :label => 'Monitoring Enabled'
+            row :monitoring_emails, :label => 'Monitoring Emails'
+            row :monitoring_treshhold, :label => 'Monitoring Treshhold'
+
+          end
+        end
+        panel('SLA') do
+          attributes_table_for contract do
+            row :sla_enabled
+            row :sla_type
+            row :sla_value
+            row :sla_percentage
+          end
+        end
       end
     end
-    panel('SLA') do
-      attributes_table_for contract do
-        row :sla_enabled
-        row :sla_type
-        row :sla_value
-        row :sla_percentage
+    panel('History') do
+      table_for ContractHistory.where('contract_id = ?', params['id']).order('id DESC').limit(10) do
+        column(:key)
+        column(:value)
+        column(:updated_by) do |c|
+          AdminUser.find_by_id(c.updated_by)&.email || '-'
+        end
+        column(:created_at)
       end
     end
   end

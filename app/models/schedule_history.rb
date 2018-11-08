@@ -1,5 +1,6 @@
 class ScheduleHistory < ActiveRecord::Base
   self.table_name = 'schedule_history'
+  belongs_to :schedule
 
   def self.add_change(schedule_id,key,value,user)
     date = DateTime.now
@@ -34,5 +35,9 @@ class ScheduleHistory < ActiveRecord::Base
     sql = "INSERT INTO schedule_history (schedule_id, key, value, valid_from, updated_by) VALUES #{inserts.join(", ")}"
     last_records.update_all(valid_to: date)
     ActiveRecord::Base.connection.execute sql
+  end
+
+  def related_record
+    schedule
   end
 end

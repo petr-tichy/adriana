@@ -13,4 +13,8 @@ class ContractHistory < ActiveRecord::Base
       ContractHistory.create(:contract_id => contract_id,:key => key,:value => value,:valid_from => nil,:valid_to => nil, :updated_by => user.id )
     end
   end
+
+  def related_record
+    contract
+  end
 end

@@ -199,6 +199,17 @@ ActiveAdmin.register Schedule do
         end
       end
     end
+
+    panel('History') do
+      table_for ScheduleHistory.where('schedule_id = ?', params['id']) do
+        column(:key)
+        column(:value)
+        column(:updated_by) do |c|
+          AdminUser.find_by_id(c.updated_by)&.email || '-'
+        end
+        column(:created_at)
+      end
+    end
   end
 
   controller do

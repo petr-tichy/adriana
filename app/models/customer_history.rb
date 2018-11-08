@@ -13,4 +13,8 @@ class CustomerHistory < ActiveRecord::Base
       CustomerHistory.create(:customer_id => customer_id,:key => key,:value => value,:valid_from => nil,:valid_to => nil, :updated_by => user.id )
     end
   end
+
+  def related_record
+    customer
+  end
 end

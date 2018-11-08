@@ -26,6 +26,9 @@ ActiveAdmin.register Job do
 
   index do
     selectable_column
+    column :detail do |job|
+      link_to 'Detail', :controller => 'jobs', :action => 'show', :id => job.id
+    end
     column :id do |job|
       link_to job.id, admin_job_path(job)
     end
@@ -64,9 +67,6 @@ ActiveAdmin.register Job do
         link_to 'Log', :controller => 'jobs', :action => 'job_history_log', :id => job.job_history_id, :target => '_blank'
       end
 
-    end
-    column :detail do |job|
-      link_to 'Detail', :controller => 'jobs', :action => 'show', :id => job.id
     end
   end
 
@@ -114,7 +114,7 @@ ActiveAdmin.register Job do
         end
       end
 
-      panel('Job History') do
+      panel('History') do
         table_for JobHistory.where('job_id = ?', params['id']).order('started_at DESC').limit(10) do
           column(:status) do |job_history|
             value = job_history.status
@@ -131,6 +131,7 @@ ActiveAdmin.register Job do
           column(:log) do |job_history|
             link_to 'Log', :controller => 'jobs', :action => 'job_history_log', :id => job_history.id, :target => '_blank'
           end
+          column(:created_at)
         end
       end
     end
