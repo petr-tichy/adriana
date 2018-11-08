@@ -12,7 +12,7 @@ class Contract < ActiveRecord::Base
   attr_accessor :max_number_of_errors
   validates_presence_of :customer_id, :name
 
-  scope :default, lambda {
+  default_scope lambda {
     includes(:customer).includes(:mutes)
   }
   scope :muted, lambda {

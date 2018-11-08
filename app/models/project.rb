@@ -9,7 +9,7 @@ class Project < ActiveRecord::Base
   has_many :mutes, :foreign_key => 'project_pid'
   validates_presence_of :status, :name, :project_pid, :contract_id
 
-  scope :default, -> { includes(:mutes).includes(:contract => :mutes) }
+  default_scope -> { includes(:mutes).includes(:contract => :mutes) }
 
   scope :muted, lambda {
     #TODO change to union when Rails supports it properly

@@ -160,11 +160,10 @@ ActiveAdmin.register Contract do
   end
 
   controller do
-    #layout 'active_admin',  :only => [:new]
     include ApplicationHelper
 
     def scoped_collection
-      end_of_association_chain.default
+      end_of_association_chain
     end
 
     def error_show

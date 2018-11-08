@@ -16,22 +16,22 @@ ActiveAdmin.register Schedule do
   scope :muted, :group => :muting
 
   scope :cloudconnect, :group => :type do |schedule|
-    schedule.where('settings_server.server_type = ?', 'cloudconnect')
+    schedule.joins(:settings_server).where('settings_server.server_type = ?', 'cloudconnect')
   end
   scope :infra, :group => :type do |schedule|
-    schedule.where('settings_server.server_type = ?', 'infra')
+    schedule.joins(:settings_server).where('settings_server.server_type = ?', 'infra')
   end
   scope :legacy, :group => :type do |schedule|
-    schedule.where('settings_server.server_type = ?', 'bash')
+    schedule.joins(:settings_server).where('settings_server.server_type = ?', 'bash')
   end
   scope :error, :group => :status do |schedule|
-    schedule.where("running_executions.status = 'ERROR'")
+    schedule.joins(:running_executions).where("running_executions.status = 'ERROR'")
   end
   scope :running, :group => :status do |schedule|
-    schedule.where("running_executions.status = 'RUNNING'")
+    schedule.joins(:running_executions).where("running_executions.status = 'RUNNING'")
   end
   scope :finished, :group => :status do |schedule|
-    schedule.where("running_executions.status = 'FINISHED'")
+    schedule.joins(:running_executions).where("running_executions.status = 'FINISHED'")
   end
 
   batch_action :restart, :confirm => 'Do you want to restart selected schedules?' do |selection|
@@ -220,7 +220,7 @@ ActiveAdmin.register Schedule do
     end
 
     def scoped_collection
-      end_of_association_chain.default
+      end_of_association_chain
     end
 
     def update

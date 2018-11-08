@@ -14,28 +14,26 @@ class Schedule < ActiveRecord::Base
     %w[ graph_name mode cron is_deleted main settings_server_id gooddata_schedule gooddata_process max_number_of_errors ]
   end
 
-  scope :default, lambda {
-    select('schedule.*,running_executions.status,running_executions.event_start,running_executions.event_end,settings_server.name')
-      .references(:running_executions).includes(:running_executions)
-      .includes(:settings_server)
-      .includes(:project)
-      .includes(:project => :contract)
-      .where('schedule.is_deleted = ?', false)
+  default_scope lambda {
+    joins(:project).joins(:contract).joins(:customer)
+    .includes(:running_executions).includes(:settings_server)
+    .eager_load(:mutes).eager_load(:project => :mutes).eager_load(:contract => :mutes)
+    .where('schedule.is_deleted = ?', false)
   }
   scope :with_project, lambda {
     select('schedule.*,p.name as project_name').joins('INNER JOIN project p ON p.project_pid = schedule.r_project').where('schedule.is_deleted = ?', false)
   }
   scope :contract_eq, lambda { |contract_id|
-    default.where('project.contract_id = ?', contract_id) unless contract_id.nil?
+    where('project.contract_id = ?', contract_id) unless contract_id.nil?
   }
   scope :project_contains, lambda { |project_contains|
-    default.where('project.name LIKE :name', :name => "%#{project_contains}%") unless project_contains.nil?
+    where('project.name LIKE :name', :name => "%#{project_contains}%") unless project_contains.nil?
   }
   scope :muted, lambda {
     #TODO change to union when Rails supports it properly
-    all.where(:id => (joins(:contract => :mutes).merge(Mute.active).pluck(:id) | joins(:project => :mutes).merge(Mute.active).pluck(:id) | joins(:mutes).merge(Mute.active).pluck(:id)).uniq)
+    where(:id => (joins(:contract => :mutes).merge(Mute.active).pluck(:id) | joins(:project => :mutes).merge(Mute.active).pluck(:id) | joins(:mutes).merge(Mute.active).pluck(:id)).uniq)
   }
-  scope :not_muted, -> { all.where.not(:id => muted.pluck(:id)) }
+  scope :not_muted, -> { where.not(:id => muted.pluck(:id)) }
 
   def self.ransackable_scopes(auth_object = nil)
     %i[default with_project contract_eq project_contains]

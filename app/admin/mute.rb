@@ -10,7 +10,10 @@ ActiveAdmin.register Mute do
   preserve_default_filters!
   filter :admin_user, :as => :select, :collection => AdminUser.all.order(:email).map { |x| [x.email, x.id] }
   filter :contract, :as => :select, :collection => Contract.all.order(:name)
-  filter :active, :as => :select, :label => 'Active?', :collection => [['Active', :active], ['Inactive', :inactive]]
+
+  scope :all, :default => true
+  scope :active
+  scope :inactive
 
   index row_class: ->(m) { 'row-highlight-muted' if m.active? } do
     column :detail do |mute|

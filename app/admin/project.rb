@@ -135,7 +135,7 @@ ActiveAdmin.register Project do
     end
 
     def scoped_collection
-      end_of_association_chain.default
+      end_of_association_chain
     end
 
     def update
