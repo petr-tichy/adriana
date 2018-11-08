@@ -30,7 +30,7 @@ module TestJob
         last_ok_status_index = last_ok_status_index(executions)
 
         number_of_consequent_errors = executions.count - last_ok_status_index - 1
-        pd_alert_limit = schedule.max_number_of_errors || 0
+        pd_alert_limit = schedule.max_number_of_errors || schedule.contract.default_max_number_of_errors || 0
         # Let it fail 3 more times before sending the alert, if there are any error filters matching
         pd_alert_limit += 3 if [last_execution, second_last_execution].compact.any?(&:matches_error_filters)
         next unless number_of_consequent_errors > pd_alert_limit

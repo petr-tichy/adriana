@@ -4,6 +4,8 @@ require 'date'
 require_relative 'splunk_downloader'
 require_relative 'helper'
 require 'activerecord-import'
+require 'require_all'
+require_rel '../../app/models'
 
 module SplunkSynchronizationJob
   class SplunkSynchronizationJob

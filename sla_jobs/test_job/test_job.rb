@@ -5,6 +5,8 @@ require 'pp'
 require 'pony'
 require 'date'
 %w(events severity key event test live_test started_test error_test).each { |a| require_relative a }
+require 'require_all'
+require_rel '../../app/models'
 
 module TestJob
   class TestJob

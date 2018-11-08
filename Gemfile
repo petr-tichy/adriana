@@ -15,6 +15,7 @@ gem 'font-awesome-rails'
 gem 'formtastic'
 gem 'jquery-rails'
 gem 'just-datetime-picker'
+gem 'require_all'
 gem 'sass-rails'
 gem 'select2-rails'
 gem 'therubyracer', :platforms => :ruby
