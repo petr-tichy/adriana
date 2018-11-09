@@ -104,9 +104,6 @@ ActiveAdmin.register Customer do
           @customer[attr] = params[:customer][attr]
         end
         if @customer.save
-          public_attributes.each do |attr|
-            CustomerHistory.add_change(@customer.id, attr, params[:customer][attr].to_s, current_active_admin_user)
-          end
           redirect_to admin_customer_path(@customer.id), :notice => 'Customer was created!'
         else
           flash[:error] = 'Please review the errors below.'

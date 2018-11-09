@@ -268,9 +268,6 @@ ActiveAdmin.register Schedule do
           @schedule[attr] = params[:schedule][attr]
         end
         if @schedule.save
-          public_attributes.each do |attr|
-            ScheduleHistory.add_change(@schedule.id, attr, params[:schedule][attr].to_s, current_active_admin_user)
-          end
           redirect_to admin_schedule_path(@schedule.id), :notice => 'Schedule was successfully created.'
         else
           flash[:error] = 'Please review the errors below.'

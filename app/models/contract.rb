@@ -10,7 +10,7 @@ class Contract < ActiveRecord::Base
   belongs_to :customer
 
   attr_accessor :max_number_of_errors
-  validates_presence_of :customer_id, :name
+  validates_presence_of :customer_id, :name, :token
 
   default_scope lambda {
     includes(:customer).includes(:mutes)

@@ -66,9 +66,10 @@ ActiveAdmin.register Contract do
     end
     f.inputs 'Max number of errors' do
       f.input :default_max_number_of_errors, :default => 0
-      f.li "<label class='label'>Schedules</label><span class='action input_action'>#{link_to('Update max error count for all related schedules', {:controller => 'contracts', :action => 'error_show'}, { :class => 'button' })}</span>".html_safe
-      f.link_to 'Update Max Error Count for Schedules', :controller => 'contracts', :action => 'error_show'
-    end
+      unless f.object.new_record?
+        f.li "<label class='label'>Schedules</label><span class='action input_action'>#{link_to('Update max error count for all related schedules', {:controller => 'contracts', :action => 'error_show'}, { :class => 'button' })}</span>".html_safe
+      end
+      end
     f.inputs 'Customer' do
       f.input :customer, :as => :select2, :collection => Customer.all.order(:name)
     end
@@ -216,21 +217,11 @@ ActiveAdmin.register Contract do
       @contract = nil
       ActiveRecord::Base.transaction do
         @contract = Contract.new
-        @contract.name = params[:contract]['name']
         @contract.customer_id = params[:contract]['customer_id']
-        @contract.sla_enabled = params[:contract]['sla_enabled']
-        @contract.sla_type = params[:contract]['sla_type']
-        @contract.sla_value = params[:contract]['sla_value']
-        @contract.sla_percentage = params[:contract]['sla_percentage']
-        @contract.monitoring_enabled = params[:contract]['monitoring_enabled']
-        @contract.monitoring_treshhold = params[:contract]['monitoring_treshhold']
-        @contract.contract_type = params[:contract]['contract_type']
+        public_attributes.each do |attr|
+          @contract[attr] = params[:contract][attr]
+        end
         if @contract.save
-          public_attributes.each do |attr|
-            unless same?(params[:contract][attr], @contract[attr])
-              ContractHistory.add_change(@contract.id, attr, params[:contract][attr].to_s, current_active_admin_user)
-            end
-          end
           redirect_to admin_contract_path(@contract.id), :notice => 'Contract was created!'
         else
           flash[:error] = 'Please review the errors below.'

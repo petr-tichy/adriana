@@ -186,9 +186,6 @@ ActiveAdmin.register Project do
             project_detail.project_pid = @project.project_pid
             project_detail.save!
 
-            public_attributes.each do |attr|
-              ProjectHistory.add_change(@project.project_pid, attr, params[:project][attr].to_s, current_active_admin_user)
-            end
             redirect_to new_admin_schedule_path(:project_pid => @project.project_pid), :notice => 'Project was successfully created.'
           else
             flash[:error] = 'Please review the errors below.'
