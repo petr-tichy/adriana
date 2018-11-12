@@ -1,4 +1,4 @@
-module SLAWatcher
+module TestJob
   # This test checks that all projects were started in time specified in their cron expression
   class StartedTest
     EVENT_TYPE = 'STARTED_TEST'.freeze
