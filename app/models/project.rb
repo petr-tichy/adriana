@@ -17,12 +17,61 @@ class Project < ActiveRecord::Base
   }
   scope :not_muted, -> { where.not(:project_pid => muted.pluck(:project_pid)) }
 
+  def all_mutes
+    all_mutes = mutes
+    contract.present? ? all_mutes + contract.mutes : all_mutes
+  end
+
+  def muted?
+    all_mutes.select { |m| m.active? }.any?
+  end
+
   def self.get_public_attributes
-    %w( status name ms_person contract_id )
+    %w( status name ms_person contract_id customer_name customer_contact_name customer_contact_email )
+
   end
 
   def self.load_(status)
     where('status = ?', status)
+  end
+
+  def self.create_with_history(user, project_values)
+    project = self.class.new
+    ActiveRecord::Base.transaction do
+      project_values.each_pair do |k, v|
+        project[k] = v
+        if self.class.get_public_attributes.include?(k.to_s)
+          ProjectHistory.add_change(project_values['project_pid'], k.to_s, v, user)
+        end
+      end
+      project.save
+    end
+
+    project_detail = ProjectDetail.new
+    project_detail.project_pid = project.project_pid
+    project_detail.save
+  end
+
+  def self.update_with_history(user, project_pid, project_values)
+    project = self.class.find(project_pid)
+    changed = false
+    ActiveRecord::Base.transaction do
+      project_values.each_pair do |k, v|
+        next if v.to_s == project[k].to_s
+        changed = true
+        project[k] = v
+        if self.class.get_public_attributes.include?(k.to_s)
+          ProjectHistory.add_change(project_pid, k.to_s, v, user)
+        end
+      end
+
+      if changed
+        project.updated_at = DateTime.now
+        project.updated_by = user.id
+        project.save
+      end
+    end
+    changed
   end
 
   # Added chaining of deletion to schedules
@@ -50,15 +99,6 @@ class Project < ActiveRecord::Base
 
   def self.load_deleted_projects
     where('is_deleted = ? and p.contract_id IS NULL', 'false')
-  end
-
-  def all_mutes
-    all_mutes = mutes
-    contract.present? ? all_mutes + contract.mutes : all_mutes
-  end
-
-  def muted?
-    all_mutes.select { |m| m.active? }.any?
   end
 
   private

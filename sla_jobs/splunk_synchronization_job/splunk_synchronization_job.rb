@@ -18,6 +18,7 @@ module SplunkSynchronizationJob
 
     def connect
       self.class.connect_to_db
+      #TODO credentials validation
       self.class.connect_to_passman(@credentials[:passman][:address], @credentials[:passman][:port], @credentials[:passman][:key])
       username = @credentials[:splunk][:username].split('|').last
       # Obtain password for Splunk from PasswordManager

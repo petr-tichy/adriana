@@ -7,6 +7,7 @@ class ScheduleHistory < ActiveRecord::Base
     last_record = ScheduleHistory.where("schedule_id = ? and key = ? and ((valid_from IS NOT NULL AND valid_to IS NULL) OR (valid_from IS NULL and valid_to IS NULL))", schedule_id, key).first
     if last_record
       last_record.valid_to = date
+      last_record.updated_by = user.id
       last_record.save
       ScheduleHistory.create(:schedule_id => schedule_id, :key => key, :value => value, :valid_from => date, :valid_to => nil, :updated_by => user.id)
     else

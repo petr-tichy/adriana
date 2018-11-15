@@ -8,13 +8,16 @@ require 'active_record'
 require 'gli'
 require 'json'
 require_relative 'sla_jobs/splunk_synchronization_job/splunk_synchronization_job'
+require_relative 'sla_jobs/contract_synchronization_job/contract_synchronization_job'
 require_relative 'sla_jobs/test_job/test_job'
+require 'require_all'
+require_rel '../../app/models'
 
 include GLI::App
 
-program_desc 'Program for SLA checking'
+program_desc 'Runner for GoodData SLA checking jobs'
 
-desc 'Synchronize with Splunk'
+desc 'Synchronize with Splunk job - downloads execution data from Splunk logs and saves them to DB'
 command :splunk_synchronization do |c|
   c.action do |global_options, options, args|
     credentials = {
@@ -27,7 +30,7 @@ command :splunk_synchronization do |c|
   end
 end
 
-desc 'Test'
+desc 'Test job - runs error, live, started tests - basically checking the status of monitored schedules, sending alerts to PD'
 command :test do |c|
   c.action do |global_options, options, args|
     credentials = {
