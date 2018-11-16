@@ -4,7 +4,6 @@ ActiveAdmin.register Job do
 
   config.clear_action_items!
 
-  filter :job_type, :as => :select, :collection => JobType.all.order(:name)
   %i[scheduled_at scheduled_by recurrent created_at updated_at is_disabled].each { |f| filter f }
 
   form :partial => 'form'
@@ -19,6 +18,12 @@ ActiveAdmin.register Job do
   end
   scope :direct_synchronization do |jobs|
     jobs.where("key = 'synchronize_direct_schedules'")
+  end
+  scope :restart do |jobs|
+    jobs.where("key = 'restart'")
+  end
+  scope :update_notification do |jobs|
+    jobs.where("key = 'update_notification'")
   end
 
   index do
