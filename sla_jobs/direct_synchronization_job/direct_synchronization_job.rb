@@ -1,4 +1,4 @@
-require_relative 'job_exception'
+require_relative '../job_exception'
 
 module DirectSynchronizationJob
   class DirectSynchronizationJob
@@ -11,7 +11,7 @@ module DirectSynchronizationJob
 
     def run
       load_data
-      $log.info "Processing #{SynchronizationJob.JOB_KEY} job: #{@job_id} on server #{@settings_server.name}"
+      $log.info "Processing #{JOB_KEY} job: #{@job_id} on server #{@settings_server.name}"
       resource = @settings_server.default_account
       username, password = load_resource_credentials(resource) # Load credentials from passman
       self.class.connect_to_gd(username, password, @settings_server)

@@ -1,4 +1,4 @@
-require_relative 'job_exception'
+require_relative '../job_exception'
 
 module ContractSynchronizationJob
   class ContractSynchronizationJob
