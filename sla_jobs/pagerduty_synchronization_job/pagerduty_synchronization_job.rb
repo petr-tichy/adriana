@@ -5,8 +5,15 @@ module PagerdutySynchronizationJob
     JOB_KEY = 'pagerduty_sync'.freeze
     REQUIRED_PARAMS = %w[resource].freeze
 
-    def initialize(job_id)
+    attr_accessor :job_id, :credentials
+
+    def initialize(job_id, credentials)
       @job_id = job_id
+      @credentials = credentials
+    end
+
+    def connect
+      self.class.connect_to_passman(@credentials[:passman][:address], @credentials[:passman][:port], @credentials[:passman][:key])
     end
 
     def run
@@ -59,6 +66,12 @@ module PagerdutySynchronizationJob
       @notification_log = NotificationLog.where(resolved_by: nil).where.not(pd_event_id: nil)
       @job_parameters = JobParameter.where('job_id = ?', @job_id)
       @user = AdminUsers.find_by_email('ms@gooddata.com')
+    end
+
+    class << self
+      def connect_to_passman(address, port, key)
+        PasswordManagerApi::PasswordManager.connect(address, port, key)
+      end
     end
   end
 end

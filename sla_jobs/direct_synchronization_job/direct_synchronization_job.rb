@@ -5,8 +5,15 @@ module DirectSynchronizationJob
     JOB_KEY = 'synchronize_direct_schedules'.freeze
     REQUIRED_PARAMS = %w[].freeze
 
-    def initialize(job_id)
+    attr_accessor :job_id, :credentials
+
+    def initialize(job_id, credentials)
       @job_id = job_id
+      @credentials = credentials
+    end
+
+    def connect
+      self.class.connect_to_passman(@credentials[:passman][:address], @credentials[:passman][:port], @credentials[:passman][:key])
     end
 
     def run

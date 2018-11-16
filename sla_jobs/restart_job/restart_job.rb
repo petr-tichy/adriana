@@ -4,8 +4,16 @@ module RestartJob
   class RestartJob
     JOB_KEY = 'restart'.freeze
 
-    def initialize(job_id)
+    attr_accessor :job_id, :credentials
+
+    def initialize(credentials, job_id)
+      @credentials = credentials
       @job_id = job_id
+    end
+
+    def connect
+      #TODO: credentials validation
+      self.class.connect_to_passman(@credentials[:passman][:address], @credentials[:passman][:port], @credentials[:passman][:key])
     end
 
     def run
