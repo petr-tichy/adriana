@@ -1,5 +1,5 @@
 ActiveAdmin.register Mute do
-  menu :priority => 9, :parent => 'Resources'
+  menu :priority => 11
   permit_params :reason, :contract_id, :project_pid, :schedule_id, :admin_user_id, :disabled,
                 :start_date, :start_time_hour, :start_time_minute,
                 :end_date, :end_time_hour, :end_time_minute

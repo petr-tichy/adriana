@@ -17,9 +17,6 @@ ActiveAdmin.register Job do
   scope :synchronization, :default => true do |jobs|
     jobs.where("key  = 'synchronize_contract'")
   end
-  scope :attask do |jobs|
-    jobs.where("key = 'attask_print_job'")
-  end
   scope :direct_synchronization do |jobs|
     jobs.where("key = 'synchronize_direct_schedules'")
   end

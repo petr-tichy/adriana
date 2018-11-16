@@ -1,5 +1,5 @@
 ActiveAdmin.register ErrorFilter do
-  menu :priority => 10, :parent => 'Custom actions'
+  menu :priority => 10, :parent => 'Settings'
   permit_params :message, :admin_user_id, :active
   config.sort_order = 'created_at_desc'
   actions :all

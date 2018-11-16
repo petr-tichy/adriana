@@ -21,7 +21,6 @@ ActiveAdminTest::Application.routes.draw do
   match '/admin/contracts/error_show/:id', to: 'admin/contracts#error_show', via: :get
   match '/admin/contract/error_modification', to: 'admin/contracts#error_modification', via: :patch
   match '/admin/contracts/error_modification/:id', to: 'admin/contracts#error_modification', via: :put
-  match '/admin/attask_print/create_job', to: 'admin/attask_print#create', via: :post
   match '/api', to: 'api#index', via: :get
   match '/admin/autocomplete_tags', to: 'admin/contracts#autocomplete_tags', as: 'autocomplete_tags', via: :get
 
