@@ -125,6 +125,7 @@ module ContractSynchronizationJob
       end
     end
 
+    #TODO dry
     def load_data
       # In case of synchronization action, there is only one entity connected to JOB
       @job_entity = JobEntity.find_by_job_id(@job_id)
@@ -140,6 +141,7 @@ module ContractSynchronizationJob
         PasswordManagerApi::PasswordManager.connect(address, port, key)
       end
 
+      #TODO dry
       def connect_to_gd(username, password, settings_server)
         $log.info "Connecting to Gooddata server #{settings_server.server_url} webdav #{settings_server.webdav_url}"
         GoodData.logger = $log
@@ -161,7 +163,7 @@ module ContractSynchronizationJob
           end
           processes_view.each do |view|
             view['projectView']['schedules'].each do |schedule|
-              next unless  schedule['schedule']['type'] == 'MSETL'
+              next unless schedule['schedule']['type'] == 'MSETL'
               objects.push(
                 :process => schedule['schedule']['params']['PROCESS_ID'],
                 :project_pid => view['projectView']['id'].split("\/").last,
