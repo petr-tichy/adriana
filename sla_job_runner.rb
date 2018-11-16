@@ -7,6 +7,7 @@ require 'bundler/setup'
 require 'active_record'
 require 'gli'
 require 'json'
+require 'yaml'
 require_relative 'sla_jobs/splunk_synchronization_job/splunk_synchronization_job'
 require_relative 'sla_jobs/test_job/test_job'
 require_relative 'sla_jobs/job_helper'
@@ -45,11 +46,15 @@ end
 desc 'Adriana sync job runner'
 command :run_next_sync_job do |c|
   c.action do |global_options, options, args|
-    ActiveRecord::Base.establish_connection(config['database'])
+    credentials = {
+      passman: {address: @passman_address, port: @passman_port, key: @passman_key}
+    }
+    ActiveRecord::Base.establish_connection(YAML::load(File.open('config/config.yml'))['database'])
     job_to_execute = Job.get_jobs_to_execute.first
-    $log.info "Job ID #{job_to_execute.id} - STARTED"
-    job = JobHelper.get_job_by_name(job_to_execute.job_type.key)
     job_id = job_to_execute.id
+    $log.info "Job ID #{job_id} - STARTED"
+    job_class = JobHelper.get_job_by_name(job_to_execute.job_type.key)
+    job = job_class.new(job_id, credentials)
     begin
       job_history = JobHistory.create(:job_id => job_id, :started_at => DateTime.now, :status => 'RUNNING')
       job.connect if job.respond_to?(:connect)

@@ -6,7 +6,7 @@ module RestartJob
 
     attr_accessor :job_id, :credentials
 
-    def initialize(credentials, job_id)
+    def initialize(job_id, credentials)
       @credentials = credentials
       @job_id = job_id
     end

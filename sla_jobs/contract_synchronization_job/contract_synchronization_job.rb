@@ -7,7 +7,7 @@ module ContractSynchronizationJob
 
     attr_accessor :job_id, :credentials, :mode_pattern
 
-    def initialize(credentials, job_id)
+    def initialize(job_id, credentials)
       @credentials = credentials
       @job_id = job_id
     end
