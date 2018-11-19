@@ -1,4 +1,7 @@
 require_relative '../job_exception'
+%w[schedule job_entity settings_server job_parameter project admin_user contract].each { |x| require_relative '../../app/models/' + x }
+require 'gooddata'
+require 'datetime'
 
 module ContractSynchronizationJob
   class ContractSynchronizationJob

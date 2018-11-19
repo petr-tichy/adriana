@@ -1,3 +1,5 @@
+require_relative 'contract_history'
+
 class Contract < ActiveRecord::Base
   self.table_name = 'contract'
   self.primary_key = 'id'

@@ -1,3 +1,5 @@
+require_relative 'job_history'
+
 class Job < ActiveRecord::Base
   self.table_name = 'job'
   has_many :job_parameters, autosave: true

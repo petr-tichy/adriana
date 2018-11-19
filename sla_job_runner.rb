@@ -8,12 +8,10 @@ require 'active_record'
 require 'gli'
 require 'json'
 require 'yaml'
+require_relative 'sla_jobs/job_helper'
 require_relative 'sla_jobs/splunk_synchronization_job/splunk_synchronization_job'
 require_relative 'sla_jobs/test_job/test_job'
-require_relative 'sla_jobs/job_helper'
-require 'require_all'
-require_rel '../../app/models'
-
+require_relative 'app/models/job_history'
 include GLI::App
 
 program_desc 'Runner for GoodData SLA checking jobs'
@@ -49,7 +47,7 @@ command :run_next_sync_job do |c|
     credentials = {
       passman: {address: @passman_address, port: @passman_port, key: @passman_key}
     }
-    ActiveRecord::Base.establish_connection(YAML::load(File.open('config/config.yml'))['database'])
+    ActiveRecord::Base.establish_connection(YAML::load(File.open('config/database.yml'))[Rails.env])
     job_to_execute = Job.get_jobs_to_execute.first
     job_id = job_to_execute.id
     $log.info "Job ID #{job_id} - STARTED"
@@ -93,9 +91,7 @@ pre do |global, command, options, args|
     @postgres_username = json['postgres_username']
     @postgres_password = json['postgres_password']
     @postgres_database = json['postgres_database']
-    @google_username = json['google_username']
-    @google_password = json['google_password']
-    @passman_address = json['passman_adress']
+    @passman_address = json['passman_address']
     @passman_port = json['passman_port']
     @passman_key = json['passman_key']
     @pd_api_key = json['pd_api_key']

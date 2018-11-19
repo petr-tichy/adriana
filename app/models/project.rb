@@ -1,3 +1,5 @@
+require_relative 'project_history'
+
 class Project < ActiveRecord::Base
   self.table_name = 'project'
   self.primary_key = 'project_pid'

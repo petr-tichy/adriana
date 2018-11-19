@@ -1,4 +1,5 @@
 require_relative '../job_exception'
+require 'pagerduty'
 
 module PagerdutySynchronizationJob
   class PagerdutySynchronizationJob

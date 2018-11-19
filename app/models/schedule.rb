@@ -1,3 +1,5 @@
+require_relative 'schedule_history'
+
 class Schedule < ActiveRecord::Base
   self.table_name = 'schedule'
   self.primary_key = 'id'

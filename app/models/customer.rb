@@ -1,3 +1,5 @@
+require_relative 'customer_history'
+
 class Customer < ActiveRecord::Base
   self.table_name = 'customer'
   has_many :customer_history

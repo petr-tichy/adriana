@@ -4,8 +4,7 @@ require 'date'
 require_relative 'splunk_downloader'
 require_relative 'helper'
 require 'activerecord-import'
-require 'require_all'
-require_rel '../../app/models'
+%w[schedule job_entity settings_server job_parameter project admin_user contract request execution_log settings].each { |x| require_relative '../../app/models/' + x }
 
 module SplunkSynchronizationJob
   class SplunkSynchronizationJob
@@ -23,8 +22,8 @@ module SplunkSynchronizationJob
       username = @credentials[:splunk][:username].split('|').last
       # Obtain password for Splunk from PasswordManager
       password = PasswordManagerApi::Password.get_password_by_name(@credentials[:splunk][:username].split('|').first, username)
-      @splunk_downloader = SLAWatcher.splunk_downloader(username, password, @credentials[:splunk][:hostname])
-      @splunk_downloader.errors_to_match = SLAWatcher.get_error_filter_messages
+      @splunk_downloader = SplunkSynchronizationJob::SplunkDownloader.new(username, password, @credentials[:splunk][:hostname])
+      @splunk_downloader.errors_to_match = ErrorFilter.active.map(&:message)
     end
 
     def run
@@ -69,7 +68,7 @@ module SplunkSynchronizationJob
       def connect_to_db
         ActiveRecord::Base.logger = $log
         config = YAML::safe_load(File.open('config/database.yml'))
-        ActiveRecord::Base.establish_connection(config['database'])
+        ActiveRecord::Base.establish_connection(config[Rails.env])
       end
 
       def connect_to_passman(address, port, key)

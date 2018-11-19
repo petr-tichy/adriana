@@ -60,7 +60,7 @@ module TestJob
       def connect_to_db
         ActiveRecord::Base.logger = $log
         config = YAML::safe_load(File.open('config/database.yml'))
-        ActiveRecord::Base.establish_connection(config['database'])
+        ActiveRecord::Base.establish_connection(config[Rails.env])
       end
 
       def connect_to_pd(api_key, pd_subdomain)
