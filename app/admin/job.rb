@@ -6,6 +6,7 @@ ActiveAdmin.register Job do
 
   form :partial => 'form'
 
+  config.clear_action_items!
   action_item :create_sync_job, :only => :index do
     link_to 'Create Synchronization Job', new_admin_job_path(type: 'synchronize_direct_schedules')
   end
