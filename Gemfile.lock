@@ -336,40 +336,40 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  active_admin_role
-  active_admin_theme
-  activeadmin
+  active_admin_role (~> 0.2)
+  active_admin_theme (~> 1.0)
+  activeadmin (~> 1.4)
   activeadmin-select2!
-  activerecord-import
-  activerecord-postgresql-adapter
-  acts-as-taggable-on
-  better_errors
-  binding_of_caller
-  coffee-rails
-  devise
-  execjs
-  font-awesome-rails
-  formtastic
-  gli
-  gooddata
-  jquery-rails
-  just-datetime-picker
+  activerecord-import (~> 0.27)
+  activerecord-postgresql-adapter (~> 0.0)
+  acts-as-taggable-on (~> 6.0)
+  better_errors (~> 2.5)
+  binding_of_caller (~> 0.8)
+  coffee-rails (~> 4.2)
+  devise (~> 4.5)
+  execjs (~> 2.7)
+  font-awesome-rails (~> 4.7)
+  formtastic (~> 3.1)
+  gli (~> 2.18)
+  gooddata (~> 1.0)
+  jquery-rails (~> 4.3)
+  just-datetime-picker (~> 0.0)
   pagerduty-full!
-  parse-cron
+  parse-cron (~> 0.1)
   passwordmanager!
-  pony
-  pry
-  rails (~> 5.0.0)
-  require_all
-  rest-client
-  restforce
-  sass-rails
-  select2-rails
+  pony (~> 1.12)
+  pry (~> 0.12)
+  rails (~> 5.0)
+  require_all (~> 2.0)
+  rest-client (~> 2.0)
+  restforce (~> 2.5)
+  sass-rails (~> 5.0)
+  select2-rails (~> 4.0)
   splunk-client!
-  therubyracer
-  tzinfo
-  uglifier
-  whedon
+  therubyracer (~> 0.12)
+  tzinfo (~> 1.2)
+  uglifier (~> 4.1)
+  whedon (~> 0.0)
 
 BUNDLED WITH
    1.16.6
