@@ -3,9 +3,8 @@ ActiveAdmin.register Project do
   permit_params :status, :name, :ms_person, :customer_name, :customer_contact_name, :customer_contact_email, :project_pid, :contract_id
 
   preserve_default_filters!
-  filter :status, :as => :select, :collection => %w[Live Paused Suspended]
   filter :contract, :as => :select, :collection => proc { Contract.with_projects.order(:name) }
-  remove_filter :running_executions, :project_detail, :mutes, :schedules
+  remove_filter :running_executions, :project_detail, :mutes, :schedules, :sla_value
   filter :is_deleted, as: :check_boxes
 
   scope :all, :default => true
@@ -23,7 +22,6 @@ ActiveAdmin.register Project do
       link_to project.name, admin_project_path(project) || ''
     end
     column :project_pid
-    column :status
     column :updated_at
     column 'Muted?' do |project|
       elements = ''
@@ -51,7 +49,6 @@ ActiveAdmin.register Project do
     f.inputs 'Info' do
       f.input :project_pid if f.object.new_record?
       f.input :name
-      f.input :status, :as => :select2, :collection => %w[Live Development Suspended]
       f.input :ms_person
     end
     f.inputs 'Contact' do

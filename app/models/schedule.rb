@@ -113,11 +113,11 @@ class Schedule < ActiveRecord::Base
   end
 
   def self.load_schedules_of_live_projects
-    select('schedule.id as id,ss.server_type as server_type,schedule.cron as cron').joins('INNER JOIN project p ON r_project = p.project_pid').joins('INNER JOIN contract c ON c.id = p.contract_id').joins('INNER JOIN settings_server ss ON ss.id = schedule.settings_server_id').where('p.status = ? and schedule.is_deleted = ? and c.contract_type = ? and p.is_deleted = ?', 'Live', false, 'direct', false)
+    select('schedule.id as id,ss.server_type as server_type,schedule.cron as cron').joins('INNER JOIN project p ON r_project = p.project_pid').joins('INNER JOIN contract c ON c.id = p.contract_id').joins('INNER JOIN settings_server ss ON ss.id = schedule.settings_server_id').where('schedule.is_deleted = ? and c.contract_type = ? and p.is_deleted = ?', false, 'direct', false)
   end
 
   def self.load_schedules_of_live_projects_main
-    Schedule.joins(:project).joins(:contract).where(contract: {contract_type: 'direct'}, project: {is_deleted: false, status: 'Live'}, schedule: {is_deleted: false})
+    Schedule.joins(:project).joins(:contract).where(contract: {contract_type: 'direct'}, project: {is_deleted: false}, schedule: {is_deleted: false})
   end
 
   def self.mark_deleted(id, user)

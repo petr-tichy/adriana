@@ -8,7 +8,7 @@ module TestJob
 
     def load_data
       @now = DateTime.now
-      @schedules = Schedule.joins(:contract).where(project: {is_deleted: false, status: 'Live'}, contract: {is_deleted: false}, schedule: {is_deleted: false})
+      @schedules = Schedule.joins(:contract).where(project: {is_deleted: false}, contract: {is_deleted: false}, schedule: {is_deleted: false})
       @notification_logs = NotificationLog.where(notification_type: EVENT_TYPE, created_at: (@now - 9.day)..@now).group_by(&:key)
       @last_ten_executions = ExecutionLog.get_last_n_executions_per_schedule(10).group_by(&:r_schedule)
     end

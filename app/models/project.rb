@@ -10,7 +10,7 @@ class Project < ActiveRecord::Base
   has_one :customer, :through => :contract
   has_many :schedules, :foreign_key => 'r_project'
   has_many :mutes, :foreign_key => 'project_pid'
-  validates_presence_of :status, :name, :project_pid, :contract_id
+  validates_presence_of :name, :project_pid, :contract_id
 
   default_scope lambda {
     joins(:contract).joins(:customer)
@@ -108,7 +108,7 @@ class Project < ActiveRecord::Base
       "SELECT DISTINCT p.project_pid FROM project p
             INNER JOIN schedule s On p.project_pid = s.r_project
             INNER JOIN settings_server ss ON ss.id = s.settings_server_id
-            WHERE ss.server_type = 'cloudconnect' AND p.status = 'Live'"
+            WHERE ss.server_type = 'cloudconnect'"
     )
   end
 
