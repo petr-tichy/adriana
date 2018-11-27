@@ -7,11 +7,19 @@ class Project < ActiveRecord::Base
   has_many :running_executions, :through => :schedules
   has_one :project_detail, :primary_key => 'project_pid', :foreign_key => 'project_pid'
   belongs_to :contract, :foreign_key => 'contract_id', :primary_key => 'id'
-  has_many :schedules
+  has_one :customer, :through => :contract
+  has_many :schedules, :foreign_key => 'r_project'
   has_many :mutes, :foreign_key => 'project_pid'
   validates_presence_of :status, :name, :project_pid, :contract_id
 
-  default_scope -> { includes(:mutes).includes(:contract => :mutes) }
+  default_scope lambda {
+    joins(:contract).joins(:customer)
+      .eager_load(:mutes).eager_load(:contract => :mutes)
+  }
+
+  scope :with_schedules, lambda {
+    joins(:schedules).where(schedule: {is_deleted: false}).uniq
+  }
 
   scope :muted, lambda {
     #TODO change to union when Rails supports it properly
@@ -24,8 +32,12 @@ class Project < ActiveRecord::Base
     contract.present? ? all_mutes + contract.mutes : all_mutes
   end
 
+  def active_mutes
+    all_mutes.select(&:active?)
+  end
+
   def muted?
-    all_mutes.select { |m| m.active? }.any?
+    active_mutes.any?
   end
 
   def self.get_public_attributes
@@ -55,14 +67,14 @@ class Project < ActiveRecord::Base
   end
 
   def self.update_with_history(user, project_pid, project_values)
-    project = self.class.find(project_pid)
+    project = Project.find(project_pid)
     changed = false
     ActiveRecord::Base.transaction do
       project_values.each_pair do |k, v|
         next if v.to_s == project[k].to_s
         changed = true
         project[k] = v
-        if self.class.get_public_attributes.include?(k.to_s)
+        if Project.get_public_attributes.include?(k.to_s)
           ProjectHistory.add_change(project_pid, k.to_s, v, user)
         end
       end
@@ -90,6 +102,7 @@ class Project < ActiveRecord::Base
     end
   end
 
+  #TODO change uses of this to use a scope
   def self.load_projects
     find_by_sql(
       "SELECT DISTINCT p.project_pid FROM project p

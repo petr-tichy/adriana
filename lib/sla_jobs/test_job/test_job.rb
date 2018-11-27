@@ -4,9 +4,7 @@ require 'rest-client'
 require 'pp'
 require 'pony'
 require 'date'
-%w(events severity key event test live_test started_test error_test).each { |a| require_relative a }
-require 'require_all'
-require_rel '../../app/models'
+%w(events severity key event live_test started_test error_test).each { |a| require_relative a }
 
 module TestJob
   class TestJob
@@ -59,7 +57,7 @@ module TestJob
     class << self
       def connect_to_db
         ActiveRecord::Base.logger = $log
-        config = YAML::safe_load(File.open('config/database.yml'))
+        config = YAML::safe_load(File.open('config/database.yml'), [], [], true)
         ActiveRecord::Base.establish_connection(config[Rails.env])
       end
 
@@ -68,6 +66,7 @@ module TestJob
       end
 
       def flag_for_monit(command)
+        FileUtils.mkdir_p('monit')
         FileUtils.touch('monit/' + command.to_s + '_finished')
       end
     end

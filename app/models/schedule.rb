@@ -20,10 +20,12 @@ class Schedule < ActiveRecord::Base
     joins(:project).joins(:contract).joins(:customer)
       .includes(:running_executions).includes(:settings_server)
       .eager_load(:mutes).eager_load(:project => :mutes).eager_load(:contract => :mutes)
-      .where('schedule.is_deleted = ?', false)
   }
   scope :with_project, lambda {
-    select('schedule.*,p.name as project_name').joins('INNER JOIN project p ON p.project_pid = schedule.r_project').where('schedule.is_deleted = ?', false)
+    joins('INNER JOIN project p ON p.project_pid = schedule.r_project')
+  }
+  scope :non_deleted, lambda {
+    where(schedule: {is_deleted: false})
   }
   scope :contract_eq, lambda { |contract_id|
     where('project.contract_id = ?', contract_id) unless contract_id.nil?
@@ -42,17 +44,17 @@ class Schedule < ActiveRecord::Base
     project.present? ? all_mutes + project.all_mutes : all_mutes
   end
 
+  def active_mutes
+    all_mutes.select(&:active?)
+  end
+
   def muted?
-    all_mutes.select(&:active?).any?
+    active_mutes.any?
   end
 
   # For activeadmin filtering
   def name
     "#{id} - #{graph_name}"
-  end
-
-  def self.ransackable_scopes(auth_object = nil)
-    %i[default with_project contract_eq project_contains]
   end
 
   def self.create_with_history(user, schedule_values)
@@ -66,7 +68,7 @@ class Schedule < ActiveRecord::Base
       schedule.save
 
       schedule_values.each_pair do |k, v|
-        if self.class.get_public_attributes.include?(k.to_s)
+        if Schedule.get_public_attributes.include?(k.to_s)
           ScheduleHistory.add_change(schedule.id, k.to_s, v, user)
         end
       end
@@ -82,7 +84,7 @@ class Schedule < ActiveRecord::Base
         changed = true
         schedule[k] = v
         # History update should be done only on public attributes
-        if self.class.get_public_attributes.include?(k.to_s)
+        if Schedule.get_public_attributes.include?(k.to_s)
           ScheduleHistory.add_change(schedule_id, k.to_s, v, user)
         end
       end

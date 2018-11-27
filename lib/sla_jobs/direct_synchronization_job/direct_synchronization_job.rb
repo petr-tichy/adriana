@@ -1,6 +1,4 @@
 require_relative '../job_exception'
-%w[schedule job_entity settings_server job_parameter project admin_user].each { |x| require_relative '../../app/models/' + x }
-require 'gooddata'
 
 module DirectSynchronizationJob
   class DirectSynchronizationJob
@@ -123,7 +121,7 @@ module DirectSynchronizationJob
       @job_parameters = JobParameter.where('job_id = ?', @job_id)
       @projects = Project.joins(:contract).where(contract: {contract_type: 'direct'}, project: {is_deleted: false})
       @schedules = Schedule.joins(:project).joins(:contract).where(contract: {contract_type: 'direct'}, project: {is_deleted: false}, schedule: {is_deleted: false})
-      @user = AdminUsers.find_by_email('ms@gooddata.com')
+      @user = AdminUser.find_by_email('ms@gooddata.com')
     end
 
     class << self

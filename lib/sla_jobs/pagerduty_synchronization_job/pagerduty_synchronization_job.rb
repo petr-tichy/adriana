@@ -1,5 +1,5 @@
 require_relative '../job_exception'
-require 'pagerduty'
+require 'pagerduty/full'
 
 module PagerdutySynchronizationJob
   class PagerdutySynchronizationJob
@@ -66,7 +66,7 @@ module PagerdutySynchronizationJob
       @subdomain = 'gooddata'
       @notification_log = NotificationLog.where(resolved_by: nil).where.not(pd_event_id: nil)
       @job_parameters = JobParameter.where('job_id = ?', @job_id)
-      @user = AdminUsers.find_by_email('ms@gooddata.com')
+      @user = AdminUser.find_by_email('ms@gooddata.com')
     end
 
     class << self

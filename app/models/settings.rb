@@ -15,7 +15,7 @@ class Settings < ActiveRecord::Base
 
   def self.save_last_splunk_synchronization(time)
     record = where("key = 'last_splunk_synchronization'")
-    record.first.value = Helper.datetime_to_value(time)
+    record.first.value = time.strftime('%Y-%m-%d %H:%M:%S%z')
     record.first.save
   end
 end

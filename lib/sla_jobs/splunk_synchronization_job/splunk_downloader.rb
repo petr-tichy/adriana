@@ -47,11 +47,11 @@ module SplunkSynchronizationJob
     def load_runs(from, to, projects)
       project_strings = []
       $log.info 'Query initialization'
-      $log.info Benchmark.measure do
+      $log.info(Benchmark.measure do
         0.step(projects.length - 1, ONE_QUERY_LIMIT) do |i|
           project_strings.push(projects[i, ONE_QUERY_LIMIT].map { |p| "project_id=#{p.project_pid}" })
         end
-      end
+      end)
 
       values = []
       project_strings.each do |temp|
@@ -60,23 +60,23 @@ module SplunkSynchronizationJob
         query = query.sub('%END_TIME%', to.strftime(time_format))
         result = nil
         $log.info 'Query execution'
-        $log.info Benchmark.measure do
+        $log.info(Benchmark.measure do
           result = execute_query(query)
-        end
+        end)
         $log.info 'Related queries, query parsing'
-        $log.info Benchmark.measure do
+        $log.info(Benchmark.measure do
           result.parsedResults.each do |p|
             error_text = find_error_log(p, from)
             matches_error_filters = matches_error_filters?(p, from)
             values.push(execution_hash(p, from, error_text, matches_error_filters))
           end
-        end
+        end)
       end
       output = nil
       $log.info 'Query sorting'
-      $log.info Benchmark.measure do
+      $log.info(Benchmark.measure do
         output = values.sort_by { |a| a[:time] }
-      end
+      end)
       output
     end
 

@@ -113,6 +113,8 @@ ActiveAdmin.register Mute do
       return nil unless %w[contract project schedule].include?(class_name_under)
       @mute.send("#{class_name_under}=".to_sym, class_name.constantize.find(params['reference_id']))
       @mute.admin_user = current_active_admin_user
+      @mute.start = DateTime.now
+      @mute.end = DateTime.now + 1.hour
       @mute
     end
   end

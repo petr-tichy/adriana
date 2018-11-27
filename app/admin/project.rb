@@ -4,14 +4,20 @@ ActiveAdmin.register Project do
 
   preserve_default_filters!
   filter :status, :as => :select, :collection => %w[Live Paused Suspended]
-  filter :contract, :as => :select, :collection => proc { Contract.order(:name) }
+  filter :contract, :as => :select, :collection => proc { Contract.with_projects.order(:name) }
   remove_filter :running_executions, :project_detail, :mutes, :schedules
+  filter :is_deleted, as: :check_boxes
 
   scope :all, :default => true
   scope :not_muted, :group => :muting
   scope :muted, :group => :muting
 
-  index row_class: ->(p) { 'row-highlight-muted' if p.muted? } do |project|
+  index(row_class: lambda do |c|
+    x = []
+    x << 'row-highlight-muted' if c.muted?
+    x << 'row-highlight-deleted' if c.is_deleted
+    x.join(' ')
+  end) do |project|
     selectable_column
     column :name do |project|
       link_to project.name, admin_project_path(project) || ''
@@ -60,7 +66,7 @@ ActiveAdmin.register Project do
         span do
           text_node 'This project is currently muted, no notifications will be sent to PagerDuty. Here are the relevant mutes:'
         end
-        table_for project.all_mutes do
+        table_for project.active_mutes do
           column :id do |mute|
             link_to mute.id, admin_mute_path(mute)
           end
@@ -126,11 +132,9 @@ ActiveAdmin.register Project do
   controller do
     include ApplicationHelper
 
-    before_action :only => [:index] do
+    before_filter :only => [:index] do
       if params['commit'].blank? && params['q'].blank?
-        params['q'] = {:is_deleted_eq => '0'}
-      elsif !params['q'].blank?
-        params['q'].merge!(:is_deleted_eq => '0')
+        params['q'] = {:is_deleted_in => false}
       end
     end
 

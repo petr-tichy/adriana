@@ -4,7 +4,6 @@ require 'date'
 require_relative 'splunk_downloader'
 require_relative 'helper'
 require 'activerecord-import'
-%w[schedule job_entity settings_server job_parameter project admin_user contract request execution_log settings].each { |x| require_relative '../../app/models/' + x }
 
 module SplunkSynchronizationJob
   class SplunkSynchronizationJob
@@ -21,8 +20,9 @@ module SplunkSynchronizationJob
       self.class.connect_to_passman(@credentials[:passman][:address], @credentials[:passman][:port], @credentials[:passman][:key])
       username = @credentials[:splunk][:username].split('|').last
       # Obtain password for Splunk from PasswordManager
+      binding.pry
       password = PasswordManagerApi::Password.get_password_by_name(@credentials[:splunk][:username].split('|').first, username)
-      @splunk_downloader = SplunkSynchronizationJob::SplunkDownloader.new(username, password, @credentials[:splunk][:hostname])
+      @splunk_downloader = SplunkDownloader.new(username, password, @credentials[:splunk][:hostname])
       @splunk_downloader.errors_to_match = ErrorFilter.active.map(&:message)
     end
 
@@ -67,7 +67,7 @@ module SplunkSynchronizationJob
     class << self
       def connect_to_db
         ActiveRecord::Base.logger = $log
-        config = YAML::safe_load(File.open('config/database.yml'))
+        config = YAML::safe_load(File.open('config/database.yml'), [], [], true)
         ActiveRecord::Base.establish_connection(config[Rails.env])
       end
 
@@ -126,6 +126,7 @@ module SplunkSynchronizationJob
     end
 
     def flag_for_monit(command)
+      FileUtils.mkdir_p 'monit'
       FileUtils.touch('monit/' + command.to_s + '_finished')
     end
   end

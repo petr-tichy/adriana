@@ -2,8 +2,6 @@ ActiveAdmin.register Job do
   menu :priority => 8, :parent => 'Resources'
   permit_params :job_type_id, :scheduled_by, :recurrent, :scheduled_at, :cron
 
-  config.clear_action_items!
-
   %i[scheduled_at scheduled_by recurrent created_at updated_at is_disabled].each { |f| filter f }
 
   form :partial => 'form'
@@ -83,6 +81,7 @@ ActiveAdmin.register Job do
           AdminUser.find_by_id(job.scheduled_by)&.email
         end
         row :recurrent
+        row :cron if job.recurrent
       end
     end
     if job.job_type.key == 'restart'
@@ -228,7 +227,7 @@ ActiveAdmin.register Job do
         @job = Job.new(:job_type_id => job_type.id, :recurrent => false, :scheduled_at => DateTime.now)
         @entities = []
         selection_array = []
-        schedules = Schedule.with_project.find(params['selection'])
+        schedules = Schedule.with_project.non_deleted.find(params['selection'])
         schedules.each do |s|
           job_entity = {:type => 'Schedule', :project => s.project_name, :graph_name => s.graph_name, :mode => s.mode, :status => 'NEW'}
           selection_array.push(s.id)
@@ -267,7 +266,7 @@ ActiveAdmin.register Job do
         schedules = params['job']['selection'].split(',')
         job_type = JobType.find_by_key(params['job']['key'])
         ActiveRecord::Base.transaction do
-          job = Job.create(:job_type_id => job_type.id, :scheduled_by => current_active_admin_user, :recurrent => false, :scheduled_at => schedule_at)
+          job = Job.create(:job_type_id => job_type.id, :scheduled_by => current_active_admin_user.id, :recurrent => false, :scheduled_at => schedule_at)
           schedules.each do |e|
             JobEntity.create(:job_id => job.id, :status => 'WAITING', :r_schedule => e)
           end
@@ -292,7 +291,7 @@ ActiveAdmin.register Job do
         #DB Save
         # scheduled_at - converting to UTC
         ActiveRecord::Base.transaction do
-          job = Job.create(:job_type_id => job_type.id, :scheduled_by => current_active_admin_user, :recurrent => recurrent, :scheduled_at => schedule_at.utc, :cron => cron)
+          job = Job.create(:job_type_id => job_type.id, :scheduled_by => current_active_admin_user.id, :recurrent => recurrent, :scheduled_at => schedule_at.utc, :cron => cron)
           JobEntity.create(:job_id => job.id, :status => 'WAITING', :r_contract => contract, :r_settings_server => params['synchronization_job']['settings_server_id'])
           parameters.each do |p|
             JobParameter.create(:job_id => job.id, :key => p[:key], :value => p[:value])
@@ -310,7 +309,7 @@ ActiveAdmin.register Job do
         #DB Save
         # scheduled_at - converting to UTC
         ActiveRecord::Base.transaction do
-          job = Job.create(:job_type_id => job_type.id, :scheduled_by => current_active_admin_user, :recurrent => recurrent, :scheduled_at => schedule_at.utc, :cron => cron)
+          job = Job.create(:job_type_id => job_type.id, :scheduled_by => current_active_admin_user.id, :recurrent => recurrent, :scheduled_at => schedule_at.utc, :cron => cron)
           JobEntity.create(:job_id => job.id, :status => 'WAITING', :r_settings_server => params['direct_schedule_job']['settings_server_id'])
         end
         redirect_to admin_jobs_path, :notice => 'Job was created.'

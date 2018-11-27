@@ -1,4 +1,5 @@
 require_relative 'job_history'
+require 'parse-cron'
 
 class Job < ActiveRecord::Base
   self.table_name = 'job'
@@ -25,7 +26,8 @@ class Job < ActiveRecord::Base
       last_run = !job_history.nil? ? job_history.started_at.utc : job.created_at.utc
       # Lets check recurrent jobs
       if job.recurrent
-        next_run = Executor::Helper.next_run(job.cron, last_run, Executor::UTCTime)
+        cron_parser = CronParser.new(job.cron, ApplicationHelper::UTCTime)
+        next_run = cron_parser.next(last_run)
         if next_run <= now && (job_history.nil? || job_history.status != 'RUNNING')
           job.scheduled_at = next_run
           next false

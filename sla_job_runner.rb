@@ -8,9 +8,9 @@ require 'active_record'
 require 'gli'
 require 'json'
 require 'yaml'
-require_relative 'sla_jobs/job_helper'
-require_relative 'sla_jobs/splunk_synchronization_job/splunk_synchronization_job'
-require_relative 'sla_jobs/test_job/test_job'
+require_relative 'lib/sla_jobs/job_helper'
+require_relative 'lib/sla_jobs/splunk_synchronization_job/splunk_synchronization_job'
+require_relative 'lib/sla_jobs/test_job/test_job'
 require_relative 'app/models/job_history'
 include GLI::App
 

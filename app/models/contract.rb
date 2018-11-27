@@ -6,7 +6,7 @@ class Contract < ActiveRecord::Base
   acts_as_taggable
 
   has_many :contract_history
-  has_many :projects, :foreign_key => 'project_pid'
+  has_many :projects
   has_many :mutes
   has_many :schedules, :through => :projects
   belongs_to :customer
@@ -15,8 +15,14 @@ class Contract < ActiveRecord::Base
   validates_presence_of :customer_id, :name, :token
 
   default_scope lambda {
-    includes(:customer).includes(:mutes)
+    includes(:customer)
+      .eager_load(:mutes)
   }
+
+  scope :with_projects, lambda {
+    joins(:projects).where(project: {is_deleted: false}).uniq
+  }
+
   scope :muted, lambda {
     joins(:mutes).merge(Mute.active).uniq
   }
@@ -51,7 +57,11 @@ class Contract < ActiveRecord::Base
     mutes
   end
 
+  def active_mutes
+    all_mutes.select(&:active?)
+  end
+
   def muted?
-    all_mutes.select(&:active?).any?
+    active_mutes.any?
   end
 end

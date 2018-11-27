@@ -2,11 +2,10 @@ ActiveAdmin.register Customer do
   menu :priority => 8, :parent => 'Resources'
   permit_params :name, :email, :contact_person
 
-  filter :project_pid
   filter :email
-  filter :is_deleted, :as => :select, :collection => [['Yes', true], ['No', false]]
+  filter :is_deleted, as: :check_boxes
 
-  index do
+  index row_class: ->(c) { 'row-highlight-deleted' if c.is_deleted } do
     selectable_column
     column :name do |c|
       link_to c.name, admin_customer_path(c)
@@ -33,7 +32,9 @@ ActiveAdmin.register Customer do
     end
     panel('Contracts') do
       table_for Contract.where('customer_id = ?', params['id']) do
-        column(:name)
+        column(:name) do |c|
+          link_to c.name, admin_contract_path(c.id)
+        end
         column(:updated_at)
         column(:created_at)
       end
@@ -66,8 +67,10 @@ ActiveAdmin.register Customer do
   controller do
     include ApplicationHelper
 
-    before_action :only => [:index] do
-      params['q'] = {:is_deleted_eq => '0'} if params['commit'].blank?
+    before_filter :only => [:index] do
+      if params['commit'].blank? && params['q'].blank?
+        params['q'] = {:is_deleted_in => false}
+      end
     end
 
     def update

@@ -37,13 +37,13 @@ module TestJob
         next unless !schedule.nil? && schedule.cron != ''
 
         running_execution = @running_projects.find { |e| e.r_schedule == schedule.id }
-        if schedule.server_type == 'cloudconnect'
+        if schedule.settings_server.server_type == 'cloudconnect'
           now_utc = Time.now.utc
-          next_run = Helper.next_run(schedule.cron, execution.event_start.utc, 'UTC')
+          next_run = JobHelper.next_run(schedule.cron, execution.event_start.utc, 'UTC')
           running_late_for = ((next_run - now_utc) / 1.minute) * (-1)
 
           if execution.event_end && next_run < execution.event_end.utc
-            next_run = Helper.next_run(schedule.cron, execution.event_end.utc, 'UTC')
+            next_run = JobHelper.next_run(schedule.cron, execution.event_end.utc, 'UTC')
             running_late_for = ((next_run - now_utc) / 1.minute) * (-1)
           end
           # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
@@ -64,7 +64,7 @@ module TestJob
           end
         else
           # Legacy Clover nodes have CRON running in CET Timezone
-          next_run = Helper.next_run(schedule.cron, execution.event_start.localtime, 'CET')
+          next_run = JobHelper.next_run(schedule.cron, execution.event_start.localtime, 'CET')
           running_late_for = ((next_run - Time.now) / 1.minute) * (-1)
           # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
           if running_execution.nil? && running_late_for > 25 && running_late_for < 60

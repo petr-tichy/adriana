@@ -3,13 +3,12 @@ ActiveAdmin.register Schedule do
   permit_params :id, :graph_name, :mode, :cron, :main, :settings_server_id, :gooddata_schedule,
                 :gooddata_process, :r_project, :is_deleted, :updated_by, :max_number_of_errors
 
-  filter :contract_id, :label => 'Contract', :as => :select, :collection => Contract.all.order(:name)
-  filter :r_project, :label => 'Project', :as => :select, :collection => Project.all.order(:name).map { |p| [p.name, p.project_pid] }
-  filter :project_name, :label => 'Project Name', :as => :string
-  filter :mode
+  filter :contract_id, :label => 'Contract', :as => :select, :collection => Contract.with_projects.order(:name)
+  filter :r_project, :label => 'Project', :as => :select, :collection => Project.with_schedules.order(:name).map { |p| ["#{p.name} - #{p.project_pid}", p.project_pid] }
   filter :main
   filter :settings_server_name, :label => 'Server', :as => :select, :collection => proc { SettingsServer.all.order(:name).map { |ss| [ss.name, ss.name] } }
   filter :gooddata_schedule
+  filter :is_deleted, as: :check_boxes
 
   scope :all, :default => true
   scope :not_muted, :group => :muting
@@ -70,10 +69,15 @@ ActiveAdmin.register Schedule do
     f.actions
   end
 
-  index row_class: ->(s) { 'row-highlight-muted' if s.muted? } do
+  index(row_class: lambda do |c|
+    x = []
+    x << 'row-highlight-muted' if c.muted?
+    x << 'row-highlight-deleted' if c.is_deleted
+    x.join(' ')
+  end) do
     selectable_column
     column 'Schedule ID' do |schedule|
-      link_to schedule.gooddata_schedule, admin_schedule_path(schedule)
+      link_to schedule.gooddata_schedule.to_s.empty? ? 'Detail' : schedule.gooddata_schedule, admin_schedule_path(schedule)
     end
     column 'Project Name' do |schedule|
       link_to schedule.project&.name, admin_project_path(schedule.project)
@@ -128,7 +132,7 @@ ActiveAdmin.register Schedule do
         span do
           text_node 'This schedule is currently muted, no notifications will be sent to PagerDuty. Here are the relevant mutes:'
         end
-        table_for schedule.all_mutes do
+        table_for schedule.active_mutes do
           column :id do |mute|
             link_to mute.id, admin_mute_path(mute)
           end
@@ -215,8 +219,10 @@ ActiveAdmin.register Schedule do
   controller do
     include ApplicationHelper
 
-    before_action :only => [:index] do
-      params['q'] = {:is_deleted_eq => '0'} if params['commit'].blank?
+    before_filter :only => [:index] do
+      if params['commit'].blank? && params['q'].blank?
+        params['q'] = {:is_deleted_in => false}
+      end
     end
 
     def scoped_collection

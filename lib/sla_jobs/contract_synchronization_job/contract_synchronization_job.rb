@@ -1,7 +1,6 @@
 require_relative '../job_exception'
-%w[schedule job_entity settings_server job_parameter project admin_user contract].each { |x| require_relative '../../app/models/' + x }
+require_relative '../job_helper'
 require 'gooddata'
-require 'datetime'
 
 module ContractSynchronizationJob
   class ContractSynchronizationJob
@@ -42,6 +41,7 @@ module ContractSynchronizationJob
       load_data # Reload data in case some schedules were deleted
 
       processes.each { |process| synchronize_process(process) }
+      $log.info 'Contract synchronization job has finished successfully.'
     end
 
     private
@@ -136,7 +136,7 @@ module ContractSynchronizationJob
       @job_parameters = JobParameter.where('job_id = ?', @job_id)
       @contract = Contract.find(@job_entity.r_contract)
       @schedules = Schedule.joins(:project).where('project.contract_id = ? and schedule.is_deleted = ?', @contract.id, false)
-      @user = AdminUsers.find_by_email('ms@gooddata.com')
+      @user = AdminUser.find_by_email('ms@gooddata.com')
     end
 
     class << self
@@ -149,7 +149,7 @@ module ContractSynchronizationJob
         $log.info "Connecting to Gooddata server #{settings_server.server_url} webdav #{settings_server.webdav_url}"
         GoodData.logger = $log
         GoodData.logger.level = Logger::DEBUG
-        GoodData.connect(username, password, :server => settings_server.server_url, :webdav_server => settings_server.webdav_url, :headers => {:accept => 'application/json;version=1'})
+        GoodData.connect(username, password, :server => settings_server.server_url, :webdav_server => settings_server.webdav_url, :headers => {:accept => 'application/json;version=1', :content_type => 'application/json'})
       end
 
       def get_all_user_processes
@@ -161,7 +161,7 @@ module ContractSynchronizationJob
         $log.info 'Downloading process information from the platform'
         until finished
           $log.info "Downloading with page settings: offset - #{offset} limit - #{limit} "
-          processes_view = Helper.retryable do
+          processes_view = JobHelper.retryable do
             GoodData.get("/gdc/dataload/internal/projectsView?offset=#{offset}&limit=#{limit}")['projectsView']['items']
           end
           processes_view.each do |view|

@@ -2,16 +2,22 @@ ActiveAdmin.register Contract do
   menu :priority => 8, :parent => 'Resources'
   permit_params :name
 
-  filter :customer, :as => :select, :collection => Customer.all.order(:name)
-  %i[ name created_at updated_at is_deleted
+  filter :customer, :as => :select, :collection => Customer.with_contracts.order(:name)
+  %i[ name created_at updated_at
       sla_enabled monitoring_enabled contract_type token
   ].each { |x| filter x }
+  filter :is_deleted, as: :check_boxes
 
   scope :all, :default => true
   scope :not_muted
   scope :muted
 
-  index row_class: ->(c) { 'row-highlight-muted' if c.muted? } do
+  index(row_class: lambda do |c|
+    x = []
+    x << 'row-highlight-muted' if c.muted?
+    x << 'row-highlight-deleted' if c.is_deleted
+    x.join(' ')
+  end) do
     selectable_column
     column :name do |contract|
       link_to contract.name, admin_contract_path(contract)
@@ -89,7 +95,7 @@ ActiveAdmin.register Contract do
         span do
           text_node 'This contract is currently muted, no notifications will be sent to PagerDuty. Here are the relevant mutes:'
         end
-        table_for contract.all_mutes do
+        table_for contract.active_mutes do
           column :id do |mute|
             link_to mute.id, admin_mute_path(mute)
           end
@@ -163,6 +169,12 @@ ActiveAdmin.register Contract do
   controller do
     include ApplicationHelper
 
+    before_filter :only => [:index] do
+      if params['commit'].blank? && params['q'].blank?
+        params['q'] = {:is_deleted_in => false}
+      end
+    end
+
     def scoped_collection
       end_of_association_chain
     end
@@ -179,11 +191,6 @@ ActiveAdmin.register Contract do
         ScheduleHistory.mass_add_change(schedules, 'max_number_of_errors', params['contract']['max_number_of_errors'], current_active_admin_user)
       end
       redirect_to admin_contract_path(params['contract']['id']), :notice => 'Max number of errors was updated.'
-    end
-
-
-    before_action :only => [:index] do
-      params['q'] = {:is_deleted_eq => '0'} if params['commit'].blank?
     end
 
     def update
