@@ -57,11 +57,34 @@ module ContractSynchronizationJob
 
     def add_schedule(process, graph, mode)
       now = DateTime.now
-      project_values = {'project_pid' => process[:project_pid], 'status' => 'Live', 'name' => process[:project_name], 'updated_by' => 2, 'updated_at' => now, 'created_at' => now, 'contract_id' => @contract.id, 'sla_enabled' => false}
+      project_values = {
+        'project_pid' => process[:project_pid],
+        'status' => 'Live',
+        'name' => process[:project_name],
+        'updated_by' => @user.id,
+        'updated_at' => now,
+        'created_at' => now,
+        'contract_id' => @contract.id,
+        'sla_enabled' => false
+      }
       project = Project.find(process[:project_pid]) rescue nil
       max_number_of_errors = @contract.default_max_number_of_errors
       max_number_of_errors = 0 if process[:reschedule].nil?
-      schedule_values = {'graph_name' => graph, 'mode' => mode, 'cron' => process[:cron] || '', 'updated_by' => 2, 'r_project' => process[:project_pid], 'main' => true, 'created_at' => now, 'settings_server_id' => @settings_server.id, 'gooddata_schedule' => process[:schedule], 'gooddata_process' => process[:process], 'max_number_of_errors' => max_number_of_errors}
+      schedule_values = {
+        'name' => process[:name],
+        'process_name' => process[:process_name],
+        'graph_name' => graph,
+        'mode' => mode,
+        'cron' => process[:cron] || '',
+        'updated_by' => @user.id,
+        'r_project' => process[:project_pid],
+        'main' => true,
+        'created_at' => now,
+        'settings_server_id' => @settings_server.id,
+        'gooddata_schedule' => process[:schedule],
+        'gooddata_process' => process[:process],
+        'max_number_of_errors' => max_number_of_errors
+      }
       ActiveRecord::Base.transaction do
         if project.nil?
           $log.info "Creating new project (project_pid: #{process[:project_pid]})"
@@ -78,8 +101,22 @@ module ContractSynchronizationJob
     def update_schedule(process, graph, mode, schedule)
       max_number_of_errors = schedule.max_number_of_errors
       max_number_of_errors = 0 if process[:reschedule].nil?
-      schedule_values = {'graph_name' => graph, 'mode' => mode, 'cron' => process[:cron] || '', 'gooddata_schedule' => process[:schedule], 'gooddata_process' => process[:process], 'is_deleted' => false, 'updated_by' => 2, 'max_number_of_errors' => max_number_of_errors}
-      project_values = {'status' => 'Live', 'name' => process[:project_name], 'updated_by' => 2, 'is_deleted' => false}
+      schedule_values = {
+        'name' => process[:name],
+        'process_name' => process[:process_name],
+        'graph_name' => graph,
+        'mode' => mode,
+        'cron' => process[:cron] || '',
+        'gooddata_schedule' => process[:schedule],
+        'gooddata_process' => process[:process],
+        'is_deleted' => false,
+        'updated_by' => @user.id,
+        'max_number_of_errors' => max_number_of_errors
+      }
+      project_values = {
+        'status' => 'Live',
+        'name' => process[:project_name],
+        'updated_by' => @user.id, 'is_deleted' => false}
       ActiveRecord::Base.transaction do
         changed_project = Project.update_with_history(@user, process[:project_pid], project_values)
         changed_schedule = Schedule.update_with_history(@user, schedule.id, schedule_values)
@@ -161,14 +198,23 @@ module ContractSynchronizationJob
         $log.info 'Downloading process information from the platform'
         until finished
           $log.info "Downloading with page settings: offset - #{offset} limit - #{limit} "
-          processes_view = JobHelper.retryable do
+          project_views = JobHelper.retryable do
             GoodData.get("/gdc/dataload/internal/projectsView?offset=#{offset}&limit=#{limit}")['projectsView']['items']
           end
-          processes_view.each do |view|
+          project_views.each do |view|
+            processes_mapping = view['projectView']['processes'].each_with_object({}) do |process_hash, result_hash|
+              # $.projectsView.items[*].projectView.processes[*].process.name
+              name = process_hash.dig('process', 'name') rescue nil
+              id = process_hash.dig('process', 'links', 'self').split('/').last rescue nil
+              result_hash[id] = name if id && name
+            end
             view['projectView']['schedules'].each do |schedule|
               next unless schedule['schedule']['type'] == 'MSETL'
+              process_id = schedule['schedule']['params']['PROCESS_ID']
               objects.push(
-                :process => schedule['schedule']['params']['PROCESS_ID'],
+                :process => process_id,
+                :name => schedule['schedule']['name'],
+                :process_name => processes_mapping[process_id],
                 :project_pid => view['projectView']['id'].split("\/").last,
                 :schedule => schedule['schedule']['links']['self'].split("\/").last,
                 :project_name => view['projectView']['name'],
@@ -180,7 +226,7 @@ module ContractSynchronizationJob
               )
             end
           end
-          if processes_view.count < limit
+          if project_views.count < limit
             finished = true
           else
             offset += limit

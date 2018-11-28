@@ -8,6 +8,8 @@ ActiveAdmin.register Schedule do
   filter :main
   filter :settings_server_name, :label => 'Server', :as => :select, :collection => proc { SettingsServer.all.order(:name).map { |ss| [ss.name, ss.name] } }
   filter :gooddata_schedule
+  filter :name
+  filter :process_name
   filter :is_deleted, as: :check_boxes
 
   scope :all, :default => true
@@ -49,6 +51,8 @@ ActiveAdmin.register Schedule do
 
   form :validate => true do |f|
     f.inputs 'Info' do
+      f.input :name
+      f.input :process_name
       f.input :graph_name
       f.input :mode
       f.input :main
@@ -79,6 +83,8 @@ ActiveAdmin.register Schedule do
     column 'Schedule ID' do |schedule|
       link_to schedule.gooddata_schedule.to_s.empty? ? 'Detail' : schedule.gooddata_schedule, admin_schedule_path(schedule)
     end
+    column :name
+    column :process_name
     column 'Muted?' do |schedule|
       elements = ''
       status_tag schedule.muted?
@@ -162,7 +168,9 @@ ActiveAdmin.register Schedule do
         panel('Detail') do
           attributes_table_for schedule do
             row :gooddata_schedule
-            row :gooddata_process
+            row :name
+            row :process_name, label: 'Process name'
+            row :gooddata_process, label: 'Process ID'
             row :updated_by do |s|
               AdminUser.find_by_id(s.updated_by)&.email
             end
