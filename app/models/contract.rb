@@ -29,10 +29,7 @@ class Contract < ActiveRecord::Base
   scope :not_muted, -> { where.not(:id => muted.pluck('contract.id')) }
 
   def self.get_public_attributes
-    %w[ name sla_enabled sla_type sla_value sla_percentage monitoring_enabled
-        monitoring_emails monitoring_treshhold token documentation_url
-        default_max_number_of_errors contract_type
-    ]
+    %w[ name token documentation_url default_max_number_of_errors contract_type]
   end
 
   def self.contract_by_job_id(job_id)
@@ -46,7 +43,7 @@ class Contract < ActiveRecord::Base
     contract.updated_by = user.id
     contract.save
 
-    projects = Project.where('contract_id = ?', contract.id)
+    projects = Project.where('project.contract_id = ?', contract.id)
     projects.each do |p|
       Project.mark_deleted(p.project_pid, user)
     end

@@ -95,7 +95,7 @@ class Project < ActiveRecord::Base
     project.updated_by = user.id
     project.save
 
-    schedules = Schedule.where('r_project = ?', project.project_pid)
+    schedules = Schedule.where('schedule.r_project = ?', project.project_pid)
     schedules.each do |schedule|
       Schedule.mark_deleted(schedule.id, user)
     end

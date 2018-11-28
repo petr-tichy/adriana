@@ -22,7 +22,7 @@ class Customer < ActiveRecord::Base
     customer.updated_by = user.id
     customer.save
 
-    contracts = Contract.where('customer_id = ?', customer.id)
+    contracts = Contract.where('contract.customer_id = ?', customer.id)
     contracts.each do |c|
       Contract.mark_deleted(c.id, user)
     end

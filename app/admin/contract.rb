@@ -3,9 +3,7 @@ ActiveAdmin.register Contract do
   permit_params :name
 
   filter :customer, :as => :select, :collection => Customer.with_contracts.order(:name)
-  %i[ name created_at updated_at
-      sla_enabled monitoring_enabled contract_type token
-  ].each { |x| filter x }
+  %i[ name created_at updated_at contract_type token].each { |x| filter x }
   filter :is_deleted, as: :check_boxes
 
   scope :all, :default => true
@@ -25,9 +23,6 @@ ActiveAdmin.register Contract do
     column :customer do |contract|
       link_to contract.customer.name, admin_customer_path(contract.customer)
     end
-    column :sla_enabled
-    column :sla_type
-    column :monitoring_enabled
     column 'Muted?' do |contract|
       elements = ''
       status_tag contract.muted?
@@ -53,9 +48,6 @@ ActiveAdmin.register Contract do
   form do |f|
     f.inputs 'Contract' do
       f.input :name
-      f.input :monitoring_enabled
-      f.input :monitoring_emails
-      f.input :monitoring_treshhold
       f.input :customer_id, :as => :hidden
       f.input :token
       f.input :documentation_url
@@ -78,12 +70,6 @@ ActiveAdmin.register Contract do
       end
     f.inputs 'Customer' do
       f.input :customer, :as => :select2, :collection => Customer.all.order(:name)
-    end
-    f.inputs 'SLA' do
-      f.input :sla_enabled
-      f.input :sla_type
-      f.input :sla_value
-      f.input :sla_percentage
     end
     f.actions
   end
@@ -123,25 +109,6 @@ ActiveAdmin.register Contract do
             row :documentation_url
             row :default_max_number_of_errors
             row :contract_type
-          end
-        end
-      end
-
-      column do
-        panel('Monitoring') do
-          attributes_table_for contract do
-            row :monitoring_enabled, :label => 'Monitoring Enabled'
-            row :monitoring_emails, :label => 'Monitoring Emails'
-            row :monitoring_treshhold, :label => 'Monitoring Treshhold'
-
-          end
-        end
-        panel('SLA') do
-          attributes_table_for contract do
-            row :sla_enabled
-            row :sla_type
-            row :sla_value
-            row :sla_percentage
           end
         end
       end
