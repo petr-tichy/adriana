@@ -121,7 +121,7 @@ module DirectSynchronizationJob
       @job_parameters = JobParameter.where('job_id = ?', @job_id)
       @projects = Project.joins(:contract).where(contract: {contract_type: 'direct'}, project: {is_deleted: false})
       @schedules = Schedule.joins(:project).joins(:contract).where(contract: {contract_type: 'direct'}, project: {is_deleted: false}, schedule: {is_deleted: false})
-      @user = AdminUser.find_by_email('ms@gooddata.com')
+      @user = AdminUser.gd_technical_admin
     end
 
     class << self

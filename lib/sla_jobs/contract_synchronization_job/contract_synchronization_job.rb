@@ -136,7 +136,7 @@ module ContractSynchronizationJob
       @job_parameters = JobParameter.where('job_id = ?', @job_id)
       @contract = Contract.find(@job_entity.r_contract)
       @schedules = Schedule.joins(:project).where('project.contract_id = ? and schedule.is_deleted = ?', @contract.id, false)
-      @user = AdminUser.find_by_email('ms@gooddata.com')
+      @user = AdminUser.gd_technical_admin
     end
 
     class << self

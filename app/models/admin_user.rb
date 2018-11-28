@@ -7,4 +7,8 @@ class AdminUser < ActiveRecord::Base
 
   has_many :mutes
   has_many :error_filters
+
+  def self.gd_technical_admin
+    AdminUser.find_by_email('ms@gooddata.com')
+  end
 end

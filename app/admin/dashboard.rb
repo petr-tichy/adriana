@@ -2,7 +2,7 @@ def history_records(for_current_user = false)
   relevant_tables = [CustomerHistory, ContractHistory, ProjectHistory, ScheduleHistory]
   @history_records = relevant_tables.map do |x|
     records = x.all
-    records = for_current_user ? records.where(:updated_by => current_admin_user.id) : records.where.not(:updated_by => current_admin_user.id)
+    records = for_current_user ? records.where(:updated_by => current_admin_user.id) : records.where.not(:updated_by => [current_admin_user.id, AdminUser.gd_technical_admin.id])
     records.order('created_at DESC').limit(10)
   end
   @history_records.flatten.sort_by(&:created_at).reverse.take(10)

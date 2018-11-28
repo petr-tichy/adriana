@@ -66,7 +66,7 @@ module PagerdutySynchronizationJob
       @subdomain = 'gooddata'
       @notification_log = NotificationLog.where(resolved_by: nil).where.not(pd_event_id: nil)
       @job_parameters = JobParameter.where('job_id = ?', @job_id)
-      @user = AdminUser.find_by_email('ms@gooddata.com')
+      @user = AdminUser.gd_technical_admin
     end
 
     class << self
