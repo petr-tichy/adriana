@@ -13,7 +13,7 @@ class Schedule < ActiveRecord::Base
   validates_presence_of :graph_name, :settings_server_id
 
   def self.get_public_attributes
-    %w[graph_name mode cron is_deleted main settings_server_id gooddata_schedule gooddata_process max_number_of_errors]
+    %w[graph_name mode cron is_deleted main settings_server_id gooddata_schedule gooddata_process max_number_of_errors name process_name]
   end
 
   default_scope lambda {
@@ -50,11 +50,6 @@ class Schedule < ActiveRecord::Base
 
   def muted?
     active_mutes.any?
-  end
-
-  # For activeadmin filtering
-  def name
-    "#{id} - #{graph_name}"
   end
 
   def self.create_with_history(user, schedule_values)

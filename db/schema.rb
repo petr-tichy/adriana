@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181107142734) do
+ActiveRecord::Schema.define(version: 20181127134909) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -350,6 +350,8 @@ ActiveRecord::Schema.define(version: 20181107142734) do
     t.string   "gooddata_schedule",    limit: 255
     t.string   "gooddata_process",     limit: 255
     t.integer  "max_number_of_errors",             default: 0
+    t.string   "name"
+    t.string   "process_name"
   end
 
   create_table "schedule_history", force: :cascade do |t|
