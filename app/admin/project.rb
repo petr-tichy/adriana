@@ -78,7 +78,7 @@ ActiveAdmin.register Project do
       column :max_width => '350px' do
         panel('Info') do
           attributes_table_for project do
-            %i[name status].each do |column|
+            %i[name].each do |column|
               row column
             end
             row :updated_by do |p|
@@ -91,7 +91,7 @@ ActiveAdmin.register Project do
             row :contract
           end
         end
-        panel('Contact') do
+        panel('Customer') do
           attributes_table_for project do
             %i[customer_name customer_contact_name customer_contact_email].each do |column|
               row column

@@ -42,7 +42,6 @@ class Project < ActiveRecord::Base
 
   def self.get_public_attributes
     %w( status name ms_person contract_id customer_name customer_contact_name customer_contact_email )
-
   end
 
   def self.load_(status)

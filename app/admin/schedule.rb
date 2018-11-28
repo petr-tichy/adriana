@@ -79,12 +79,6 @@ ActiveAdmin.register Schedule do
     column 'Schedule ID' do |schedule|
       link_to schedule.gooddata_schedule.to_s.empty? ? 'Detail' : schedule.gooddata_schedule, admin_schedule_path(schedule)
     end
-    column 'Project Name' do |schedule|
-      link_to schedule.project&.name, admin_project_path(schedule.project)
-    end
-    column 'Project ID' do |schedule|
-      link_to schedule.project&.id, admin_project_path(schedule.project)
-    end
     column 'Muted?' do |schedule|
       elements = ''
       status_tag schedule.muted?
@@ -95,14 +89,6 @@ ActiveAdmin.register Schedule do
       end
       elements.html_safe
     end
-    column :graph_name
-    column :mode
-    column :server do |schedule|
-      schedule.settings_server.name
-    end
-    column :cron
-    column :main
-    column :max_number_of_errors
     column :status do |schedule|
       if !schedule.running_executions.nil? && !schedule.running_executions.status.nil?
         if schedule.running_executions.status == 'RUNNING'
@@ -123,6 +109,15 @@ ActiveAdmin.register Schedule do
         end
       end
     end
+    column 'Project' do |schedule|
+      link_to schedule.project&.name, admin_project_path(schedule.project)
+    end
+    column :mode
+    column :server do |schedule|
+      schedule.settings_server.name
+    end
+    column :cron
+    column 'Max. Errors', &:max_number_of_errors
   end
 
 
