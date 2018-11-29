@@ -36,16 +36,16 @@ class Contract < ActiveRecord::Base
     select('contract.*').joins('INNER JOIN job_entity je ON  contract.id = je.r_contract').where('je.job_id = ?', job_id).first
   end
 
-  def self.mark_deleted(id, user)
+  def self.mark_deleted(id, user, flag: true)
     contract = Contract.find(id)
-    ContractHistory.add_change(contract.id, 'is_deleted', 'true', user)
-    contract.is_deleted = true
+    ContractHistory.add_change(contract.id, 'is_deleted', flag.to_s, user)
+    contract.is_deleted = flag
     contract.updated_by = user.id
     contract.save
 
     projects = Project.where('project.contract_id = ?', contract.id)
     projects.each do |p|
-      Project.mark_deleted(p.project_pid, user)
+      Project.mark_deleted(p.project_pid, user, flag: flag)
     end
 
   end

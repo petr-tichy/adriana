@@ -20,7 +20,6 @@ module SplunkSynchronizationJob
       self.class.connect_to_passman(@credentials[:passman][:address], @credentials[:passman][:port], @credentials[:passman][:key])
       username = @credentials[:splunk][:username].split('|').last
       # Obtain password for Splunk from PasswordManager
-      binding.pry
       password = PasswordManagerApi::Password.get_password_by_name(@credentials[:splunk][:username].split('|').first, username)
       @splunk_downloader = SplunkDownloader.new(username, password, @credentials[:splunk][:hostname])
       @splunk_downloader.errors_to_match = ErrorFilter.active.map(&:message)

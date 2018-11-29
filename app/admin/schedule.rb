@@ -219,6 +219,16 @@ ActiveAdmin.register Schedule do
     end
   end
 
+  config.clear_action_items!
+
+  action_item :edit, only: :show do
+    link_to 'Edit Schedule', edit_admin_schedule_path(schedule) if authorized? :edit, schedule
+  end
+
+  action_item :destroy, only: :show do
+    link_to schedule.is_deleted ? 'Un-delete Schedule' : 'Delete Schedule', admin_schedule_path(schedule), :method => :delete if authorized? :destroy, schedule
+  end
+
   controller do
     include ApplicationHelper
 
@@ -257,10 +267,19 @@ ActiveAdmin.register Schedule do
     end
 
     def destroy
-      ActiveRecord::Base.transaction do
-        Schedule.mark_deleted(params[:id], current_active_admin_user)
+      id = params[:id]
+      schedule = Schedule.find_by_id(id)
+      if schedule.is_deleted
+        ActiveRecord::Base.transaction do
+          Schedule.mark_deleted(id, current_active_admin_user, flag: false)
+        end
+        redirect_to admin_schedule_path, :notice => 'Schedule was un-deleted!'
+      else
+        ActiveRecord::Base.transaction do
+          Schedule.mark_deleted(id, current_active_admin_user, flag: true)
+        end
+        redirect_to admin_schedule_path, :notice => 'Schedule was deleted!'
       end
-      redirect_to admin_schedule_path, :notice => 'Schedule was deleted!'
     end
 
     def create

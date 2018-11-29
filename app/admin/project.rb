@@ -118,12 +118,22 @@ ActiveAdmin.register Project do
     end
   end
 
+  config.clear_action_items!
+
+  action_item :edit, only: :show do
+    link_to 'Edit Project', edit_admin_project_path(project) if authorized? :edit, project
+  end
+
+  action_item :destroy, only: :show do
+    link_to project.is_deleted ? 'Un-delete Project' : 'Delete Project', admin_project_path(project), :method => :delete if authorized? :destroy, project
+  end
+
   action_item :schedules, :only => [:show] do
-    link_to 'Schedules', :controller => 'schedules', :action => 'index', 'q[r_project_eq]' => params['id'].to_s.html_safe
+    link_to 'Schedules', :controller => 'schedules', :action => 'index', 'q[r_project_eq]' => params['id'].to_s.html_safe if authorized? :view, Schedule
   end
 
   action_item :detail, :only => [:show] do
-    link_to('Detail', admin_project_detail_path(params['id']))
+    link_to('Detail', admin_project_detail_path(params['id'])) if authorized? :view, ProjectDetail
   end
 
   controller do
@@ -160,15 +170,19 @@ ActiveAdmin.register Project do
     end
 
     def destroy
-      project = Project.where('project_pid = ?', params[:id]).first
-
-      ActiveRecord::Base.transaction do
-        ProjectHistory.add_change(project.project_pid, 'is_deleted', 'true', current_active_admin_user)
-        project.is_deleted = true
-        project.updated_by = current_active_admin_user.id
-        project.save
+      id = params[:id]
+      project = Project.find_by_project_pid(id)
+      if project.is_deleted
+        ActiveRecord::Base.transaction do
+          Project.mark_deleted(id, current_active_admin_user, flag: false)
+        end
+        redirect_to admin_projects_path, :notice => 'Project was un-deleted!'
+      else
+        ActiveRecord::Base.transaction do
+          Project.mark_deleted(id, current_active_admin_user, flag: true)
+        end
+        redirect_to admin_projects_path, :notice => 'Project was deleted!'
       end
-      redirect_to admin_projects_path, :notice => 'Project was deleted!'
     end
 
     def create

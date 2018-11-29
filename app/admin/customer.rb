@@ -50,8 +50,18 @@ ActiveAdmin.register Customer do
     end
   end
 
+  config.clear_action_items!
+
+  action_item :edit, only: :show do
+    link_to 'Edit Customer', edit_admin_customer_path(customer) if authorized? :edit, customer
+  end
+
+  action_item :destroy, only: :show do
+    link_to customer.is_deleted ? 'Un-delete Customer' : 'Delete Customer', admin_customer_path(customer), :method => :delete if authorized? :destroy, customer
+  end
+
   action_item :new_contract, :only => :show do
-    link_to 'New contract', :controller => 'contracts', :action => 'new', :customer_id => customer.id, :customer_name => customer.name
+    link_to 'New contract', :controller => 'contracts', :action => 'new', :customer_id => customer.id, :customer_name => customer.name if authorized? :create, Contract
   end
 
   form do |f|
@@ -116,10 +126,19 @@ ActiveAdmin.register Customer do
     end
 
     def destroy
-      ActiveRecord::Base.transaction do
-        Customer.mark_deleted(params[:id], current_active_admin_user)
+      id = params[:id]
+      customer = Customer.find_by_id(id)
+      if customer.is_deleted
+        ActiveRecord::Base.transaction do
+          Customer.mark_deleted(id, current_active_admin_user, flag: false)
+        end
+        redirect_to admin_customers_path, :notice => 'Customer was un-deleted!'
+      else
+        ActiveRecord::Base.transaction do
+          Customer.mark_deleted(id, current_active_admin_user, flag: true)
+        end
+        redirect_to admin_customers_path, :notice => 'Customer was deleted!'
       end
-      redirect_to admin_customers_path, :notice => 'Customer was deleted!'
     end
   end
 end

@@ -15,16 +15,16 @@ class Customer < ActiveRecord::Base
     %w[ name email contact_person ]
   end
 
-  def self.mark_deleted(id, user)
+  def self.mark_deleted(id, user, flag: true)
     customer = Customer.find(id)
-    CustomerHistory.add_change(customer.id, 'is_deleted', 'true', user)
-    customer.is_deleted = true
+    CustomerHistory.add_change(customer.id, 'is_deleted', flag.to_s, user)
+    customer.is_deleted = flag
     customer.updated_by = user.id
     customer.save
 
     contracts = Contract.where('contract.customer_id = ?', customer.id)
     contracts.each do |c|
-      Contract.mark_deleted(c.id, user)
+      Contract.mark_deleted(c.id, user, flag: flag)
     end
   end
 end

@@ -125,12 +125,22 @@ ActiveAdmin.register Contract do
     end
   end
 
+  config.clear_action_items!
+
+  action_item :edit, only: :show do
+    link_to 'Edit Contract', edit_admin_contract_path(contract) if authorized? :edit, contract
+  end
+
+  action_item :destroy, only: :show do
+    link_to contract.is_deleted ? 'Un-delete Contract' : 'Delete Contract', admin_contract_path(contract), :method => :delete if authorized? :destroy, contract
+  end
+
   action_item :update_max_error_count, :only => %i[show edit] do
-    link_to 'Update Max Error Count for Schedules', :controller => 'contracts', :action => 'error_show'
+    link_to 'Update Max Error Count for Schedules', :controller => 'contracts', :action => 'error_show' if authorized? :edit, Schedule
   end
 
   action_item :create_sync_job, :only => %i[show] do
-    link_to 'Create synchronization job', :controller => 'jobs', :action => 'new', :type => 'synchronize_contract', :contract => contract.id
+    link_to 'Create synchronization job', :controller => 'jobs', :action => 'new', :type => 'synchronize_contract', :contract => contract.id if authorized? :create, Job
   end
 
   controller do
@@ -205,10 +215,19 @@ ActiveAdmin.register Contract do
     end
 
     def destroy
-      ActiveRecord::Base.transaction do
-        Contract.mark_deleted(params[:id], current_active_admin_user)
+      id = params[:id]
+      contract = Contract.find_by_id(id)
+      if contract.is_deleted
+        ActiveRecord::Base.transaction do
+          Contract.mark_deleted(id, current_active_admin_user, flag: false)
+        end
+        redirect_to admin_contracts_path, :notice => 'Contract was un-deleted!'
+      else
+        ActiveRecord::Base.transaction do
+          Contract.mark_deleted(id, current_active_admin_user, flag: true)
+        end
+        redirect_to admin_contracts_path, :notice => 'Contract was deleted!'
       end
-      redirect_to admin_contracts_path, :notice => 'Contract was deleted!'
     end
 
     def autocomplete_tags
