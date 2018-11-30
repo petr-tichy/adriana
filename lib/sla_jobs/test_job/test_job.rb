@@ -23,7 +23,6 @@ module TestJob
 
     def run
       run_tests
-      self.class.flag_for_monit(JOB_TYPE)
     end
 
     private
@@ -63,11 +62,6 @@ module TestJob
 
       def connect_to_pd(api_key, pd_subdomain)
         PagerDuty::Full.new(api_key, pd_subdomain)
-      end
-
-      def flag_for_monit(command)
-        FileUtils.mkdir_p('monit')
-        FileUtils.touch('monit/' + command.to_s + '_finished')
       end
     end
   end

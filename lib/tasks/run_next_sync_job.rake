@@ -5,7 +5,8 @@ require 'date'
 namespace :sla do
   desc 'Adriana sync job runner'
   task run_next_sync_job: [:environment] do |task|
-    $log_file = Rails.root.join('log', "sla_#{task.name.split(':').last}_#{DateTime.now.strftime('%Y%m%d%H%M%S')}.log")
+    task_name = task.name.split(':').last
+    $log_file = Rails.root.join('log', "sla_#{task_name}_#{DateTime.now.strftime('%Y%m%d%H%M%S')}.log")
     $log = Logger.new($log_file, 'daily')
     credentials = {
       passman: {address: CredentialsHelper.get('passman_address'), port: CredentialsHelper.get('passman_port'), key: CredentialsHelper.get('passman_key')}
@@ -17,13 +18,14 @@ namespace :sla do
       next
     end
     job_id = job_to_execute.id
-    $log.info "Job ID #{job_id} - STARTED"
+    $log.info "SLA Sync Job with ID #{job_id} - STARTED"
     job_class = JobHelper.get_job_by_name(job_to_execute.job_type.key)
     job = job_class.new(job_id, credentials)
     begin
       job_history = JobHistory.create(:job_id => job_id, :started_at => DateTime.now, :status => 'RUNNING')
       job.connect if job.respond_to?(:connect)
       job.run
+      $log.info "SLA Sync Job with ID #{job_to_execute.id} - FINISHED"
       $log.close
       job_history.log = File.read($log_file)
       job_history.finished_at = DateTime.now
@@ -37,7 +39,7 @@ namespace :sla do
       job_history.finished_at = DateTime.now
       job_history.status = 'ERROR'
       job_history.save
+      raise e
     end
-    $log.info "Job ID #{job_to_execute.id} - FINISHED"
   end
 end

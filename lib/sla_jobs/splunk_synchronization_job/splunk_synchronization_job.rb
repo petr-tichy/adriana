@@ -59,8 +59,6 @@ module SplunkSynchronizationJob
         # Save the last run date
         save_last_run(timestamp_now)
       end
-      # Flag files for monit
-      flag_for_monit(JOB_TYPE)
     end
 
     class << self
@@ -122,11 +120,6 @@ module SplunkSynchronizationJob
         event[:error_text],
         event[:matches_error_filters]
       )
-    end
-
-    def flag_for_monit(command)
-      FileUtils.mkdir_p 'monit'
-      FileUtils.touch('monit/' + command.to_s + '_finished')
     end
   end
 end
