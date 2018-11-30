@@ -7,9 +7,14 @@ ActiveAdmin.register Mute do
   config.clear_action_items!
   actions :all, :except => :destroy
 
-  preserve_default_filters!
   filter :admin_user, :as => :select, :collection => AdminUser.all.order(:email).map { |x| [x.email, x.id] }
-  filter :contract, :as => :select, :collection => Contract.all.order(:name)
+  filter :contract, :as => :select, :collection => Contract.with_direct_mutes.order(:name)
+  filter :project, :as => :select, :collection => Project.with_direct_mutes.order(:name)
+  filter :disabled
+  filter :start
+  filter :end
+  filter :created_at
+  filter :updated_at
 
   scope :all, :default => true
   scope :active

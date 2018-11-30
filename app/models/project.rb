@@ -21,6 +21,11 @@ class Project < ActiveRecord::Base
     joins(:schedules).where(schedule: {is_deleted: false}).uniq
   }
 
+  # This is for obtaining Projects with both ACTIVE and INACTIVE mutes
+  scope :with_direct_mutes, lambda {
+    joins(:mutes)
+  }
+  # This is for obtaining Projects with ACTIVE mutes (on Contract also)
   scope :muted, lambda {
     #TODO change to union when Rails supports it properly
     where(:project_pid => (joins(:contract => :mutes).merge(Mute.active).pluck(:project_pid) | joins(:mutes).merge(Mute.active).pluck(:project_pid)).uniq)

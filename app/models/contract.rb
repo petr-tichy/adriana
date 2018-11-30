@@ -23,6 +23,11 @@ class Contract < ActiveRecord::Base
     joins(:projects).where(project: {is_deleted: false}).uniq
   }
 
+  # This is for obtaining Contracts with both ACTIVE and INACTIVE mutes
+  scope :with_direct_mutes, lambda {
+    joins(:mutes)
+  }
+  # This is for obtaining Contracts with ACTIVE mutes
   scope :muted, lambda {
     joins(:mutes).merge(Mute.active).uniq
   }
