@@ -221,6 +221,10 @@ ActiveAdmin.register Schedule do
 
   config.clear_action_items!
 
+  action_item :mute, only: :show do
+    link_to 'Mute', new_admin_mute_path(:reference_id => schedule.send(Schedule.primary_key.to_sym), :reference_type => Schedule.name) if authorized? :create, Mute
+  end
+
   action_item :edit, only: :show do
     link_to 'Edit Schedule', edit_admin_schedule_path(schedule) if authorized? :edit, schedule
   end

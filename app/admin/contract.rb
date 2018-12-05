@@ -127,6 +127,10 @@ ActiveAdmin.register Contract do
 
   config.clear_action_items!
 
+  action_item :mute, only: :show do
+    link_to 'Mute', new_admin_mute_path(:reference_id => contract.send(Contract.primary_key.to_sym), :reference_type => Contract.name) if authorized? :create, Mute
+  end
+
   action_item :edit, only: :show do
     link_to 'Edit Contract', edit_admin_contract_path(contract) if authorized? :edit, contract
   end

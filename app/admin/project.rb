@@ -120,6 +120,10 @@ ActiveAdmin.register Project do
 
   config.clear_action_items!
 
+  action_item :mute, only: :show do
+    link_to 'Mute', new_admin_mute_path(:reference_id => project.send(Project.primary_key.to_sym), :reference_type => Project.name) if authorized? :create, Mute
+  end
+
   action_item :edit, only: :show do
     link_to 'Edit Project', edit_admin_project_path(project) if authorized? :edit, project
   end
