@@ -1,5 +1,7 @@
 require 'restforce'
-require_rel '../../app/models'
+require_relative '../job_exception'
+require_relative '../job_helper'
+require 'pry'
 
 module SalesforceSynchronizationJob
   class SalesforceSynchronizationJob
@@ -11,11 +13,19 @@ module SalesforceSynchronizationJob
     end
 
     def connect
-      self.class.connect_to_sf
+      #self.class.connect_to_sf
     end
 
     def run
-      #TODO
+      client = Restforce.new(username: 'integration.internal@gooddata.com',
+                             password: '',
+                             security_token: '',
+                             client_id: '',
+                             client_secret: '',
+                             api_version: '41.0')
+      binding.pry
+      output = client.query("SELECT Id, Managed__c, Platform_Token__c FROM Contract")
+      client.update('Contract', Id: contract_id, Managed__c: true)
     end
 
     class << self

@@ -22,6 +22,13 @@ class SlaWrapper
     end
   end
 
+  desc 'Synchronize with Salesforce job'
+  command :synchronize_salesforce do |c|
+    c.action do |global_options, options, args|
+      Rake::Task['sla:synchronize_salesforce'].invoke
+    end
+  end
+
   desc 'Test SLA job - runs error, live, started tests - basically checking the status of monitored schedules, sending alerts to PD'
   command :test_sla do |c|
     c.action do |global_options, options, args|
