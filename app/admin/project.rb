@@ -3,7 +3,7 @@ ActiveAdmin.register Project do
   permit_params :status, :name, :ms_person, :customer_name, :customer_contact_name, :customer_contact_email, :project_pid, :contract_id
 
   preserve_default_filters!
-  remove_filter :running_executions, :project_detail, :mutes, :schedules, :sla_value
+  remove_filter :running_executions, :project_detail, :mutes, :schedules, :sla_value, :sla_enabled, :sla_type, :ms_person
   filter :contract, :as => :select, :collection => proc { Contract.with_projects.order(:name) }
   filter :project_pid
   filter :is_deleted, as: :check_boxes
