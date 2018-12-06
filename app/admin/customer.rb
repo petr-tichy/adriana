@@ -15,7 +15,7 @@ ActiveAdmin.register Customer do
     column :created_at
     column :updated_at
     column :actions do |customer|
-      link_to 'New contract', :controller => 'contracts', :action => 'new', :customer_id => customer.id, :customer_name => customer.name
+      link_to 'New contract', {:controller => 'contracts', :action => 'new', :customer_id => customer.id, :customer_name => customer.name}, :class => 'link_button'
     end
   end
 

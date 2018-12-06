@@ -88,10 +88,12 @@ ActiveAdmin.register Schedule do
     column 'Muted?' do |schedule|
       elements = ''
       status_tag schedule.muted?
-      if schedule.muted?
-        elements += link_to 'Mutes list', admin_mutes_path('q[schedule_id_eq]' => schedule.id.to_s.html_safe, 'commit' => 'Filter')
-      else
-        elements += link_to 'Mute', new_admin_mute_path(:reference_id => schedule.send(Schedule.primary_key.to_sym), :reference_type => Schedule.name)
+      if authorized? :create, Mute
+        if schedule.muted?
+          elements += link_to 'Mutes list', admin_mutes_path('q[schedule_id_eq]' => schedule.id.to_s.html_safe, 'commit' => 'Filter'), :class => 'link_button'
+        else
+          elements += link_to 'Mute', new_admin_mute_path(:reference_id => schedule.send(Schedule.primary_key.to_sym), :reference_type => Schedule.name), :class => 'link_button'
+        end
       end
       elements.html_safe
     end

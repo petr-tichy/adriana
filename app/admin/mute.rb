@@ -20,28 +20,9 @@ ActiveAdmin.register Mute do
   scope :active
   scope :inactive
 
-  index row_class: ->(m) { 'row-highlight-muted' if m.active? } do
-    column :detail do |mute|
-      link_to 'Detail', admin_mute_path(mute)
-    end
-    column :active, &:active?
-    column :reason
-    column :start
-    column :end
-    column :muted_object_type
-    column :muted_object do |mute|
-      obj = mute.contract || mute.project || mute.schedule
-      link_to obj.name, polymorphic_path(['admin', obj])
-    end
-    column :created_by do |mute|
-      mute.admin_user ? link_to(mute.admin_user.email, admin_admin_user_path(mute.admin_user)) : 'User missing'
-    end
-    column :disabled do |mute|
-      status_tag mute.disabled
-      mute.disabled? ? link_to('Enable', enable_admin_mute_path(mute.id)) : link_to('Disable', disable_admin_mute_path(mute.id))
-    end
+  index do
+    render 'index', context: self
   end
-
 
   form do |f|
     f.inputs 'Mute' do
@@ -86,14 +67,22 @@ ActiveAdmin.register Mute do
     end
   end
 
-  member_action :disable, :method => :get do
+  action_item :edit, :if => proc { mute.now_in_range? }, :only => :show do
+    link_to 'Edit Mute', edit_admin_mute_path(mute) if authorized? :edit, mute
+  end
+
+  action_item :recreate, :if => proc { authorized? :create, Mute }, :only => :show do
+    link_to 'Recreate Mute', new_admin_mute_path(:reference_id => mute.reference_id, :reference_type => mute.reference_type, :reason => URI.escape(mute.reason)) if authorized? :create, Mute
+  end
+
+  member_action :disable, :if => proc { mute.now_in_range? }, :method => :get do
     @mute = Mute.find_by_id(params['id'])
     @mute.disabled = true
     @mute.save
     redirect_to admin_mutes_path, :notice => "Mute ##{@mute.id} disabled."
   end
 
-  member_action :enable, :method => :get do
+  member_action :enable, :if => proc { mute.now_in_range? }, :method => :get do
     @mute = Mute.find_by_id(params['id'])
     @mute.disabled = false
     @mute.save
@@ -118,6 +107,7 @@ ActiveAdmin.register Mute do
       return nil unless %w[contract project schedule].include?(class_name_under)
       @mute.send("#{class_name_under}=".to_sym, class_name.constantize.find(params['reference_id']))
       @mute.admin_user = current_active_admin_user
+      @mute.reason = URI.unescape(params['reason']) if params.key?('reason')
       @mute.start = DateTime.now
       @mute.end = DateTime.now + 1.hour
       @mute

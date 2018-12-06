@@ -27,11 +27,8 @@ ActiveAdmin.register Job do
 
   index do
     selectable_column
-    column :detail do |job|
-      link_to 'Detail', :controller => 'jobs', :action => 'show', :id => job.id
-    end
     column :id do |job|
-      link_to job.id, admin_job_path(job)
+      link_to job.id || 'Detail', admin_job_path(job), :class => 'link_button'
     end
     column :job_type
     column :entity do |job|
@@ -65,7 +62,7 @@ ActiveAdmin.register Job do
     end
     column :log do |job|
       unless job.job_history_id.nil?
-        link_to 'Log', :controller => 'jobs', :action => 'job_history_log', :id => job.job_history_id, :target => '_blank'
+        link_to 'Log', {:controller => 'jobs', :action => 'job_history_log', :id => job.job_history_id, :target => '_blank'}, :class => 'link_button'
       end
 
     end

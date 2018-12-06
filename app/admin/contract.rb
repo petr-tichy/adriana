@@ -26,21 +26,23 @@ ActiveAdmin.register Contract do
     column 'Muted?' do |contract|
       elements = ''
       status_tag contract.muted?
-      if contract.muted?
-        elements += link_to 'Mutes list', admin_mutes_path('q[contract_id_eq]' => contract.id.to_s.html_safe, 'commit' => 'Filter')
-      else
-        elements += link_to 'Mute', new_admin_mute_path(:reference_id => contract.send(Contract.primary_key.to_sym), :reference_type => Contract.name)
+      if authorized? :create, Mute
+        if contract.muted?
+          elements += link_to 'Mutes list', admin_mutes_path('q[contract_id_eq]' => contract.id.to_s.html_safe, 'commit' => 'Filter'), :class => 'link_button'
+        else
+          elements += link_to 'Mute', new_admin_mute_path(:reference_id => contract.send(Contract.primary_key.to_sym), :reference_type => Contract.name), :class => 'link_button'
+        end
       end
       elements.html_safe
     end
     column :actions do |contract|
-      link_to 'Create synchronization job', :controller => 'jobs', :action => 'new', :type => 'synchronize_contract', :contract => contract.id
+      link_to 'Create sync job', {:controller => 'jobs', :action => 'new', :type => 'synchronize_contract', :contract => contract.id}, :class => 'link_button'
     end
     column :links do |contract|
       links = ''.html_safe
-      links += link_to 'Projects', admin_projects_path('q[contract_id_eq]' => contract.id.to_s.html_safe, 'commit' => 'Filter')
+      links += link_to 'Projects', admin_projects_path('q[contract_id_eq]' => contract.id.to_s.html_safe, 'commit' => 'Filter'), :class => 'link_button'
       links += ' '
-      links += link_to 'Schedules', admin_schedules_path('q[contract_id_eq]' => contract.id.to_s.html_safe, 'commit' => 'Filter')
+      links += link_to 'Schedules', admin_schedules_path('q[contract_id_eq]' => contract.id.to_s.html_safe, 'commit' => 'Filter'), :class => 'link_button'
       links
     end
   end

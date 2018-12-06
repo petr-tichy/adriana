@@ -35,6 +35,19 @@ table.index_table {
   }
 }
 
+a.link_button {
+  background: #5ea3d3;
+  color: #fff;
+  letter-spacing: 0.15em;
+  padding: 3px 5px 2px 5px;
+  font-size: 0.9em;
+  text-decoration: none;
+  border-radius: 2px;
+  &:hover {
+    background: #6bbcf2;
+  }
+}
+
 .panel-muted {
   h3 {
     background-color: $muted-red-color;

@@ -16,14 +16,27 @@ class Mute < ActiveRecord::Base
   scope :active, -> { where(:disabled => false).where('mute."start" <= ?', DateTime.now).where('mute."end" >= ?', DateTime.now) }
   scope :inactive, -> { where.not(:id => active.map(&:id)) }
 
-  def active?
+  def now_in_range?
     current_date = DateTime.now
-    current_date >= self.start && current_date <= self.end && !disabled?
+    current_date >= self.start && current_date <= self.end
+  end
+
+  def active?
+    now_in_range? && !disabled?
+  end
+
+  def muted_object
+    contract || project || schedule
   end
 
   def muted_object_type
-    obj = contract || project || schedule
-    obj.class.to_s.humanize
+    muted_object.class.to_s.humanize
+  end
+
+  alias_method :reference_type, :muted_object_type
+
+  def reference_id
+    muted_object.send(muted_object.class.primary_key.to_sym)
   end
 
   scope :active_eq, ->(flag) { flag.to_sym == :active ? active : inactive }

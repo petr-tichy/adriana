@@ -20,28 +20,27 @@ ActiveAdmin.register Project do
   end) do |project|
     selectable_column
     column :name do |project|
-      link_to project.name, admin_project_path(project) || ''
+      link_to project.name || 'Detail', admin_project_path(project)
     end
     column :project_pid
     column :updated_at
     column 'Muted?' do |project|
       elements = ''
       status_tag project.muted?
-      if project.muted?
-        elements += link_to 'Mutes list', admin_mutes_path('q[project_pid_eq]' => project.id.to_s.html_safe, 'commit' => 'Filter')
-      else
-        elements += link_to 'Mute', new_admin_mute_path(:reference_id => project.send(Project.primary_key.to_sym), :reference_type => Project.name)
+      if authorized? :create, Mute
+        if project.muted?
+          elements += link_to 'Mutes list', admin_mutes_path('q[project_pid_eq]' => project.id.to_s.html_safe, 'commit' => 'Filter'), :class => 'link_button'
+        else
+          elements += link_to 'Mute', new_admin_mute_path(:reference_id => project.send(Project.primary_key.to_sym), :reference_type => Project.name), :class => 'link_button'
+        end
       end
       elements.html_safe
     end
-    column :detail do |project|
-      link_to('Detail', admin_project_detail_path(project.project_pid))
-    end
     column :schedules do |project|
       links = ''.html_safe
-      links += link_to fa_icon('list-ul lg'), {:controller => 'schedules', :action => 'index', 'q[r_project_contains]' => project.project_pid.to_s.html_safe, 'commit' => 'Filter'}, {:title => 'List schedules for project'}
+      links += link_to fa_icon('list-ul'), {:controller => 'schedules', :action => 'index', 'q[r_project_contains]' => project.project_pid.to_s.html_safe, 'commit' => 'Filter'}, {:title => 'List schedules for project', :class => 'link_button'}
       links += ' '
-      links += link_to fa_icon('plus lg'), {:controller => 'schedules', :action => 'new', :project_pid => project.project_pid},{:title => 'Create new schedule under project'}
+      links += link_to fa_icon('plus'), {:controller => 'schedules', :action => 'new', :project_pid => project.project_pid},{:title => 'Create new schedule under project', :class => 'link_button'}
       links
     end
   end
