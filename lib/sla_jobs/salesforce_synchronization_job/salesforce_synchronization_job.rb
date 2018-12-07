@@ -22,15 +22,18 @@ module SalesforceSynchronizationJob
       @sf_contracts = sf_contract_mapping
       $log.info "Processing #{live_contracts.size} monitored contracts."
       live_contracts.each do |contract|
-        process_contract_monitoring(contract, monitoring_value: true)
+        process_contract_monitoring(contract)
       end
-      $log.info "Processing #{deleted_contracts.size} non-monitored contracts."
-      deleted_contracts.each do |contract|
-        process_contract_monitoring(contract, monitoring_value: false)
+      $log.info 'Processing the rest of contracts in SF.'
+      @sf_contracts.each do |sf_token, sf_object|
+        if sf_object[:sf_monitoring_field]
+          $log.info "Updating SF Contract with ID #{sf_object[:id]} and token #{sf_token} - setting #{SF_MONITORING_FIELD} to false."
+          @sf_client.update('Contract', :Id => sf_object[:id], SF_MONITORING_FIELD.to_sym => false)
+        end
       end
     end
 
-    def process_contract_monitoring(contract, monitoring_value: true)
+    def process_contract_monitoring(contract)
       reference_name = "#{contract.id} - #{contract.name}"
       local_token = contract.token
       if local_token.to_s.empty?
@@ -42,9 +45,10 @@ module SalesforceSynchronizationJob
         return false
       end
       sf_object = @sf_contracts[local_token]
-      return if sf_object[:sf_monitoring_field] == monitoring_value
-      $log.info "Updating Contract #{sf_object[:id]} - setting #{SF_MONITORING_FIELD} to #{monitoring_value}."
-      @sf_client.update('Contract', :Id => sf_object[:id], SF_MONITORING_FIELD.to_sym => monitoring_value)
+      return if sf_object[:sf_monitoring_field]
+      $log.info "Updating SF Contract with ID #{sf_object[:id]} and token #{local_token} - setting #{SF_MONITORING_FIELD} to true."
+      @sf_client.update('Contract', :Id => sf_object[:id], SF_MONITORING_FIELD.to_sym => true)
+      @sf_contracts.delete(local_token)
       true
     end
 
@@ -58,11 +62,7 @@ module SalesforceSynchronizationJob
     end
 
     def live_contracts
-      Contract.all.where(is_deleted: false)
-    end
-
-    def deleted_contracts
-      Contract.all.where(is_deleted: true)
+      Contract.monitored
     end
 
     def connect_to_sf

@@ -55,6 +55,19 @@ class Contract < ActiveRecord::Base
 
   end
 
+  def self.monitored
+    find_by_sql("
+      SELECT DISTINCT c.* FROM contract c
+      INNER JOIN customer ON c.customer_id=customer.id
+      INNER JOIN project p ON p.contract_id=c.id
+      INNER JOIN schedule s ON s.r_project = p.project_pid
+      WHERE NOT customer.is_deleted
+      AND NOT c.is_deleted
+      AND NOT p.is_deleted
+      AND NOT s.is_deleted
+    ")
+  end
+
   def all_mutes
     mutes
   end
