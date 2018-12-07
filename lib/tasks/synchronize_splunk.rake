@@ -8,9 +8,11 @@ namespace :sla do
     $log_file = Rails.root.join('log', "sla_#{task_name}_#{DateTime.now.strftime('%Y%m%d%H%M%S')}.log")
     $log = Logger.new($log_file, 'daily')
     credentials = {
-      passman: {address: CredentialsHelper.get('passman_address'), port: CredentialsHelper.get('passman_port'), key: CredentialsHelper.get('passman_key')},
-      splunk: {username: CredentialsHelper.get('splunk_username'), hostname: CredentialsHelper.get('splunk_hostname') }
+      passman: {},
+      splunk: {}
     }
+    %i[address port key].each { |param| credentials[:passman][param] = CredentialsHelper.get("passman_#{param}") }
+    %i[username hostname].each { |param| credentials[:splunk][param] = CredentialsHelper.get("splunk_#{param}") }
     job = SplunkSynchronizationJob::SplunkSynchronizationJob.new(credentials)
     begin
       job.connect

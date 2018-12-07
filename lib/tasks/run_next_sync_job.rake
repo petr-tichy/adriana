@@ -8,9 +8,10 @@ namespace :sla do
     task_name = task.name.split(':').last
     $log_file = Rails.root.join('log', "sla_#{task_name}_#{DateTime.now.strftime('%Y%m%d%H%M%S')}.log")
     $log = Logger.new($log_file, 'daily')
-    credentials = {
-      passman: {address: CredentialsHelper.get('passman_address'), port: CredentialsHelper.get('passman_port'), key: CredentialsHelper.get('passman_key')}
-    }
+    credentials = {passman: {}}
+    %i[address port key].each do |param|
+      credentials[:passman][param] = CredentialsHelper.get("passman_#{param}")
+    end
     ActiveRecord::Base.establish_connection(YAML::load(File.open('config/database.yml'))[Rails.env])
     job_to_execute = Job.get_jobs_to_execute.first
     if job_to_execute.nil?
