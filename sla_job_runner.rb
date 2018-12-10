@@ -43,6 +43,13 @@ class SlaWrapper
     end
   end
 
+  desc 'Post migration task - run after the DB is recreated'
+  command :post_migration do |c|
+    c.action do |global_options, options, args|
+      Rake::Task['post_migration'].invoke
+    end
+  end
+
   pre do |global, command, options, args|
     next true if command.nil?
     @running = false

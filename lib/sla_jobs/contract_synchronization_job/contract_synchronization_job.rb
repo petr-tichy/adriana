@@ -1,5 +1,6 @@
 require_relative '../job_exception'
 require_relative '../job_helper'
+require_relative '../../credentials_helper'
 require 'gooddata'
 
 module ContractSynchronizationJob
@@ -16,7 +17,7 @@ module ContractSynchronizationJob
 
     def connect
       #TODO: credentials validation
-      self.class.connect_to_passman(@credentials[:passman][:address], @credentials[:passman][:port], @credentials[:passman][:key])
+      CredentialsHelper.connect_to_passman(@credentials[:passman][:address], @credentials[:passman][:port], @credentials[:passman][:key])
     end
 
     def run
@@ -26,7 +27,7 @@ module ContractSynchronizationJob
       @mode_pattern = @job_parameters.find { |x| x.key.casecmp('mode').zero? }.value.downcase
 
       resource = @job_parameters.find { |x| x.key.casecmp('resource').zero? }.value
-      username, password = load_resource_credentials(resource) # Load credentials from passman
+      username, password = CredentialsHelper.load_resource_credentials(resource) # Load credentials from passman
       self.class.connect_to_gd(username, password, @settings_server)
 
       processes = self.class.get_all_user_processes
@@ -45,15 +46,6 @@ module ContractSynchronizationJob
     end
 
     private
-
-    def load_resource_credentials(resource)
-      $log.info 'Loading resource from Password Manager'
-      resource_array = resource.split('|')
-      username = resource_array[1]
-      password = PasswordManagerApi::Password.get_password_by_name(resource_array[0], resource_array[1])
-      $log.info 'Resource loaded successfully'
-      [username, password]
-    end
 
     def add_schedule(process, graph, mode)
       now = DateTime.now
@@ -177,10 +169,6 @@ module ContractSynchronizationJob
     end
 
     class << self
-      def connect_to_passman(address, port, key)
-        PasswordManagerApi::PasswordManager.connect(address, port, key)
-      end
-
       #TODO dry
       def connect_to_gd(username, password, settings_server)
         $log.info "Connecting to Gooddata server #{settings_server.server_url} webdav #{settings_server.webdav_url}"
