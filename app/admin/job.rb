@@ -10,10 +10,10 @@ ActiveAdmin.register Job do
 
   index do
     selectable_column
-    column :id do |job|
-      link_to job.id || 'Detail', admin_job_path(job), :class => 'link_button'
+    column :detail do |job|
+      link_to 'Detail', admin_job_path(job), :class => 'link_button'
     end
-    column :job_type
+    column :id
     column :entity do |job|
       if job.job_type.key == 'synchronize_contract'
         entity = JobEntity.find_by_job_id(job.id)
@@ -24,6 +24,7 @@ ActiveAdmin.register Job do
     column :scheduled_by do |job|
       AdminUser.find_by_id(job.scheduled_by)&.email
     end
+    column :recurrent
     column :scheduling do |job|
       if job.recurrent
         job.cron
@@ -31,16 +32,18 @@ ActiveAdmin.register Job do
         job.scheduled_at
       end
     end
-    column :started_at
     column :finished_at
     column :status do |job|
       value = job.status
-      if value == 'WAITING'
-        status_tag value, :warning
-      elsif value =='FINISHED' || value =='RUNNING'
-        status_tag value, :ok
-      else
-        status_tag value, :error
+      case value
+        when nil
+          status_tag 'SCHEDULED', :disabled
+        when 'WAITING'
+          status_tag value, :warning
+        when 'FINISHED', 'RUNNING'
+          status_tag value, :ok
+        else
+          status_tag value || 'UNKNOWN', :error
       end
     end
     column :log do |job|
