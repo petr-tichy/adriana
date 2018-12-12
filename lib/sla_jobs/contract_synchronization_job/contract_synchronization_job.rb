@@ -27,7 +27,10 @@ module ContractSynchronizationJob
       @mode_pattern = @job_parameters.find { |x| x.key.casecmp('mode').zero? }.value.downcase
 
       resource = @job_parameters.find { |x| x.key.casecmp('resource').zero? }.value
-      username, password = CredentialsHelper.load_resource_credentials(resource) # Load credentials from passman
+      begin
+        username, password = CredentialsHelper.load_resource_credentials(resource) # Load credentials from passman
+        raise PassmanCredentialsError, "Couldn't obtain password from Passman for resource #{resource}." if password.to_s.empty?
+      end
       self.class.connect_to_gd(username, password, @settings_server)
 
       processes = self.class.get_all_user_processes

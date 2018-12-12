@@ -6,8 +6,6 @@ ActiveAdmin.register Job do
 
   form :partial => 'form'
 
-  config.clear_action_items!
-
   index do
     selectable_column
     column :detail do |job|
@@ -156,7 +154,7 @@ ActiveAdmin.register Job do
         job.job_parameters.each do |param|
           if param.key == 'mode'
             param.value = params['synchronization_job']['param_mode']
-          elsif param.key == 'mode'
+          elsif param.key == 'resource'
             param.value = params['synchronization_job']['param_resource']
           end
         end

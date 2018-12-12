@@ -1,0 +1,1 @@
+class PassmanCredentialsError < StandardError; end
