@@ -7,7 +7,6 @@ require 'activerecord-import'
 
 module SplunkSynchronizationJob
   class SplunkSynchronizationJob
-    JOB_TYPE = 'splunk_synchronization'.freeze
     attr_accessor :credentials, :splunk_downloader
 
     def initialize(credentials)

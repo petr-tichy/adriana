@@ -4,7 +4,6 @@ require_relative '../job_helper'
 
 module SalesforceSynchronizationJob
   class SalesforceSynchronizationJob
-    JOB_TYPE = 'salesforce_synchronization'.freeze
     SF_MONITORING_FIELD = 'Managed__c'.freeze
     SF_TOKEN_FIELD = 'Platform_Token__c'.freeze
 

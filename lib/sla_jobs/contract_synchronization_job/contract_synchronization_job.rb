@@ -5,7 +5,7 @@ require 'gooddata'
 
 module ContractSynchronizationJob
   class ContractSynchronizationJob
-    JOB_KEY = 'synchronize_contract'.freeze
+    JOB_KEY = :synchronize_contract
     REQUIRED_PARAMS = %w[mode resource].freeze
 
     attr_accessor :job_id, :credentials, :mode_pattern

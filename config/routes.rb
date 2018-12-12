@@ -14,8 +14,6 @@ ActiveAdminTest::Application.routes.draw do
 
   match '/admin/jobs/create_contract_sychnronization', to: 'admin/jobs#create', via: :post
   match '/admin/jobs/update_contract_sychnronization', to: 'admin/jobs#update', via: :put
-  match '/admin/jobs/create_direct_sychnronization', to: 'admin/jobs#create', via: :post
-  match '/admin/jobs/update_direct_sychnronization', to: 'admin/jobs#update', via: :put
 
   match '/admin/contracts/create', to: 'admin/contracts#create', via: :post
   match '/admin/contracts/error_show/:id', to: 'admin/contracts#error_show', via: :get

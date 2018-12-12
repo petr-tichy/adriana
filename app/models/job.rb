@@ -2,6 +2,9 @@ require_relative 'job_history'
 require 'parse-cron'
 
 class Job < ActiveRecord::Base
+  REGISTERED_JOBS = {
+    synchronize_contract: ContractSynchronizationJob::ContractSynchronizationJob
+  }.freeze
   self.table_name = 'job'
   has_many :job_parameters, autosave: true
   has_many :job_entities, autosave: true
@@ -21,6 +24,7 @@ class Job < ActiveRecord::Base
     now = DateTime.now.utc
     jobs_to_run = jobs.to_a.delete_if do |job|
       next true if job.scheduled_at.utc > DateTime.now.utc
+      next true unless REGISTERED_JOBS.include?(job.job_type.key.to_sym)
 
       job_history = job_histories.find { |jh| jh.job_id == job.id }
       last_run = !job_history.nil? ? job_history.started_at.utc : job.created_at.utc

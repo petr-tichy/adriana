@@ -18,24 +18,21 @@ class ScheduleHistory < ActiveRecord::Base
 
   def self.mass_add_change(schedules, key, value, user)
     date = DateTime.now
-    schedule_ids = schedules.map { |s| s.id }
+    schedule_ids = schedules.map(&:id)
     last_records = ScheduleHistory.where("schedule_id IN (?) and key = ? and ((valid_from IS NOT NULL AND valid_to IS NULL) OR (valid_from IS NULL and valid_to IS NULL))", schedule_ids, key)
-    list_of_schedules = last_records.map { |l| l.schedule_id }
+    list_of_schedules = last_records.map(&:schedule_id)
 
     schedules_without_record = schedule_ids - list_of_schedules
 
-    inserts = []
-    list_of_schedules.each do |s|
-      inserts.push "(#{s},'#{key}','#{value}','#{date.utc}', #{user.id})"
+    ActiveRecord::Base.transaction do
+      list_of_schedules.each do |s|
+        ScheduleHistory.create(:schedule_id => s, :key => key, :value => value, :valid_from => date, :valid_to => nil, :updated_by => user.id)
+      end
+      schedules_without_record.each do |s|
+        ScheduleHistory.create(:schedule_id => s, :key => key, :value => value, :valid_from => date, :valid_to => nil, :updated_by => user.id)
+      end
+      last_records.update_all(valid_to: date)
     end
-
-    schedules_without_record.each do |s|
-      inserts.push "(#{s},'#{key}','#{value}',NULL, #{user.id})"
-    end
-
-    sql = "INSERT INTO schedule_history (schedule_id, key, value, valid_from, updated_by) VALUES #{inserts.join(", ")}"
-    last_records.update_all(valid_to: date)
-    ActiveRecord::Base.connection.execute sql
   end
 
   def related_record

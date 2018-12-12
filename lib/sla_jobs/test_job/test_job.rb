@@ -8,7 +8,6 @@ require 'date'
 
 module TestJob
   class TestJob
-    JOB_TYPE = 'test'.freeze
     attr_accessor :credentials, :pd_entity, :pd_service
 
     def initialize(credentials, l2_pd_service, ms_pd_service)

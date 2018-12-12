@@ -7,23 +7,6 @@ ActiveAdmin.register Job do
   form :partial => 'form'
 
   config.clear_action_items!
-  action_item :create_sync_job, :only => :index do
-    link_to 'Create Synchronization Job', new_admin_job_path(type: 'synchronize_direct_schedules')
-  end
-
-  scope :all
-  scope :synchronization, :default => true do |jobs|
-    jobs.where("key  = 'synchronize_contract'")
-  end
-  scope :direct_synchronization do |jobs|
-    jobs.where("key = 'synchronize_direct_schedules'")
-  end
-  scope :restart do |jobs|
-    jobs.where("key = 'restart'")
-  end
-  scope :update_notification do |jobs|
-    jobs.where("key = 'update_notification'")
-  end
 
   index do
     selectable_column
@@ -82,25 +65,7 @@ ActiveAdmin.register Job do
         row :cron if job.recurrent
       end
     end
-    if job.job_type.key == 'restart'
-      panel('') do
-        table_for JobEntity.get_job_entities_schedule(params['id']) do
-          column(:project_name)
-          column(:graph_name)
-          column(:mode)
-          column(:status) do |job_entity|
-            value = job_entity.status
-            if value =='WAITING' || value =='RUNNING'
-              status_tag value, :warning
-            elsif value =='FINISHED' || value =='DONE'
-              status_tag value, :ok
-            else
-              status_tag value, :error
-            end
-          end
-        end
-      end
-    elsif job.job_type.key == 'synchronize_contract'
+    if job.job_type.key == 'synchronize_contract'
       panel('Contract') do
         attributes_table_for Contract.contract_by_job_id(params['id']) do
           row :name
@@ -167,10 +132,6 @@ ActiveAdmin.register Job do
           end
         end
         render 'synchronize_contract_job'
-      elsif @job.job_type.key == 'synchronize_direct_schedules'
-        @type = 'synchronize_direct_schedules'
-        @job.settings_server_id = temp_job.job_entities.first.r_settings_server
-        render 'synchronize_direct_job'
       end
     end
 
@@ -201,39 +162,12 @@ ActiveAdmin.register Job do
           job.save
         end
         redirect_to admin_job_path(params['job_id']), :notice => 'Job was updated!'
-      elsif params['synchronization_job']['key'] == 'synchronize_direct_schedules'
-        #Update JOB
-        date = "#{params['synchronization_job']['scheduled_at_date']}T#{params['synchronization_job']['scheduled_at_time_hour']}:#{params['synchronization_job']['scheduled_at_time_minute']}:00"
-        schedule_at = DateTime.strptime(date, '%Y-%m-%dT%H:%M:%S')
-        job.recurrent = params['synchronization_job']['recurrent']
-        job.scheduled_at = schedule_at
-        job.cron = params['synchronization_job']['cron']
-
-        #Update Job_entity
-        job.job_entities.first.r_settings_server = params['synchronization_job']['settings_server_id']
-        ActiveRecord::Base.transaction do
-          job.save
-        end
-        redirect_to admin_job_path(params['job_id']), :notice => 'Job was updated!'
       end
     end
 
 
     def new
-      if params['type'] == 'restart'
-        job_type = JobType.find_by_key(params['type'])
-        @job = Job.new(:job_type_id => job_type.id, :recurrent => false, :scheduled_at => DateTime.now)
-        @entities = []
-        selection_array = []
-        schedules = Schedule.with_project.non_deleted.find(params['selection'])
-        schedules.each do |s|
-          job_entity = {:type => 'Schedule', :project => s.project_name, :graph_name => s.graph_name, :mode => s.mode, :status => 'NEW'}
-          selection_array.push(s.id)
-          @entities.push(job_entity)
-        end
-        @selection = selection_array.join(',')
-        render 'restart_job'
-      elsif params['type'] == 'synchronize_contract'
+      if params['type'] == 'synchronize_contract'
         @edit = false
         job_type = JobType.find_by_key(params['type'])
         @job = SynchronizationJob.new(:job_type_id => job_type.id, :recurrent => 'false', :scheduled_at => DateTime.now)
@@ -246,13 +180,6 @@ ActiveAdmin.register Job do
         @parameters.push('name' => 'param_mode', 'setting' => {:as => :string, :label => 'Mode'})
         @parameters.push('name' => 'param_resource', 'setting' => {:as => :string, :label => 'Resource'})
         render 'synchronize_contract_job'
-      elsif params['type'] == 'synchronize_direct_schedules'
-        @edit = false
-        job_type = JobType.find_by_key(params['type'])
-        @job = DirectScheduleJob.new(:job_type_id => job_type.id, :recurrent => 'true', :scheduled_at => DateTime.now)
-        #@jobs = CustomJobSynchronization.new({:job_type_id => job_type.id,:recurrent => "false",:scheduled_at => DateTime.now})
-        #@jobs = OpenStruct.new(:job_type_id => job_type.id,:recurrent => false,:scheduled_at => DateTime.now)
-        render 'synchronize_direct_job'
       end
     end
 
@@ -270,7 +197,7 @@ ActiveAdmin.register Job do
           end
         end
         redirect_to admin_jobs_path, :notice => 'Job was create!'
-      elsif params.key?('synchronization_job') && params['synchronization_job']['key'] =='synchronize_contract'
+      elsif params.key?('synchronization_job') && params['synchronization_job']['key'] == 'synchronize_contract'
         # Parameters initialization
         date = "#{params['synchronization_job']['scheduled_at_date']}T#{params['synchronization_job']['scheduled_at_time_hour']}:#{params['synchronization_job']['scheduled_at_time_minute']}:00"
         schedule_at = DateTime.strptime(date, '%Y-%m-%dT%H:%M:%S')
@@ -295,22 +222,7 @@ ActiveAdmin.register Job do
             JobParameter.create(:job_id => job.id, :key => p[:key], :value => p[:value])
           end
         end
-        redirect_to admin_jobs_path, :notice => 'Job was create!'
-      elsif params.key?('direct_schedule_job') && params['direct_schedule_job']['key'] =='synchronize_direct_schedules'
-        # Parameters initialization
-        date = "#{params['direct_schedule_job']['scheduled_at_date']}T#{params['direct_schedule_job']['scheduled_at_time_hour']}:#{params['direct_schedule_job']['scheduled_at_time_minute']}:00"
-        schedule_at = DateTime.strptime(date, '%Y-%m-%dT%H:%M:%S')
-        contract = params['direct_schedule_job']['contract']
-        recurrent = params['direct_schedule_job']['recurrent']
-        job_type = JobType.find_by_key(params['direct_schedule_job']['key'])
-        cron = params['direct_schedule_job']['cron']
-        #DB Save
-        # scheduled_at - converting to UTC
-        ActiveRecord::Base.transaction do
-          job = Job.create(:job_type_id => job_type.id, :scheduled_by => current_active_admin_user.id, :recurrent => recurrent, :scheduled_at => schedule_at.utc, :cron => cron)
-          JobEntity.create(:job_id => job.id, :status => 'WAITING', :r_settings_server => params['direct_schedule_job']['settings_server_id'])
-        end
-        redirect_to admin_jobs_path, :notice => 'Job was created.'
+        redirect_to admin_jobs_path, :notice => 'Job was created!'
       end
     end
   end

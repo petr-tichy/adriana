@@ -35,10 +35,6 @@ ActiveAdmin.register Schedule do
     schedule.joins(:running_executions).where("running_executions.status = 'FINISHED'")
   end
 
-  batch_action :restart, :confirm => 'Do you want to restart selected schedules?' do |selection|
-    redirect_to new_admin_job_path(:type => 'restart', :selection => selection)
-  end
-
   batch_action :destroy, :confirm => 'Do you want to delete following schedules?' do |selection|
     schedule = params['collection_selection']
     schedule.each do |selection|
