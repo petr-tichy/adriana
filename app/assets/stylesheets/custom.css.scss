@@ -20,6 +20,7 @@ body.active_admin {
 }
 
 $muted-red-color: rgba(255, 0, 0, 0.5);
+$deleted-grey-color: rgba(52, 52, 52, 0.49);
 
 .row-highlight-muted td {
   background-color: $muted-red-color !important;
@@ -31,7 +32,7 @@ $muted-red-color: rgba(255, 0, 0, 0.5);
 
 table.index_table {
   tr.row-highlight-deleted td {
-    background-color: rgba(52, 52, 52, 0.49) !important;
+    background-color: $deleted-grey-color !important;
   }
 }
 
@@ -54,5 +55,10 @@ a.link_button {
   }
   span {
     color: red;
+  }
+}
+.panel-deleted {
+  h3 {
+    background-color: $deleted-grey-color;
   }
 }

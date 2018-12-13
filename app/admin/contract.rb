@@ -79,6 +79,13 @@ ActiveAdmin.register Contract do
 
 
   show do
+    if contract.is_deleted
+      panel('Contract is deleted', class: 'panel-deleted') do
+        span do
+          text_node 'This contract is deleted and thus not monitored.'
+        end
+      end
+    end
     if contract.muted?
       panel('Contract is muted', class: 'panel-muted') do
         span do

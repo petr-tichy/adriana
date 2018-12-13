@@ -126,6 +126,13 @@ ActiveAdmin.register Schedule do
 
 
   show :title => 'Schedule' do
+    if schedule.is_deleted
+      panel('Schedule is deleted', class: 'panel-deleted') do
+        span do
+          text_node 'This schedule is deleted and thus not monitored.'
+        end
+      end
+    end
     if schedule.muted?
       panel('Schedule is muted', class: 'panel-muted') do
         span do

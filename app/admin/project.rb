@@ -58,6 +58,13 @@ ActiveAdmin.register Project do
   end
 
   show do |at|
+    if project.is_deleted
+      panel('Project is deleted', class: 'panel-deleted') do
+        span do
+          text_node 'This project is deleted and thus not monitored.'
+        end
+      end
+    end
     if project.muted?
       panel('Project is muted', class: 'panel-muted') do
         span do
