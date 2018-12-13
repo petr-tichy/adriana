@@ -7,8 +7,9 @@ ActiveAdmin.register Contract do
   filter :is_deleted, as: :check_boxes
 
   scope :all, :default => true
-  scope :not_muted
-  scope :muted
+  scope :not_muted, :group => :muting
+  scope :muted, :group => :muting
+  scope :with_monitoring_job, :group => :job
 
   index(row_class: lambda do |c|
     x = []

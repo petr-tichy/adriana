@@ -25,10 +25,7 @@ task post_migration: [:environment] do |task|
   $log.info '--- Filling schedule name and process_name for older schedules'
   # Fill Schedule name and process_name for older Schedules
   CredentialsHelper.connect_to_passman(*%w[address port key].map { |x| CredentialsHelper.get("passman_#{x}") })
-  contracts_resources = Contract
-                          .joins('INNER JOIN job_entity ON job_entity.r_contract = contract.id')
-                          .joins('INNER JOIN job on job.id = job_entity.job_id')
-                          .joins('INNER JOIN job_parameter ON job_parameter.job_id = job.id')
+  contracts_resources = Contract.with_monitoring_job
                           .joins('INNER JOIN settings_server ON settings_server.id = job_entity.r_settings_server')
                           .where('job_parameter.key = \'resource\'')
                           .where('(job_parameter.value = \'\') IS FALSE')

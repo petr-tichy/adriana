@@ -23,6 +23,13 @@ class Contract < ActiveRecord::Base
     joins(:projects).where(project: {is_deleted: false}).uniq
   }
 
+  scope :with_monitoring_job, lambda {
+    joins('INNER JOIN job_entity ON job_entity.r_contract = contract.id')
+      .joins('INNER JOIN job on job.id = job_entity.job_id')
+      .joins('INNER JOIN job_parameter ON job_parameter.job_id = job.id')
+      .uniq
+  }
+
   # This is for obtaining Contracts with both ACTIVE and INACTIVE mutes
   scope :with_direct_mutes, lambda {
     joins(:mutes)
