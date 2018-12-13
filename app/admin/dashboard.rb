@@ -9,13 +9,16 @@ def history_records(for_current_user: false)
 end
 
 def mutes
-  @mutes = Mute.order(created_at: :desc).limit(15)
+  @mutes = Mute.order(created_at: :desc).limit(10)
 end
 
 ActiveAdmin.register_page 'Dashboard' do
   menu :priority => 1, :label => proc{ I18n.t('active_admin.dashboard') }
 
   content :title => proc{ I18n.t('active_admin.dashboard') } do
+    panel 'PagerDuty incidents by day' do
+      render 'admin/dashboard/notification_chart', context: self
+    end
 
     panel 'Mutes' do
       table_for mutes do

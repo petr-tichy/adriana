@@ -1,0 +1,2 @@
+<%= line_chart NotificationLog.where('created_at > ?', 1.month.ago).group_by_day(:created_at).count, height: '150px', colors: ['red'] %>
+

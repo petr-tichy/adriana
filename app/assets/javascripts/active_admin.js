@@ -4,6 +4,8 @@
 //= require rails.validations.formtastic.new
 //= require select2
 //= require active_admin/select2
+//= require Chart.bundle
+//= require chartkick
 
 $(document).ready(function() {
     $('.tagselect').each(function() {
