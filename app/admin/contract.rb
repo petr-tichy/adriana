@@ -124,7 +124,7 @@ ActiveAdmin.register Contract do
       end
     end
     panel('History') do
-      table_for ContractHistory.where('contract_id = ?', params['id']).order('id DESC').limit(10) do
+      table_for ContractHistory.where('contract_id = ?', params['id']).order('id DESC') do
         column(:key)
         column(:value)
         column(:updated_by) do |c|
@@ -179,7 +179,8 @@ ActiveAdmin.register Contract do
       schedules = Schedule.joins(:project).joins(:contract).where(contract: {id: params['contract']['id']})
       ActiveRecord::Base.transaction do
         schedules.update_all(max_number_of_errors: params['contract']['max_number_of_errors'])
-        ScheduleHistory.mass_add_change(schedules, 'max_number_of_errors', params['contract']['max_number_of_errors'], current_active_admin_user)
+        ContractHistory.add_change(params['contract']['id'], 'max_number_of_errors_for_schedules', params['contract']['max_number_of_errors'], current_active_admin_user)
+        ScheduleHistory.mass_add_change(schedules, 'max_number_of_errors', params['contract']['max_number_of_errors'], current_active_admin_user, is_indirect: true)
       end
       redirect_to admin_contract_path(params['contract']['id']), :notice => 'Max number of errors was updated.'
     end

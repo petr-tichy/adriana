@@ -115,9 +115,9 @@ class Schedule < ActiveRecord::Base
     Schedule.joins(:project).joins(:contract).where(contract: {contract_type: 'direct'}, project: {is_deleted: false}, schedule: {is_deleted: false})
   end
 
-  def self.mark_deleted(id, user, flag: true)
+  def self.mark_deleted(id, user, flag: true, is_indirect: false)
     schedule = Schedule.find(id)
-    ScheduleHistory.add_change(schedule.id, 'is_deleted', flag.to_s, user)
+    ScheduleHistory.add_change(schedule.id, 'is_deleted', flag.to_s, user, is_indirect: is_indirect)
     schedule.is_deleted = flag
     schedule.updated_by = user.id
     schedule.save

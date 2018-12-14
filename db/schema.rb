@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181127134909) do
+ActiveRecord::Schema.define(version: 20181214121025) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -90,8 +90,9 @@ ActiveRecord::Schema.define(version: 20181127134909) do
     t.datetime "valid_to"
     t.text     "updated_by"
     t.text     "key"
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.datetime "created_at",                              null: false
+    t.datetime "updated_at",                              null: false
+    t.boolean  "is_indirect",             default: false
   end
 
   create_table "customer", force: :cascade do |t|
@@ -111,8 +112,9 @@ ActiveRecord::Schema.define(version: 20181127134909) do
     t.datetime "valid_to"
     t.text     "updated_by"
     t.text     "key"
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.datetime "created_at",                              null: false
+    t.datetime "updated_at",                              null: false
+    t.boolean  "is_indirect",             default: false
   end
 
   create_table "dump_log", force: :cascade do |t|
@@ -152,18 +154,17 @@ ActiveRecord::Schema.define(version: 20181127134909) do
   end
 
   create_table "execution_log", force: :cascade do |t|
-    t.datetime "event_start",                                       null: false
-    t.string   "status",                limit: 32
-    t.string   "detailed_status",       limit: 256
-    t.string   "updated_by",            limit: 255
+    t.datetime "event_start",                 null: false
+    t.string   "status",          limit: 32
+    t.string   "detailed_status", limit: 256
+    t.string   "updated_by",      limit: 255
     t.datetime "updated_at"
     t.integer  "r_schedule"
     t.datetime "event_end"
     t.integer  "sla_event_start"
-    t.string   "request_id",            limit: 100
-    t.string   "pd_event_id",           limit: 255
+    t.string   "request_id",      limit: 100
+    t.string   "pd_event_id",     limit: 255
     t.text     "error_text"
-    t.boolean  "matches_error_filters",             default: false
     t.index ["event_start"], name: "idx_execution_log5", using: :btree
     t.index ["id", "r_schedule"], name: "idx_execution_r_schedule", using: :btree
     t.index ["request_id"], name: "idx_request_id", using: :btree
@@ -311,8 +312,9 @@ ActiveRecord::Schema.define(version: 20181127134909) do
     t.datetime "valid_to"
     t.text     "updated_by"
     t.text     "key"
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.datetime "created_at",                              null: false
+    t.datetime "updated_at",                              null: false
+    t.boolean  "is_indirect",             default: false
   end
 
   create_table "project_history_old", force: :cascade do |t|
@@ -361,8 +363,9 @@ ActiveRecord::Schema.define(version: 20181127134909) do
     t.datetime "valid_from"
     t.datetime "valid_to"
     t.string   "updated_by",  limit: 255
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.datetime "created_at",                              null: false
+    t.datetime "updated_at",                              null: false
+    t.boolean  "is_indirect",             default: false
   end
 
   create_table "schedule_history_old", force: :cascade do |t|

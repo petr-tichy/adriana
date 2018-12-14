@@ -24,7 +24,7 @@ class Customer < ActiveRecord::Base
 
     contracts = Contract.where('contract.customer_id = ?', customer.id)
     contracts.each do |c|
-      Contract.mark_deleted(c.id, user, flag: flag)
+      Contract.mark_deleted(c.id, user, flag: flag, is_indirect: true)
     end
   end
 end

@@ -93,16 +93,16 @@ class Project < ActiveRecord::Base
   end
 
   # Added chaining of deletion to schedules
-  def self.mark_deleted(id, user, flag: true)
+  def self.mark_deleted(id, user, flag: true, is_indirect: false)
     project = Project.find(id)
-    ProjectHistory.add_change(project.project_pid, 'is_deleted', flag.to_s, user)
+    ProjectHistory.add_change(project.project_pid, 'is_deleted', flag.to_s, user, is_indirect: is_indirect)
     project.is_deleted = flag
     project.updated_by = user.id
     project.save
 
     schedules = Schedule.where('schedule.r_project = ?', project.project_pid)
     schedules.each do |schedule|
-      Schedule.mark_deleted(schedule.id, user, flag: flag)
+      Schedule.mark_deleted(schedule.id, user, flag: flag, is_indirect: true)
     end
   end
 
