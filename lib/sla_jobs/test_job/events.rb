@@ -1,121 +1,77 @@
 require 'pony'
 
+# This job takes collected events from ran tests and sends alerts to PagerDuty according to rules in #should_alert_pd?
 module TestJob
   class Events
     def initialize(events, pd_service, pd_entity)
-      load_data_from_database
+      load_data_from_db
       @events = events
       @pd_service = pd_service
       @pd_entity = pd_entity
-    end
-
-    def find_event_index(event)
-      @events.index { |e| e.key.type == event.key.type && e.key.value.to_s == event.key.value.to_s && e.event_type == event.event_type }
-    end
-
-    def find_events_by_type(type)
-      @events.find_all { |e| e.event_type == type }
     end
 
     def pd_service(test = false)
       @pd_service[test ? :l2 : :ms]
     end
 
-    # TODO: could use some refactoring
     def save
-      # Here we are saving the data about notifications to DB and creating PD event
-      # There are several sections of code here
-      # Section 1 is for events with schedule_id (error_test,finished_test)
-      # We are distigusining here if the event is from ERROR_TEST or from somewhere else
-      # For ERROR_TEST we are doing grouping of events by contract. Error will be grouped by CONTRACT.
-      # The ERROR will be save to DB normally, byt only one PD event is created in Pagerduty
-      # The section 2 is for events without schedule_id.
-      # The Errors for this section are created normally.
+      # 1) Create contract grouping - per contract ID, add all corresponding schedules from collected events
+      contract_events_grouping = create_contract_grouping
 
-      # Create contract grouping - per contract ID, add all corresponding schedules from events
-      contract_grouping = {}
-      @events.each do |e|
-        next if e.schedule_id.nil?
-        s = @schedules.find { |s| s.id == e.schedule_id }
-        schedules_list = []
-        if !contract_grouping.key?(s.contract.id)
-          contract_grouping[s.contract.id] = schedules_list
-        else
-          schedules_list = contract_grouping[s.contract.id]
-        end
-        schedules_list << {:schedule => s, :event => e}
-      end
+      # 2) Handle events that have a schedule (with contract grouping)
+      # For ERROR_TEST events, one PD alert PER CONTRACT is sent with all the messages collected,
+      #   but for each schedule-event pair, a NotificationLog record is created/updated
+      # For events other than ERROR_TEST, PD alert is sent for each one (that has the :trigger_pd_event flag set - severity must be >2 etc),
+      contract_events_grouping.each_value do |events|
+        # Reject muted schedules, this also checks on project and contract
+        events = events.reject { |e| e[:schedule].muted? }
 
-      # Handle events that have a schedule (with contract grouping)
-      contract_grouping.each_value do |events|
-        messages = []
-        subject = ''
-        events.each do |value|
-          next if value[:schedule].muted?
-          # Compose message
-          subject = "#{value[:schedule].contract.name} - ERROR_TEST"
-          message = compose_message(value)
-          value[:message] = message
-          value[:pd_event] = false
+        # Collect error messages from all events per contract and set flag :trigger_pd_event if an event should be sent
+        common_subject = fill_messages_for_events(events)
+        flag_pd_triggers_for_events(events)
 
-          # Include message according to rules
-          event_notification_id = value[:event].notification_id
-          value[:old_event] = NotificationLog.find_by_id(event_notification_id) unless event_notification_id.nil?
-          if value[:event].severity > Severity.MEDIUM && (event_notification_id.nil? || (!event_notification_id.nil? && value[:event].severity > value[:old_event].severity))
-            messages << message if value[:event].key.type == 'ERROR_TEST'
-            value[:pd_event] = true
-          end
-        end
+        # Create PD alert for ERROR_TEST events - one per contract
+        common_messages = events.select { |e| e[:event].key.type == 'ERROR_TEST' && e[:trigger_pd_event] }.map { |e| e[:message] }
+        pd_event_id = common_messages.any? ? create_pd_events_by_group(common_subject, common_messages) : nil
 
-        # Create PD event - one per contract
-        pd_event = nil
-        if messages.any?
-          pd_service_id = pd_service(messages.all? { |x| x.key?('console_link') })
-          3.times do
-            pd_event = create_pd_event(pd_service_id, subject, messages)
-            break unless pd_event.nil?
-            sleep 3
-          end
-          if pd_event.nil?
-            pd_event = create_pd_event(pd_service, subject, "ERROR TEST event not accepted by PagerDuty. First message: #{messages[0]}")
-          end
-          pd_event_id = pd_event['incident_key']
-        end
-
-        # Create notifications for ERROR_TEST events
+        # Create notification logs for ERROR_TEST events
         error_test_events = events.find_all { |e| e[:event].key.type == 'ERROR_TEST' }
         error_test_events.each do |value|
           if value[:event].notification_id.nil?
-            value[:event].pd_event_id = pd_event_id if value[:pd_event]
-            NotificationLog.create!(value[:event].to_db_entity(subject, value[:message].to_s))
+            value[:event].pd_event_id = pd_event_id if value[:trigger_pd_event]
+            NotificationLog.create!(value[:event].to_db_entity(common_subject, value[:message].to_s))
           else
-            value[:old_event].update(value[:event].to_db_entity(subject, value[:message].to_s))
+            value[:old_event].update(value[:event].to_db_entity(common_subject, value[:message].to_s))
           end
         end
 
-        # Create notifications and PD incident for events other than ERROR_TEST
+        # Create notification logs and PD alert for events other than ERROR_TEST
         non_error_test_events = events.find_all { |e| e[:event].key.type != 'ERROR_TEST' }
         non_error_test_events.each do |value|
           message = value[:message]
           subject = "#{value[:schedule].contract.name} - #{value[:event].key.type}"
-          if value[:pd_event]
+          if value[:trigger_pd_event]
             pd_service_id = pd_service(value[:schedule].settings_server.server_type == 'cloudconnect')
             pd_event = create_pd_event(pd_service_id, subject, message)
             value[:event].pd_event_id = pd_event['incident_key']
           end
           event_db_entity = value[:event].to_db_entity(subject, message.to_s)
-          value[:event].notification_id.nil? ? NotificationLog.create!(event_db_entity) : value[:old_event].update(event_db_entity)
+          if value[:event].notification_id.nil?
+            NotificationLog.create!(event_db_entity)
+          else
+            value[:old_event].update(event_db_entity)
+          end
         end
       end
 
-      # Handle events that don't have a schedule
+      # 3) Handle events that don't have a schedule
       @events.find_all { |e| e.schedule_id.nil? }.each do |e|
         subject = "#{e.key.value} - #{e.key.type}"
         message = {'text' => e.text}
 
         event_notification_id = e.notification_id
         notification_log = NotificationLog.find_by_id(event_notification_id) unless event_notification_id.nil?
-        if e.severity > Severity.MEDIUM && (event_notification_id.nil? || (!event_notification_id.nil? && e.severity > notification_log.severity))
+        if should_alert_pd?(e, notification_log, event_notification_id)
           pd_event = create_pd_event(pd_service, subject, message)
           e.pd_event_id = pd_event['incident_key']
         end
@@ -124,6 +80,65 @@ module TestJob
       end
     end
 
+    def create_pd_event(pd_service, subject, message)
+      @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, message)
+    end
+
+    # Group events with schedules by contract, add references to schedules
+    def create_contract_grouping
+      contract_grouping = {}
+      @events.reject { |e| e.schedule_id.nil? }.each do |event|
+        schedule = @schedules.find { |sch| sch.id == event.schedule_id }
+        schedules_list = []
+        if contract_grouping.key?(schedule.contract.id)
+          schedules_list = contract_grouping[schedule.contract.id]
+        else
+          contract_grouping[schedule.contract.id] = schedules_list
+        end
+        schedules_list << {:schedule => schedule, :event => event}
+      end
+      contract_grouping
+    end
+
+    def create_pd_events_by_group(subject, messages)
+      pd_service_id = pd_service(messages.all? { |x| x.key?('console_link') })
+      pd_event = nil
+      3.times do
+        pd_event = create_pd_event(pd_service_id, subject, messages)
+        break unless pd_event.nil?
+        sleep 3
+      end
+      if pd_event.nil?
+        pd_event = create_pd_event(pd_service, subject, "ERROR TEST event not accepted by PagerDuty. First message: #{messages[0]}")
+      end
+      pd_event['incident_key'].tap { |x| raise 'No PD incident_key returned even after custom error message.' if x.nil? }
+    rescue StandardError => e
+      raise "Unable to create PD alert. Subject: #{subject}, Messages: #{messages}, Error: #{e.message}"
+    end
+
+    # @return [String] Common subject for a group of events
+    def fill_messages_for_events(events)
+      common_subject = nil
+      events.each do |event|
+        common_subject ||= "#{event[:schedule].contract.name} - ERROR_TEST"
+        event[:message] = compose_message(event)
+      end
+      common_subject || ''
+    end
+
+    def flag_pd_triggers_for_events(events)
+      events.each do |value|
+        event_notification_id = value[:event].notification_id
+        value[:old_event] = NotificationLog.find_by_id(event_notification_id) unless event_notification_id.nil?
+        value[:trigger_pd_event] = should_alert_pd?(value[:event], value[:old_event], event_notification_id)
+      end
+    end
+
+    def should_alert_pd?(event, old_event, event_notification_id)
+      event.severity > Severity.MEDIUM && (event_notification_id.nil? || (!event_notification_id.nil? && event.severity > old_event.severity))
+    end
+
+    # This is the message that gets sent to PagerDuty as description
     def compose_message(event_value)
       value = event_value
       message = {'event_type' => value[:event].key.type,
@@ -138,36 +153,10 @@ module TestJob
       message
     end
 
-    def create_pd_event(pd_service, subject, message)
-      @pd_entity.Incident.create(pd_service, subject, nil, nil, nil, message)
-    end
-
-    def mail_incident
-      body = ''
-      @events.each do |e|
-        pp e
-        next unless e.severity > Severity.MEDIUM && e.notified == false
-        #stage_schedule = @schedule_in_stage.find{|s| s.r_project == e.key.project_pid and s.graph_name = e.graph and s.mode == e.mode}
-        schedule = @schedules.find { |s| s.id.to_s == e.key.value.to_s && e.key.type == 'SCHEDULE' }
-        e.notified = true
-        body << "---------------------------------------- \n"
-        body << "Project Pid: #{schedule.project.project_pid} Project Name: #{schedule.project.name} Server: #{schedule.settings_server.name} \n"
-        body << "Graph: #{schedule.graph_name} Mode: #{schedule.mode} \n"
-        body << e.to_s
-        body << "---------------------------------------- \n"
-      end
-      unless body.empty?
-        Pony.mail(:to => 'clover@gooddata.pagerduty.com', :from => 'sla@gooddata.com', :subject => 'SLA Monitor - PagerDuty incident', :body => body)
-      end
-    end
-
     private
 
-    def load_data_from_database
-      # project_category_id = SLAWatcher::Settings.load_project_category_id.first.value
-      # task_category_id = SLAWatcher::Settings.load_schedule_category_id.first.value
+    def load_data_from_db
       @schedules = Schedule.joins(:project).joins(:settings_server).joins(:contract).joins(:customer)
-      #@schedules = SLAWatcher::Schedule.includes(:project,:contract,:settings_server).joins(:contract).includes(:settings_server)
     end
   end
 end

@@ -14,11 +14,10 @@ module TestJob
       @new_events = []
     end
 
-    # TODO could use some refactoring
     def start
       $log.info "Starting the #{EVENT_TYPE} test"
       load_data
-      # Check if all live schedules were started event once
+      # Check if all live schedules were started at least once
       # Severity - MEDIUM
       @live_schedules.each do |live_schedule|
         execution = @execution_log.find { |e| e.r_schedule == live_schedule.id }
@@ -28,7 +27,7 @@ module TestJob
         end
       end
 
-      # Check if all events were started regarding cron expression
+      # Check if all schedules were started according to their cron expression
       # Severity - HIGH
       @execution_log.each do |execution|
         schedule = @live_schedules.find { |s| s.id == execution.r_schedule }
@@ -46,7 +45,7 @@ module TestJob
             next_run = JobHelper.next_run(schedule.cron, execution.event_end.utc, 'UTC')
             running_late_for = ((next_run - now_utc) / 1.minute) * (-1)
           end
-          # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
+          # This was added to remove the false alerts in recurrent events (when project is running longer and next run is not executed because of last run)
           if running_execution.nil? && running_late_for > 25 && running_late_for < 60
             $log.info("Type: MEDIUM The UTC time is: #{now_utc}, schedule ID is: #{schedule.id}, running_late: #{running_late_for}, cron: #{schedule.cron} execution: #{execution.event_start} #{execution.event_start.utc}, next_run: #{next_run}")
             if notification_log.nil?
@@ -66,7 +65,7 @@ module TestJob
           # Legacy Clover nodes have CRON running in CET Timezone
           next_run = JobHelper.next_run(schedule.cron, execution.event_start.localtime, 'CET')
           running_late_for = ((next_run - Time.now) / 1.minute) * (-1)
-          # This was added to remove the false alerts in recurent events (when project is running longer and next run is not executed because of last run)
+          # This was added to remove the false alerts in recurrent events (when project is running longer and next run is not executed because of last run)
           if running_execution.nil? && running_late_for > 25 && running_late_for < 60
             if notification_log.nil?
               @new_events << CustomEvent.new(Key.new(schedule.id, EVENT_TYPE), Severity.MEDIUM, "Schedule not started - should start: #{next_run}", @now, nil, schedule.id)

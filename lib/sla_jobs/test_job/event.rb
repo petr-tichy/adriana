@@ -19,14 +19,15 @@ module TestJob
     end
 
     def to_db_entity(subject, message)
-      {
+      entity = {
         :key => @key.value,
         :notification_type => @key.type,
-        :pd_event_id => @pd_event_id,
         :severity => @severity,
         :subject => subject,
         :message => message
       }
+      entity[:pd_event_id] = @pd_event_id unless @pd_event_id.to_s.empty?
+      entity
     end
   end
 end
