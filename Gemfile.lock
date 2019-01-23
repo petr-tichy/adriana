@@ -15,14 +15,6 @@ GIT
       httparty
 
 GIT
-  remote: https://github.com/cbrito/splunk-client
-  revision: 9b7cb1b40a19a5c1a930978be6a636ff7858c108
-  ref: 9b7cb1b
-  specs:
-    splunk-client (0.10.0)
-      nokogiri
-
-GIT
   remote: https://github.com/gphat/pagerduty-full.git
   revision: fb889ac97c07011e214031fa7447714a2dbc4704
   specs:
@@ -373,7 +365,6 @@ DEPENDENCIES
   restforce (~> 2.5)
   sass-rails (~> 5.0)
   select2-rails (~> 4.0)
-  splunk-client!
   therubyracer (~> 0.12)
   tzinfo (~> 1.2)
   uglifier (~> 4.1)

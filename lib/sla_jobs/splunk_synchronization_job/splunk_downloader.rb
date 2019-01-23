@@ -1,4 +1,4 @@
-require 'splunk-client'
+require_relative 'splunk_client'
 require 'benchmark'
 
 module SplunkSynchronizationJob
@@ -14,9 +14,10 @@ module SplunkSynchronizationJob
     def execute_query(query)
       # Create the Search
       search = @splunk.search(query)
-      $log.info("splunk query: #{query}")
+      #$log.info("Splunk query: #{query[0..256]}...")
       sleep(1)
-      search.wait # Blocks until the search returns
+      $log.info 'Waiting for Splunk results to be ready'
+      search.poll_for_results
       search
     end
 
@@ -35,49 +36,67 @@ module SplunkSynchronizationJob
                       end
                   end
       return nil unless log_query
-      log_results = execute_query(log_query).parsedResults.map { |r| r.respond_to?('log') ? r.log : nil }.compact
-      if log_results && log_results.any?
-        longest = log_results.max_by(&:length)
-        longest.sub(/(Parsing error).*/mi, "\\1...")
-      else
-        nil
-      end
+      log_results = execute_query(log_query).parsed_results.map { |r| r.respond_to?('log') ? r.log : nil }.compact
+      return nil unless log_results&.any?
+      # Take all log results and select the longest one - that is probably where the error message from execution log is located
+      longest = log_results.max_by(&:length)
+      longest.sub(/(Parsing error).*/mi, "\\1...")
     end
 
     def load_runs(from, to, projects)
-      project_strings = []
-      $log.info 'Query initialization'
-      $log.info(Benchmark.measure do
-        0.step(projects.length - 1, ONE_QUERY_LIMIT) do |i|
-          project_strings.push(projects[i, ONE_QUERY_LIMIT].map { |p| "project_id=#{p.project_pid}" })
-        end
-      end)
+      project_strings = prepare_projects_query(projects)
 
       values = []
       project_strings.each do |temp|
         query = last_runs_query.sub('%PIDS%', temp.join(' OR '))
-        query = query.sub('%START_TIME%', from.strftime(time_format))
-        query = query.sub('%END_TIME%', to.strftime(time_format))
-        result = nil
-        $log.info 'Query execution'
-        $log.info(Benchmark.measure do
-          result = execute_query(query)
-        end)
-        $log.info 'Related queries, query parsing'
-        $log.info(Benchmark.measure do
-          result.parsedResults.each do |p|
-            error_text = find_error_log(p, from)
-            matches_error_filters = matches_error_filters?(p, from)
-            values.push(execution_hash(p, from, error_text, matches_error_filters))
-          end
-        end)
+        with_time_range(from, to) do |start_time, end_time|
+          query = query.sub('%START_TIME%', start_time.strftime(time_format)).sub('%END_TIME%', end_time.strftime(time_format))
+          result = nil
+          $log.info "Running main Splunk query from #{start_time.strftime(time_format)} to #{end_time.strftime(time_format)}, #{(temp * ', ')[0..256]}..."
+          $log.info("Duration: #{Benchmark.realtime do
+            result = execute_query(query)
+          end} s")
+          $log.info 'Running related Splunk queries and parsing the events'
+          $log.info("Duration: #{Benchmark.realtime do
+            result&.parsed_results&.each do |p|
+              error_text = find_error_log(p, start_time)
+              matches_error_filters = matches_error_filters?(p, start_time)
+              values.push(execution_hash(p, start_time, error_text, matches_error_filters))
+              values.push(execution_hash(p, start_time, '', false))
+            end
+          end} s")
+        end
       end
       output = nil
       $log.info 'Query sorting'
-      $log.info(Benchmark.measure do
+      $log.info("Duration: #{Benchmark.realtime do
         output = values.sort_by { |a| a[:time] }
-      end)
+      end} s")
       output
+    end
+
+    def prepare_projects_query(projects)
+      project_strings = []
+      $log.info 'Query initialization'
+      0.step(projects.length - 1, ONE_QUERY_LIMIT) do |i|
+        project_strings.push(projects[i, ONE_QUERY_LIMIT].map { |p| "project_id=#{p.project_pid}" })
+      end
+      project_strings
+    end
+
+    # Splits datetime interval [from, to] to smaller chunks
+    # Helpful in case of Splunk outages, when we need to download longer periods than 8h without timing out
+    def with_time_range(from, to, &block)
+      duration = to - from
+      if duration > 8.hours
+        ranges = (from.to_i..to.to_i).step(8.hours.to_i).to_a.map { |x| Time.at(x) }
+        ranges << to
+        ranges.zip(ranges.rotate)[0...-1].each do |start_time, end_time|
+          block.call(start_time, end_time)
+        end
+      else
+        block.call(from, to)
+      end
     end
 
     # Check if Splunk returns any results for queries containing special filtering errors
@@ -86,10 +105,10 @@ module SplunkSynchronizationJob
       errors_to_match = self.errors_to_match
       return false if errors_to_match.nil? || errors_to_match.empty?
       query = error_filter_query(parsed_event, from, errors_to_match)
-      results = execute_query(query).parsedResults
+      results = execute_query(query).parsed_results
       return false unless results.respond_to?(:first) && results.first.respond_to?(:total)
       total = results.first.total
-      Integer(total) > 0 rescue false
+      Integer(total).positive? rescue false
     end
 
     def execution_hash(search_result, from, error_text = nil, matches_error_filters = nil)
@@ -157,11 +176,5 @@ module SplunkSynchronizationJob
       EOS
       str.sub('%ERRS%', "\"#{errors_to_match.join('" OR "')}\"")
     end
-  end
-end
-
-# Fix missing constant when timeout happens
-class SplunkJob
-  class SplunkWaitTimeout < Exception
   end
 end

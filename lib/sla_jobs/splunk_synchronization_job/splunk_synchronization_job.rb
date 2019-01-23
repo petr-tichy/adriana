@@ -4,6 +4,7 @@ require 'date'
 require_relative 'splunk_downloader'
 require_relative 'helper'
 require 'activerecord-import'
+require_relative '../../credentials_helper'
 
 module SplunkSynchronizationJob
   class SplunkSynchronizationJob
@@ -15,11 +16,15 @@ module SplunkSynchronizationJob
 
     def connect
       self.class.connect_to_db
-      #TODO credentials validation
-      self.class.connect_to_passman(@credentials[:passman][:address], @credentials[:passman][:port], @credentials[:passman][:key])
+      CredentialsHelper.connect_to_passman(@credentials[:passman][:address], @credentials[:passman][:port], @credentials[:passman][:key])
+
       username = @credentials[:splunk][:username].split('|').last
       # Obtain password for Splunk from PasswordManager
-      password = PasswordManagerApi::Password.get_password_by_name(@credentials[:splunk][:username].split('|').first, username)
+      begin
+        password = PasswordManagerApi::Password.get_password_by_name(@credentials[:splunk][:username].split('|').first, username)
+      rescue NoMethodError
+        raise PassmanCredentialsError, 'Couldn\'t obtain password from Passman'
+      end
       @splunk_downloader = SplunkDownloader.new(username, password, @credentials[:splunk][:hostname])
       @splunk_downloader.errors_to_match = ErrorFilter.active.map(&:message)
     end
@@ -32,13 +37,12 @@ module SplunkSynchronizationJob
     def load_runs_from_splunk
       # Load the last time when the synchronization was executed
       last_run = load_last_run
-      now = DateTime.now
+      now = Time.current
       # Load all CC projects that need to be monitored
       projects = Project.load_projects
 
       # Returns all events for given set of projects in given time frame
       events = @splunk_downloader.load_runs(last_run - 4.hours, now, projects)
-
       starts = events.find_all { |e| e[:status] == 'STARTED' }
       errors_finished = events.find_all { |e| e[:status] != 'STARTED' }
 

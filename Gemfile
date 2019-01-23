@@ -34,7 +34,6 @@ gem 'passwordmanager', :git => 'https://github.com/adriantoman/PasswordManagerAP
 gem 'pony', '~> 1.12'
 gem 'rest-client', '~> 2.0'
 gem 'restforce', '~> 2.5'
-gem 'splunk-client', git: 'https://github.com/cbrito/splunk-client', ref: '9b7cb1b'
 gem 'tzinfo', '~> 1.2'
 gem 'whedon', '~> 0.0'
 
