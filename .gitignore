@@ -1,3 +1,6 @@
-gems/
-vendor/
-config/
+log/
+public/assets/
+tmp/
+config/database.yml
+config/secrets.yml
+config/config.json

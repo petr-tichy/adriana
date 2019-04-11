@@ -1,0 +1,12 @@
+<%= semantic_form_for @contract,:url => admin_contract_error_modification_path(:id => @contract.id) do |a| %>
+
+    <%= a.inputs "Update max number of error for all contract schedules " do %>
+        <%= a.input :name, :input_html => { :disabled => true} %>
+        <%= a.input :max_number_of_errors %>
+        <%= a.input :id, :as => :hidden %>
+    <% end %>
+    <%= a.actions do %>
+        <%= a.action :submit %>
+    <% end %>
+
+<% end %>

@@ -1,0 +1,64 @@
+body.active_admin {
+  main {
+    width: 100%;
+
+    parts {
+      width: 33%;
+
+      red_number_big {
+        color: #ff0000;
+        font-size: 50px;
+      }
+      black_number_big {
+        color: #000000;
+        font-size: 50px;
+      }
+
+    }
+
+  }
+}
+
+$muted-red-color: rgba(255, 0, 0, 0.5);
+$deleted-grey-color: rgba(52, 52, 52, 0.49);
+
+.row-highlight-muted td {
+  background-color: $muted-red-color !important;
+}
+
+.row-highlight-active {
+  background-color: rgba(255, 16, 23, 0.37);
+}
+
+table.index_table {
+  tr.row-highlight-deleted td {
+    background-color: $deleted-grey-color !important;
+  }
+}
+
+a.link_button {
+  background: #5ea3d3;
+  color: #fff;
+  letter-spacing: 0.15em;
+  padding: 3px 5px 2px 5px;
+  font-size: 0.9em;
+  text-decoration: none;
+  border-radius: 2px;
+  &:hover {
+    background: #6bbcf2;
+  }
+}
+
+.panel-muted {
+  h3 {
+    background-color: $muted-red-color;
+  }
+  span {
+    color: red;
+  }
+}
+.panel-deleted {
+  h3 {
+    background-color: $deleted-grey-color;
+  }
+}

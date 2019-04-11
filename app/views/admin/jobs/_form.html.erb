@@ -1,0 +1,53 @@
+<%= semantic_form_for [:admin,@job] do |a| %>
+
+    <%= a.inputs "Jobs" do %>
+        <%= a.input :job_type, :input_html => { :disabled => true } %>
+        <%= a.input :scheduled_at, :as => :just_datetime_picker  %>
+        <%= a.input :key,  :as => :hidden, :input_html => { :value => params["type"] } %>
+        <%= a.input :selection, :as => :hidden, :input_html => { :value => params["selection"].to_s } %>
+    <% end %>
+
+    <%= a.actions do %>
+        <%= a.action :submit %>
+    <% end %>
+
+<% end %>
+
+<h3>Entities</h3>
+<div class="paginated_collection">
+    <div class="paginated_collection_contents">
+      <div class="index_content">
+        <div class="index_as_table">
+          <table border="0" cellspacing="0" cellpadding="0" class="index_table index" paginator="true">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Project Name</th>
+                <th>Graph Name</th>
+                <th>Mode</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @entities.each do |e| %>
+                  <tr>
+                    <td><%= e[:type] %></td>
+                    <td><%= e[:project] %></td>
+                    <td><%= e[:graph_name] %></td>
+                    <td><%= e[:mode] %></td>
+                    <td><%= extension(e[:status]) %></td>
+                  </tr>
+              <% end %>
+             </tbody>
+           </table>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+
+
+
+
+

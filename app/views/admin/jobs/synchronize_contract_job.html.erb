@@ -1,0 +1,37 @@
+<%= semantic_form_for @job,:url => @edit ? admin_jobs_update_contract_sychnronization_path("job_id" => @job.id) : admin_jobs_create_contract_sychnronization_path,:validate => true do |a| %>
+
+    <%= a.inputs "Contract" do %>
+      <li><%= link_to @contract_name, admin_contract_path(@contract) %></li>
+    <% end %>
+
+    <%= a.inputs "Job Synchronize Contract" do %>
+        <%= a.input :job_type, :input_html => { :disabled => true , :value => "Contract Synchronization" } %>
+        <%= a.input :settings_server_id,  :as => :select2, :collection => SettingsServer.all %>
+        <%= a.input :key,  :as => :hidden, :input_html => { :value => @edit ? @type : params["type"] } %>
+        <%= a.input :contract, :as => :hidden, :input_html => { :value => @contract } %>
+    <% end %>
+
+    <%= a.inputs "Schedule" do %>
+        <%= a.input :recurrent,  :as => :radio, :collection => ["true", "false"] %>
+        <%= a.input :scheduled_at, :as => :just_datetime_picker, :input_html => { :value => {:combined_value => @job.scheduled_at,:date => @job.scheduled_at.to_date}} %>
+        <%= a.input :cron %>
+    <% end %>
+
+    <%= a.inputs "Parameters" do %>
+        <%= a.input :param_mode ,:as => :string , :label => "Mode" %>
+        <%= a.input :param_resource ,:as => :string , :label => "Resource" %>
+    <% end %>
+
+    <%= a.actions do %>
+        <%= a.action :submit %>
+    <% end %>
+
+<% end %>
+
+
+
+
+
+
+
+
