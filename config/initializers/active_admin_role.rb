@@ -1,7 +1,7 @@
 ActiveAdminRole.configure do |config|
   # [Required:Hash]
   # == Role | default: { guest: 0, support: 1, staff: 2, manager: 3, admin: 99 }
-  config.roles = { viewer: 0, muter: 2, power_user: 10, admin: 99 }
+  config.roles = { viewer: 10, services_user: 30, power_user: 50, admin: 99 }
 
   # [Optional:Array]
   # == Special roles which don't need to manage on database
