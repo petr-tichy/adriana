@@ -25,4 +25,14 @@ ActiveAdmin.register AdminUser do
     end
     f.actions
   end
+
+  show do |u|
+    table_for u do
+      column :email
+      column :role
+      column :current_sign_in_at
+      column :last_sign_in_at
+      column :sign_in_count
+    end
+  end
 end

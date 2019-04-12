@@ -7,6 +7,12 @@ ActiveAdmin.register Mute do
   config.clear_action_items!
   actions :all, :except => :destroy
 
+  before_create do |mute|
+    if current_active_admin_user.is_basic_user? && (mute.end - mute.start).abs > 24.hours
+      mute.end = mute.start + 24.hours
+    end
+  end
+
   filter :admin_user, :as => :select, :collection => AdminUser.all.order(:email).map { |x| [x.email, x.id] }
   filter :contract, :as => :select, :collection => Contract.with_direct_mutes.order(:name)
   filter :project, :as => :select, :collection => Project.with_direct_mutes.order(:name)
@@ -25,6 +31,13 @@ ActiveAdmin.register Mute do
   end
 
   form do |f|
+    # Displaying this to all users that can mute, but are not super-user or admin
+    if current_active_admin_user.is_basic_user?
+      panel 'Info' do
+        text_node 'Your role allows you to mute for <b>24 hours</b>. If you need more than that, please contact Petr Tichý or Richard Nagrant.'.html_safe
+      end
+    end
+    f.semantic_errors *f.object.errors.keys
     f.inputs 'Mute' do
       f.input :start, :as => :just_datetime_picker
       f.input :end, :as => :just_datetime_picker
@@ -72,7 +85,7 @@ ActiveAdmin.register Mute do
   end
 
   action_item :recreate, :if => proc { authorized? :create, Mute }, :only => :show do
-    link_to 'Recreate Mute', new_admin_mute_path(:reference_id => mute.reference_id, :reference_type => mute.reference_type, :reason => URI.escape(mute.reason)) if authorized? :create, Mute
+    link_to 'Recreate Mute', new_admin_mute_path(:reference_id => mute.reference_id, :reference_type => mute.reference_type, :reason => URI.escape(mute.reason)) if authorized?(:create, Mute)
   end
 
   member_action :disable, :if => proc { mute.now_in_range? }, :method => :get do

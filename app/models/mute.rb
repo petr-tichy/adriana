@@ -60,6 +60,8 @@ class Mute < ActiveRecord::Base
   def date_validation
     if self.end && self.start && self.end <= self.start
       errors.add(:base, 'End date must be after start date.')
+      return false
     end
+    true
   end
 end

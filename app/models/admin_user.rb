@@ -11,4 +11,8 @@ class AdminUser < ActiveRecord::Base
   def self.gd_technical_admin
     AdminUser.find_by_email('ms@gooddata.com')
   end
+
+  def is_basic_user?
+    !%w(admin power_user).include?(role.to_s)
+  end
 end
