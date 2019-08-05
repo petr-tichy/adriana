@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/NechiK/activeadmin-select2.git
+  remote: https://github.com/NechiK/activeadmin-select2.git
   revision: f1a10a6c0cda6ba393ab600d019d12337d310815
   specs:
     activeadmin-select2 (0.1.8)
