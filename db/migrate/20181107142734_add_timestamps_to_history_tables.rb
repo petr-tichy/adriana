@@ -1,5 +1,5 @@
 class AddTimestampsToHistoryTables < ActiveRecord::Migration[5.0]
-  TABLES = %i(contract_history customer_history project_history schedule_history job_history).freeze
+  TABLES = %i(contract_history customer_history project_history schedule_history).freeze
 
   def self.up
     TABLES.each do |t|
