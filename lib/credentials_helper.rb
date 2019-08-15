@@ -6,7 +6,7 @@ class CredentialsHelper
     def get(config_key)
       config_path = Rails.root.join('config', 'config.json')
       fail 'The file config/config.json doesn\'t exist.' unless File.exist?(config_path)
-      @config ||= JSON.load(config_path)
+      @config ||= JSON.parse(File.read(config_path), symbolize_names: true)
       @config[config_key].tap { |x| fail "The config doesn't contain the key #{config_key}." unless x }
     end
 
@@ -15,7 +15,7 @@ class CredentialsHelper
     end
 
     def load_resource_credentials(resource)
-      $log.info 'Loading resource from Password Manager'
+      $log.info "Loading resource from Password Manager for #{resource}"
       resource_array = resource.split('|')
       username = resource_array[1]
       begin
