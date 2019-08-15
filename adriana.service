@@ -1,0 +1,19 @@
+[Unit]
+Description=Adriana
+After=network.target
+After=postgresql-9.6.service
+
+[Service]
+Type=simple
+User=adriana
+RuntimeDirectory=adriana
+WorkingDirectory=/opt/gdc/gdc-adriana/root/usr/share/adriana
+Environment=RAILS_ENV=production
+EnvironmentFile=/opt/gdc/gdc-adriana/service-environment
+ExecStart=/usr/bin/scl enable $GDC_ADRIANA_SCLS_ENABLED -- bin/rails server --port 18080 --pid=/run/adriana/server.pid
+TimeoutSec=30
+RestartSec=15s
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
